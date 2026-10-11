@@ -55,12 +55,14 @@ const TYPES = {
   '.svg': 'image/svg+xml',
 };
 
-// The scripts features draw into the preview frame, in order, served from
-// their own directories, and nothing else from there.
+// The scripts features draw into the preview frame, in order, and those it
+// loads when it needs them, served from their own directories, and nothing
+// else from there.
 const FEATURES_DIR = fileURLToPath(new URL('../features/', import.meta.url));
-const FEATURE_SCRIPTS = new Map(FEATURES.flatMap((f) => [f.preview ?? []].flat()
-  .map((file) => [`/features/${path.relative(FEATURES_DIR, file).split(path.sep).join('/')}`, file])));
-const PREVIEW_SCRIPTS = [...FEATURE_SCRIPTS.keys()].map((src) => `<script src="${src}"></script>`).join('\n');
+const served = (key) => FEATURES.flatMap((f) => [f[key] ?? []].flat())
+  .map((file) => [`/features/${path.relative(FEATURES_DIR, file).split(path.sep).join('/')}`, file]);
+const FEATURE_SCRIPTS = new Map([...served('preview'), ...served('lazy')]);
+const PREVIEW_SCRIPTS = served('preview').map(([src]) => `<script src="${src}"></script>`).join('\n');
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 

@@ -1,0 +1,8 @@
+.mermaid { margin: 1rem 0; break-inside: avoid; }
+.mermaid.drawn > pre { display: none; }
+.mermaid svg { max-width: 100%; height: auto; }
+.mermaid.drawn.stale svg { opacity: 0.5; }
+.mermaid-error {
+  margin: 0.4rem 0 0; padding: 0; border: 0; background: none;
+  white-space: pre-wrap; font-size: 0.8rem; color: #b42318;
+}

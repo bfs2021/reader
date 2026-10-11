@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['node_modules/', 'static/vendor/'] },
+  { ignores: ['node_modules/', 'static/vendor/', 'features/*/vendor/'] },
   js.configs.recommended,
   {
     linterOptions: { reportUnusedDisableDirectives: 'error' },
@@ -26,13 +26,13 @@ export default [
   },
   // The app and what it imports are modules; the preview frame's scripts
   // (its own, the puzzles' and the features') are classic scripts sharing
-  // `window.Preview` and `window.Puzzles`.
+  // `window.Preview` and `window.Puzzles`, and Mermaid's `window.mermaid`.
   {
     files: ['static/app/*.js', 'static/edits.js'],
     languageOptions: { sourceType: 'module', globals: globals.browser },
   },
   {
     files: ['static/preview-api.js', 'static/preview.js', 'static/speaker.js', 'features/*/preview.js', 'features/puzzles/kinds/*.js'],
-    languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly' } },
+    languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly' } },
   },
 ];

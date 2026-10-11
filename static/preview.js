@@ -100,17 +100,19 @@
     window.parent.postMessage({ type: 'fit', measure, zoom: fitted.zoom, fits: fitted.fits, wrapped }, '*');
   }
 
-  // Images and fonts change a slide's size as they arrive. A measurement
-  // waits for them, a little while at most.
+  // Images, fonts and what features draw change a slide's size as they
+  // arrive. A measurement waits for them, a little while at most.
   const settled = () => Promise.race([
     Promise.all([
       document.fonts.ready,
+      ...Preview.pending(),
       ...[...document.images].filter((img) => !img.complete)
         .map((img) => new Promise((done) => { img.onload = img.onerror = done; })),
     ]),
     new Promise((done) => setTimeout(done, 2000)),
   ]);
   document.addEventListener('load', (e) => { if (Preview.deck && e.target.tagName === 'IMG') fit(); }, true);
+  window.addEventListener('preview:drawn', () => { if (Preview.deck) fit(); });
   window.addEventListener('resize', () => fit());
 
   // Scrolling in step with the editor, by the line of the file each block

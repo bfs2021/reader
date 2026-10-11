@@ -359,6 +359,20 @@ int main(void) {
 ```
 ````
 
+A `mermaid` fence is drawn as a [Mermaid](https://mermaid.js.org/) diagram:
+a flowchart, a sequence, a state machine, a timeline and so on. While you
+type, the diagram keeps its last good drawing until the text reads again,
+and says under it what's wrong. In a file opened anywhere else, the fence
+is still its source.
+
+````markdown
+```mermaid
+flowchart LR
+  draft --> review --> publish
+  review -->|changes| draft
+```
+````
+
 An image's size goes after its address as `=WxH`, in pixels, as in the
 markdown-it-imsize convention. Leave one side out to keep the image's
 proportions: `=100x` sets only the width, `=x200` only the height. A title
@@ -550,16 +564,16 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, read mode), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
-| `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register` |
+| `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |
 | `static/edits.js` | edits the preview asks for, checked against the lines they were drawn from |
 | `features/puzzles/` | puzzle fences: found and wrapped (`index.js`), drawn, played and posted back in the preview (`preview.js`) |
 | `features/puzzles/kinds/` | one file per kind of puzzle; a file here is a fence name |
 | `static/speaker.html` | the speaker view for a deck being presented |
 
-PDF.js is vendored in `static/vendor/`; its version and license are noted there.
+PDF.js is vendored in `static/vendor/`, and Mermaid in `features/mermaid/vendor/`; their versions and licenses are noted there.
