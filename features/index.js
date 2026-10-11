@@ -27,6 +27,7 @@ import sizes from './sizes/index.js';
 import alerts from './alerts/index.js';
 import attributions from './attributions/index.js';
 import styles from './styles/index.js';
+import date from './date/index.js';
 import scripture from './scripture/index.js';
 import scriptureLds from './scripture-lds/index.js';
 import search from './search/index.js';
@@ -40,5 +41,6 @@ import mermaid from './mermaid/index.js';
 // styles comes after qa and attributions: a `:::` block marks a line after
 // qa has made it a list item, and after an attribution's dash is marked, as
 // it does any other. highlight comes before puzzles, which wraps the fence
-// rule it finds, as mermaid does.
-export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, scripture, scriptureLds, search, math, arrows, emoji, highlight, mermaid, puzzles];
+// rule it finds, as mermaid does. date comes after fields and tasks, so the lines
+// they keep are as written, without its marks.
+export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, date, scripture, scriptureLds, search, math, arrows, emoji, highlight, mermaid, puzzles];

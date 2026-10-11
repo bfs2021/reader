@@ -100,6 +100,24 @@ query, so these two are the same search:
 | `search:[My Many Worded Term]` | My+Many+Worded+Term | My Many Worded Term |
 | `search:my+many+worded+term[My Many Worded Term]` | my+many+worded+term | My Many Worded Term |
 
+`date:` is a day, written year-month-day and read in words. Words in the
+brackets are shown instead, and with no day at all it is a blank to pick one
+into:
+
+| You write | Shows |
+| --- | --- |
+| `date:2026-11-10[]` | November 10, 2026 |
+| `date:2026-11-10[the deadline]` | the deadline |
+| `date:[]` | *pick a date* |
+
+Hover a date and a calendar shows its month, the day marked. Click the date
+(or press `Enter` on it) and the calendar stays open: `‹` and `›` go from
+month to month, and clicking a day writes it into the file in the date's
+place, saved like typing. The arrow keys move by a day or a week, `PageUp`
+and `PageDown` by a month, `Enter` picks, and `Esc` or a click elsewhere
+closes it. This works in read mode too, though not on a slide. A date that
+isn't one (`date:2026-02-30[]`) stays as typed.
+
 `->`, `<-` and `<->` show as →, ← and ↔. A backslash (`\->`) keeps them as
 typed.
 
@@ -564,7 +582,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, read mode), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
