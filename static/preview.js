@@ -217,11 +217,12 @@
       // What features and puzzles were in the middle of carries over.
       Preview.replace(document.body, () => {
         document.body.innerHTML = m.body;
-        ink();
         // Steps to come are hidden before anything measures the page (a
-        // puzzle drawing itself, the fit below): a step first seen showing
-        // would fade out, flashing on screen as it went.
+        // puzzle drawing itself, the background's color being read, the
+        // fit below): a step first seen showing would fade out, flashing
+        // on screen as it went.
         if (m.reveal != null) hideLater(m.reveal);
+        ink();
       });
       hidePeek();
       Preview.deck = Boolean(m.deck);
