@@ -391,6 +391,32 @@ flowchart LR
 ```
 ````
 
+A `headline` fence is set like a clipping from the paper it ran in: the
+paper's name, the headline, and who wrote it and when.
+
+````markdown
+```headline
+Sam Altman Says "Code Is Free," Then Hires 400 Engineers
+
+The company says the two facts are unrelated.
+agency: The New York Times
+by: A. Reporter
+date: October 3, 2026
+url: https://www.nytimes.com/2026/10/03/the-story.html
+```
+````
+
+- The text is the headline, as you'd write it, quotes, commas and all. A
+  second paragraph is the line under it.
+- `agency:`, `by:`, `date:` and `url:` lines, anywhere in the fence, say
+  the rest; all are optional. The headline links to the `url`.
+- The New York Times, The Atlantic, The Guardian, WIRED and Slashdot are
+  each set in something like their own type and colors, from fonts your
+  machine has (for the Times's nameplate, install
+  [Chomsky](https://github.com/ctrlcctrlv/chomsky)). A paper is known by its `agency:` or, without one, by where
+  the `url:` points. Any other paper gets a plain clipping.
+- Alone on a slide under its title, a headline is centered.
+
 An image's size goes after its address as `=WxH`, in pixels, as in the
 markdown-it-imsize convention. Leave one side out to keep the image's
 proportions: `=100x` sets only the width, `=x200` only the height. A title
@@ -448,7 +474,7 @@ keep their space, so the slide doesn't shift as they appear.
 A slide's opening heading is its **title**, and stays at the top. The rest
 sits in the **middle** of the space under it, top to bottom. A slide that is
 all headings, a title slide, is centered whole, and so is one with no
-opening heading. A quote, an image or a `math:[…]` line that is the only
+opening heading. A quote, an image, a headline or a `math:[…]` line that is the only
 thing on a slide besides its title is centered across the slide too, and an
 image there is kept to about two thirds of the slide's height.
 
@@ -617,7 +643,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |

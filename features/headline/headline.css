@@ -1,0 +1,92 @@
+/* a headline, as a clipping from its paper: its own paper and ink, whatever
+ * the page behind it. Only fonts a machine may already have; each look
+ * falls back to the page's own serif or sans. */
+.headline {
+  --gm-ink: #121212; --gm-ink-soft: #5a5a5a; --gm-rule: #d9d6d0; --gm-accent: #7a8ba3;
+  max-width: 30em; margin: 1rem 0; padding: 1.1em 1.4em 1.2em;
+  background: #fdfcf9; color: var(--gm-ink);
+  border: 0.75px solid var(--gm-rule);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .10);
+  break-inside: avoid;
+}
+.headline p { margin: 0; }
+.headline a { color: inherit; text-decoration: none; }
+.headline a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+.headline-agency {
+  font-family: var(--gm-serif); font-variant: small-caps; letter-spacing: 0.08em; font-size: 0.95em;
+  padding-bottom: 0.45em; margin-bottom: 0.7em !important;
+  border-bottom: 3px double var(--gm-ink);
+}
+.headline-title { font-family: var(--gm-serif); font-weight: 700; font-size: 2em; line-height: 1.1; letter-spacing: -0.01em; text-wrap: balance; }
+.headline-deck { font-family: var(--gm-serif); font-size: 1.05em; line-height: 1.35; color: var(--gm-ink-soft); margin-top: 0.55em !important; }
+.headline-dateline {
+  font-family: var(--gm-sans); font-size: 0.7em; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--gm-ink-soft); margin-top: 0.9em !important;
+}
+
+/* The New York Times: a blackletter nameplate (Chomsky, when it's
+ * installed), centered over a fine rule; the headline in a bookish bold
+ * italic. */
+.headline-nyt .headline-agency {
+  font-family: Chomsky, "Old English Text MT", "Engravers Old English", "Luminari", var(--gm-serif);
+  font-variant: normal; letter-spacing: 0; font-size: 1.7em; line-height: 1.2; text-align: center;
+  border-bottom: 0.75px solid var(--gm-ink); box-shadow: 0 3px 0 -2.25px var(--gm-ink);
+}
+.headline-nyt .headline-title { font-family: "Cheltenham", Georgia, "Times New Roman", serif; font-style: italic; }
+.headline-nyt .headline-deck { font-family: Georgia, "Times New Roman", serif; }
+
+/* The Atlantic: a high-contrast italic nameplate, a light, large headline,
+ * and its red. */
+.headline-atlantic { background: #fff; border-top: 4px solid #e7131a; }
+.headline-atlantic .headline-agency {
+  font-family: Didot, "Bodoni 72", "Bodoni MT", "Playfair Display", var(--gm-serif);
+  font-variant: normal; font-style: italic; font-weight: 700; letter-spacing: 0; font-size: 1.35em;
+  border-bottom: 0;
+}
+.headline-atlantic .headline-title {
+  font-family: Didot, "Bodoni 72", "Bodoni MT", "Playfair Display", var(--gm-serif);
+  font-weight: 400; font-size: 2.2em; line-height: 1.08;
+}
+.headline-atlantic .headline-dateline { color: #e7131a; }
+
+/* The Guardian: its dark blue over a rule, and a medium-weight headline. */
+.headline-guardian { background: #fff; border-top: 4px solid #052962; }
+.headline-guardian .headline-agency {
+  font-family: Georgia, "Times New Roman", var(--gm-serif);
+  font-variant: normal; font-weight: 700; letter-spacing: -0.02em; font-size: 1.35em; color: #052962;
+  border-bottom: 0.75px solid #dcdcdc;
+}
+.headline-guardian .headline-title { font-family: Georgia, "Times New Roman", var(--gm-serif); font-weight: 500; line-height: 1.15; }
+.headline-guardian .headline-dateline { text-transform: none; letter-spacing: 0; font-size: 0.75em; }
+
+/* WIRED: a boxed, spaced nameplate, and a heavy tight sans. */
+.headline-wired { background: #fff; }
+.headline-wired .headline-agency {
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--gm-sans);
+  font-variant: normal; text-transform: uppercase; font-weight: 800; letter-spacing: 0.32em; font-size: 0.8em;
+  display: inline-block; padding: 0.3em 0.35em 0.3em 0.65em; margin-bottom: 0.9em !important;
+  background: var(--gm-ink); color: #fff; border-bottom: 0;
+}
+.headline-wired .headline-title {
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--gm-sans);
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;
+}
+.headline-wired .headline-deck { font-family: var(--gm-sans); }
+.headline-wired .headline-dateline { font-family: var(--gm-mono); }
+
+/* Slashdot: the story's title in its green bar. */
+.headline-slashdot { background: #fff; padding: 0 0 0.9em; border-color: #016765; }
+.headline-slashdot .headline-agency {
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--gm-sans);
+  font-variant: normal; font-style: italic; font-weight: 800; letter-spacing: -0.02em; font-size: 0.95em;
+  padding: 0.5em 1em 0; margin-bottom: 0 !important;
+  background: #016765; color: #fff; border-bottom: 0;
+}
+.headline-slashdot .headline-agency::after { content: " /."; opacity: 0.7; }
+.headline-slashdot .headline-title {
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--gm-sans);
+  font-size: 1.45em; line-height: 1.2; letter-spacing: 0;
+  padding: 0.3em 0.7em 0.55em; background: #016765; color: #fff;
+}
+.headline-slashdot .headline-deck { font-family: var(--gm-sans); padding: 0 1em; }
+.headline-slashdot .headline-dateline { text-transform: none; letter-spacing: 0; font-size: 0.75em; padding: 0 1.35em; }

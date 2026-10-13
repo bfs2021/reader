@@ -37,10 +37,11 @@ import emoji from './emoji/index.js';
 import puzzles from './puzzles/index.js';
 import highlight from './highlight/index.js';
 import mermaid from './mermaid/index.js';
+import headline from './headline/index.js';
 
 // styles comes after qa and attributions: a `:::` block marks a line after
 // qa has made it a list item, and after an attribution's dash is marked, as
 // it does any other. highlight comes before puzzles, which wraps the fence
-// rule it finds, as mermaid does. date comes after fields and tasks, so the lines
+// rule it finds, as mermaid and headline do. date comes after fields and tasks, so the lines
 // they keep are as written, without its marks.
-export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, date, scripture, scriptureLds, search, math, arrows, emoji, highlight, mermaid, puzzles];
+export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, date, scripture, scriptureLds, search, math, arrows, emoji, highlight, mermaid, headline, puzzles];
