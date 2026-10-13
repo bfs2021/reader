@@ -11,6 +11,7 @@ import path from 'node:path';
 import MarkdownIt from 'markdown-it';
 import { columns } from './columns.js';
 import { readBackground, backdrop, CSS as BACKGROUND_CSS } from './background.js';
+import { fontCss } from './fonts.js';
 import { FEATURES } from '../features/index.js';
 
 // Features that read the file as written (and asides) go before this file's
@@ -37,8 +38,10 @@ md.core.ruler.push('reader_lines', (state) => {
  * it was drawn from, `data-line`, for scrolling in step with the editor.
  * `background` is what's behind the page (see background.js) when it isn't
  * the front matter's to say: a slide's own, or its deck's, or null for none.
+ * `fonts` is likewise the front matter that names the fonts (see fonts.js):
+ * a slide's deck's.
  */
-export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background } = {}) {
+export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts } = {}) {
   const text = src || '';
   const env = { lineBase: line, file, read, shared, asideKey, lines };
   const tokens = md.parse(text, env);
@@ -55,7 +58,8 @@ export function render(src, { file, read, line = 0, shared = {}, asideKey, lines
   const body = FEATURES.reduce((html, f) => (f.html ? f.html(html) : html), figures(page.body.trim()));
   const behind = backdrop(background === undefined ? readBackground(meta.background) : background);
   return {
-    css: [page.css.trim(), CSS, BACKGROUND_CSS, ...FEATURES.map((f) => f.css).filter(Boolean)].join('\n'),
+    // The document's fonts last, over the theme's and under a `:::` block's own.
+    css: [page.css.trim(), CSS, BACKGROUND_CSS, ...FEATURES.map((f) => f.css).filter(Boolean), fontCss(fonts ?? meta)].filter(Boolean).join('\n'),
     body: behind + body,
     asides: asides.length,
   };

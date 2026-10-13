@@ -181,7 +181,7 @@ function apply(token, names) {
 
 // Generic families are written as CSS spells them; any other name is a font,
 // its hyphens standing in for spaces.
-const GENERIC = new Set([
+export const GENERIC = new Set([
   'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'math', 'emoji',
   'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
 ]);

@@ -567,6 +567,25 @@ The Spolsky gloss is yours, not Kirsch's.
   read: "1.5 min." is the speaker's to keep to.
 - `at:` and `time:` lines aren't shown with the notes; a clock line is.
 
+**Fonts.** `font:` in the front matter is the font the document is set in,
+and `title-font:` the font of its headings, when they're to differ:
+
+```markdown
+---
+font: avenir-next
+title-font: playfair-display georgia
+---
+```
+
+- A font is named as in a `{…}` style: hyphens for its spaces, in any case.
+  reader loads no fonts, so it has to be installed. Give more than one and
+  they're tried in order; the page's own serif comes last.
+- `font:` alone sets the headings too. `title-font:` sets every heading: the
+  page's title, a slide's, and the ones under them.
+- Asides, captions and code keep their own faces, and text styled with
+  `{…}` or a `:::` block keeps the font it names.
+- Both work in any document, and in a deck they set every slide.
+
 **Backgrounds.** `background:` in the front matter is what's behind the
 page: a color, an image, or both, in either order. In a deck it's behind
 every slide, and a slide says otherwise with the same line in its notes:
@@ -662,6 +681,7 @@ $ npm run lint
 | `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
+| `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, read mode), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |

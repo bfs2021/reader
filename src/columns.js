@@ -123,7 +123,7 @@ function masthead(meta, docTitle, legendHtml = '') {
     if (tags) bits.push(tags);
   }
   const extras = Object.entries(meta)
-    .filter(([k]) => !['title', 'author', 'date', 'tags', 'speaker', 'listener', 'background'].includes(k))
+    .filter(([k]) => !['title', 'author', 'date', 'tags', 'speaker', 'listener', 'background', 'font', 'title-font'].includes(k))
     .map(([k, v]) => `<span>${escapeHtml(k)}: ${escapeHtml(v)}</span>`);
   bits.push(...extras);
 
