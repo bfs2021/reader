@@ -233,6 +233,45 @@ until the closing line.
 :::
 ```
 
+A `:::` block named `columns` sets what's in it **side by side**, each
+block a column, all the same width:
+
+````markdown
+::: columns
+```number
+15%
+daily code change
+```
+
+```number
+26%
+weekly code change
+```
+:::
+````
+
+- Any block can be a column: a paragraph, a list, an image, a quote, a
+  fence.
+- For a column of more than one block, put a `+++` line between the
+  columns. Then only those lines start one:
+
+  ```markdown
+  ::: columns
+  ### Before
+  * slow
+  * manual
+  +++
+  ### After
+  * fast
+  * automatic
+  :::
+  ```
+- The other names on the line are styles for everything in it, as on any
+  `:::` block: `::: columns slategray avenir-next`.
+- Blocks nest: a style block in a column, or columns in a column.
+- An aside written in a columns block, or right after it, sits beside all
+  of it.
+
 A few GitHub conventions show as they do there:
 
 - **Callouts.** A blockquote that opens with `[!NOTE]`, `[!TIP]`,
@@ -433,6 +472,22 @@ url: https://www.nytimes.com/2026/10/03/the-story.html
   the `url:` points. Any other paper gets a plain clipping.
 - Alone on a slide under its title, a headline is centered.
 
+A `number` fence is a figure worth a box of its own: the number, big, and
+a line under it saying what it counts.
+
+````markdown
+```number
+15%
+daily code change
+```
+````
+
+- The first line is the number; the rest is the line under it, which is
+  optional. Both are prose, so `[15%]{seagreen}` colors the number.
+- A long number is set smaller, to stay on one line in its box.
+- Alone on a slide under its title, a number is centered. For several in a
+  row, put them in a `::: columns` block; the boxes come out the same size.
+
 An image's size goes after its address as `=WxH`, in pixels, as in the
 markdown-it-imsize convention. Leave one side out to keep the image's
 proportions: `=100x` sets only the width, `=x200` only the height. A title
@@ -482,15 +537,15 @@ paging: Slide %d / %d
   while you present (say you fix a typo in vim), the deck reloads in place.
 
 A slide comes in **one step at a time**. Each paragraph, quote, code block,
-table or image is a step, and so is each list item, nested ones included, in
-reading order. A slide's opening heading isn't a step: it shows with the
+table or image is a step, and so is each list item, nested ones included,
+and each column of a `::: columns` block, in reading order. A slide's opening heading isn't a step: it shows with the
 slide. An aside shows with the passage it sits beside. Steps not yet shown
 keep their space, so the slide doesn't shift as they appear.
 
 A slide's opening heading is its **title**, and stays at the top. The rest
 sits in the **middle** of the space under it, top to bottom. A slide that is
 all headings, a title slide, is centered whole, and so is one with no
-opening heading. A quote, an image, a headline or a `math:[…]` line that is the only
+opening heading. A quote, an image, a headline, a number or a `math:[…]` line that is the only
 thing on a slide besides its title is centered across the slide too, and an
 image there is kept to about two thirds of the slide's height.
 
@@ -678,7 +733,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |

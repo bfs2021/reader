@@ -211,8 +211,8 @@ const CSS = `
 :root .slide-body { flex: 1; display: flex; flex-direction: column; justify-content: safe center; }
 :root .slide-title > * { margin-top: 0; }
 :root .slide-title h3, :root .slide-title h4 { font-size: 1.4rem; }
-/* one quote, image, headline or line of math alone on a slide: centered across it too */
-:root .gm-pair:only-of-type > .gm-speaker > :only-child:is(figure, blockquote:not(.alert), .headline) {
+/* one quote, image, headline, number or line of math alone on a slide: centered across it too */
+:root .gm-pair:only-of-type > .gm-speaker > :only-child:is(figure, blockquote:not(.alert), .headline, .number) {
   width: fit-content; max-width: min(100%, 34em); margin-left: auto; margin-right: auto;
 }
 :root .gm-pair:only-of-type > .gm-speaker > figure:only-child { max-width: 100%; }

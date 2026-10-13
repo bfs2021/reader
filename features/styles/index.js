@@ -16,10 +16,15 @@
  * heading, list item or cell that line belongs to. Once parsed, the markers
  * come out and that block takes the styles. Blocks nest; the innermost's
  * font leads and its color wins.
+ *
+ * `columns` is not a style but a layout: a block named it has its fences,
+ * and the `+++` lines in it, left as the columns feature's marks
+ * (features/columns), and any other names on it are its styles.
  */
 
 import fs from 'node:fs';
 import { beforeAsides } from '../source.js';
+import { OPEN as COLUMNS, DIVIDER, CLOSE as COLUMNS_END } from '../columns/marks.js';
 
 const DIV = /^[ \t]{0,3}:::(?:[ \t]+([\w-]+(?:[ \t]+[\w-]+)*))?[ \t]*$/;
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
@@ -33,6 +38,9 @@ const PREFIX = /^[ \t]*(?:~[^\s~]+[ \t]+|[>~][ \t]*)*(?:(?:[-*+]|\d{1,9}[.)])[ \
 const RULE = /^[ \t]*([-*_=])(?:[ \t]*\1)*[ \t]*$/;
 const DELIMITER_ROW = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
 const REFERENCE_DEF = /^[ \t]{0,3}\[[^\]]+\]:/;
+// What sets a block's columns apart, and the name that makes it one.
+const PLUS = /^[ \t]{0,3}\+{3,}[ \t]*$/;
+const LAYOUT = 'columns';
 
 export function styles(md) {
   beforeAsides(md, 'style_lines', lines);
@@ -61,14 +69,21 @@ function lines(state) {
     }
     const div = DIV.exec(line);
     if (div) {
-      // The fence lines themselves read as blank, keeping the line count.
-      if (div[1]) open.push(div[1].trim().split(/\s+/));
-      else if (open.length) open.pop();
-      else return line;
-      return '';
+      // The fence lines themselves read as blank, keeping the line count; a
+      // `columns` block's are left for the columns feature to find.
+      if (div[1]) {
+        const names = div[1].trim().split(/\s+/);
+        const columns = names.some((n) => n.toLowerCase() === LAYOUT);
+        open.push({ names: names.filter((n) => n.toLowerCase() !== LAYOUT), columns });
+        return columns ? COLUMNS : '';
+      }
+      if (open.length) return open.pop().columns ? COLUMNS_END : '';
+      return line;
     }
+    if (PLUS.test(line) && open.some((o) => o.columns)) return DIVIDER;
     // Innermost first, so its font leads and its color wins.
-    return open.length ? mark(line, [...open].reverse().flat().join(' ')) : line;
+    const names = open.flatMap((o) => o.names.length ? [o.names] : []).reverse().flat().join(' ');
+    return names ? mark(line, names) : line;
   }).join('\n');
 }
 

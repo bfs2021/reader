@@ -19,7 +19,7 @@ import { findScreens, roomScreen, speakerFeatures, placeSpeaker } from './screen
 // (speaker.html) that follows along over a BroadcastChannel and can drive.
 //
 // A slide shows one step at a time: each block (paragraph, quote, code,
-// table, ...) and each list item is a step, in reading order, and a fence
+// table, ...), each list item and each column is a step, in reading order, and a fence
 // written `{1-3|5}` takes a step more for each range after its first. A
 // slide's opening heading is not a step; it shows with the slide. `n` and
 // `p` undo each other exactly, a step at a time, crossing slides at either
@@ -101,6 +101,7 @@ export function steps(body) {
       if (opening && HEADING.test(block.tagName)) { opening = false; continue; }
       opening = false;
       if (block.matches(LIST)) for (const li of block.querySelectorAll('li')) n = step(li, n);
+      else if (block.matches('.columns')) for (const column of block.querySelectorAll(':scope > .column')) n = step(column, n);
       else n = step(block, n);
     }
     if (n === before) continue;

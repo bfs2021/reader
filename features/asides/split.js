@@ -59,7 +59,8 @@ const CONTAINERS = new Set([
 
 function lastBlockBefore(tokens, anchor) {
   let found = null;
-  for (const t of tokens) {
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
     if (!t.map || t.nesting < 0) continue;
     if (t.map[0] >= anchor) break;
     // Containers (lists, items, quotes) hold content but are not themselves the
@@ -67,8 +68,21 @@ function lastBlockBefore(tokens, anchor) {
     // payload of a block that already counted, so it is skipped too.
     if (CONTAINERS.has(t.type) || t.type === 'inline') continue;
     found = t;
+    // What's laid out as one thing (columns) is one block, however much is
+    // in it: an aside is beside all of it, and never cuts it.
+    if (t.meta?.whole && t.nesting === 1) i = closeOf(tokens, i);
   }
   return found;
+}
+
+/** The index of the token that closes the one opened at `i`. */
+function closeOf(tokens, i) {
+  let depth = 0;
+  for (let k = i; k < tokens.length; k++) {
+    depth += tokens[k].nesting;
+    if (!depth) return k;
+  }
+  return tokens.length - 1;
 }
 
 /** Index of the first token that starts at or after source line `line`. */
