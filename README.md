@@ -100,6 +100,22 @@ query, so these two are the same search:
 | `search:[My Many Worded Term]` | My+Many+Worded+Term | My Many Worded Term |
 | `search:my+many+worded+term[My Many Worded Term]` | my+many+worded+term | My Many Worded Term |
 
+`linkedin:`, `bluesky:`, `gh:`, `fb:`, `insta:` and `yt:` say where to
+find someone: a link to that profile, with the site's mark before it. Words
+in the brackets are shown instead of the address.
+
+| You write | Links to | Shows |
+| --- | --- | --- |
+| `linkedin:jzheaux[]` | `linkedin.com/in/jzheaux` | linkedin.com/in/jzheaux |
+| `linkedin:company/vmware[]` | `linkedin.com/company/vmware` | linkedin.com/company/vmware |
+| `bluesky:jzheaux[]` | `bsky.app/profile/jzheaux.bsky.social` | @jzheaux.bsky.social |
+| `bluesky:jzheaux.dev[]` | `bsky.app/profile/jzheaux.dev` | @jzheaux.dev |
+| `gh:jzheaux[]` | `github.com/jzheaux` | github.com/jzheaux |
+| `fb:jzheaux[]` | `facebook.com/jzheaux` | facebook.com/jzheaux |
+| `insta:jzheaux[]` | `instagram.com/jzheaux` | @jzheaux |
+| `yt:jzheaux[]` | `youtube.com/@jzheaux` | @jzheaux |
+| `gh:jzheaux[my GitHub]` | `github.com/jzheaux` | my GitHub |
+
 `date:` is a day, written year-month-day and read in words. Words in the
 brackets are shown instead, and with no day at all it is a blank to pick one
 into:
@@ -643,7 +659,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
@@ -656,4 +672,4 @@ $ npm run lint
 | `features/puzzles/kinds/` | one file per kind of puzzle; a file here is a fence name |
 | `static/speaker.html` | the speaker view for a deck being presented |
 
-PDF.js is vendored in `static/vendor/`, and Mermaid in `features/mermaid/vendor/`; their versions and licenses are noted there.
+PDF.js is vendored in `static/vendor/`, Mermaid in `features/mermaid/vendor/`, and the sites' marks in `features/social/icons/`; their versions and licenses are noted there.

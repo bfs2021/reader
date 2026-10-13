@@ -1,0 +1,13 @@
+/* a link to a profile, the site's mark before it (index.js adds each
+ * site's mark and color). The mark and the name stay on one line. */
+a.social { color: inherit; white-space: nowrap; text-decoration-color: var(--gm-accent); }
+a.social::before {
+  content: "";
+  display: inline-block;
+  width: 1em; height: 1em;
+  margin-right: 0.35em;
+  vertical-align: -0.14em;
+  background-color: currentColor;
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+}

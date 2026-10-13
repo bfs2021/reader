@@ -31,6 +31,7 @@ import date from './date/index.js';
 import scripture from './scripture/index.js';
 import scriptureLds from './scripture-lds/index.js';
 import search from './search/index.js';
+import social from './social/index.js';
 import arrows from './arrows/index.js';
 import math from './math/index.js';
 import emoji from './emoji/index.js';
@@ -44,4 +45,4 @@ import headline from './headline/index.js';
 // it does any other. highlight comes before puzzles, which wraps the fence
 // rule it finds, as mermaid and headline do. date comes after fields and tasks, so the lines
 // they keep are as written, without its marks.
-export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, date, scripture, scriptureLds, search, math, arrows, emoji, highlight, mermaid, headline, puzzles];
+export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, date, scripture, scriptureLds, search, social, math, arrows, emoji, highlight, mermaid, headline, puzzles];

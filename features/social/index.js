@@ -1,0 +1,103 @@
+/**
+ * Where to find someone: `linkedin:jzheaux[]` links to that profile, with
+ * the site's mark beside it.
+ *
+ *   linkedin:jzheaux[]     linkedin.com/in/jzheaux
+ *   bluesky:jzheaux[]      @jzheaux.bsky.social
+ *   gh:jzheaux[]           github.com/jzheaux
+ *   fb:jzheaux[]           facebook.com/jzheaux
+ *   insta:jzheaux[]        @jzheaux
+ *   yt:jzheaux[]           @jzheaux
+ *
+ * It shows as the site would write it, on the right above, unless the
+ * brackets say otherwise: `gh:jzheaux[my GitHub]`. A Bluesky handle with a
+ * dot in it is a whole one (`bluesky:jzheaux.dev[]`); a LinkedIn name with a
+ * slash is another kind of page (`linkedin:company/vmware[]`).
+ *
+ * The marks are in icons/, and go into the stylesheet as masks, so each is
+ * drawn in its site's color.
+ */
+
+import fs from 'node:fs';
+import { schemeLinks } from '../scheme.js';
+
+const bare = (name) => name.replace(/^@/, '');
+
+// scheme -> the site: its icon in icons/, its color (none: the text's own),
+// and the address and the words for a name there.
+const SITES = {
+  linkedin: {
+    icon: 'linkedin',
+    color: '#0a66c2',
+    at: (name) => {
+      const page = name.includes('/') ? name : `in/${name}`;
+      return { href: `https://www.linkedin.com/${page}`, label: `linkedin.com/${page}` };
+    },
+  },
+  bluesky: {
+    icon: 'bluesky',
+    color: '#0285ff',
+    at: (name) => {
+      const handle = name.includes('.') ? name : `${name}.bsky.social`;
+      return { href: `https://bsky.app/profile/${handle}`, label: `@${handle}` };
+    },
+  },
+  gh: {
+    icon: 'github',
+    at: (name) => ({ href: `https://github.com/${name}`, label: `github.com/${name}` }),
+  },
+  fb: {
+    icon: 'facebook',
+    color: '#0866ff',
+    at: (name) => ({ href: `https://www.facebook.com/${name}`, label: `facebook.com/${name}` }),
+  },
+  insta: {
+    icon: 'instagram',
+    color: '#e4405f',
+    at: (name) => ({ href: `https://www.instagram.com/${name}`, label: `@${name}` }),
+  },
+  yt: {
+    icon: 'youtube',
+    color: '#ff0000',
+    at: (name) => ({ href: `https://www.youtube.com/@${name}`, label: `@${name}` }),
+  },
+};
+
+/** `linkedin`, `jzheaux`, `` -> `{ href, label }`, or null without a name. */
+export function socialLink(scheme, path, label) {
+  const name = bare(path).replace(/^\/+|\/+$/g, '');
+  if (!name || !SITES[scheme]) return null;
+  const found = SITES[scheme].at(name);
+  return { href: found.href, label: label.trim() || found.label };
+}
+
+export function social(md) {
+  for (const scheme of Object.keys(SITES)) {
+    schemeLinks(md, {
+      name: `social_${scheme}`,
+      scheme,
+      path: /[\w.@/-]*/,
+      link: (path, label) => {
+        const found = socialLink(scheme, path, label);
+        return found && { ...found, attrs: [['class', `social social-${scheme}`]] };
+      },
+    });
+  }
+}
+
+/** An icon's file as a CSS `url()`, without its title. */
+function mask(icon) {
+  const svg = fs.readFileSync(new URL(`./icons/${icon}.svg`, import.meta.url), 'utf8')
+    .replace(/<title>.*?<\/title>/, '').replace(/ role="img"/, '').trim();
+  return `url("data:image/svg+xml,${encodeURIComponent(svg).replace(/%20/g, ' ').replace(/%2F/g, '/').replace(/%3D/g, '=').replace(/%3A/g, ':')}")`;
+}
+
+const CSS = `${fs.readFileSync(new URL('./social.css', import.meta.url), 'utf8')}${
+  Object.entries(SITES).map(([scheme, { icon, color }]) =>
+    `a.social-${scheme}::before { --mark: ${mask(icon)};${color ? ` background-color: ${color};` : ''} }`).join('\n')}\n`;
+
+export default {
+  name: 'social',
+  plugin: social,
+  css: CSS,
+};
