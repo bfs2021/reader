@@ -10,6 +10,7 @@
 import path from 'node:path';
 import MarkdownIt from 'markdown-it';
 import { columns } from './columns.js';
+import { readBackground, backdrop, CSS as BACKGROUND_CSS } from './background.js';
 import { FEATURES } from '../features/index.js';
 
 // Features that read the file as written (and asides) go before this file's
@@ -34,8 +35,10 @@ md.core.ruler.push('reader_lines', (state) => {
  * aliases its asides may use when `src` doesn't declare its own (a deck's,
  * for one slide of it). `lines` marks each block with the line of the file
  * it was drawn from, `data-line`, for scrolling in step with the editor.
+ * `background` is what's behind the page (see background.js) when it isn't
+ * the front matter's to say: a slide's own, or its deck's, or null for none.
  */
-export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false } = {}) {
+export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background } = {}) {
   const text = src || '';
   const env = { lineBase: line, file, read, shared, asideKey, lines };
   const tokens = md.parse(text, env);
@@ -50,9 +53,10 @@ export function render(src, { file, read, line = 0, shared = {}, asideKey, lines
   const page = columns(md, tokens, env, { headings, title });
   // Then each feature's pass over the finished page, if it has one.
   const body = FEATURES.reduce((html, f) => (f.html ? f.html(html) : html), figures(page.body.trim()));
+  const behind = backdrop(background === undefined ? readBackground(meta.background) : background);
   return {
-    css: [page.css.trim(), CSS, ...FEATURES.map((f) => f.css).filter(Boolean)].join('\n'),
-    body,
+    css: [page.css.trim(), CSS, BACKGROUND_CSS, ...FEATURES.map((f) => f.css).filter(Boolean)].join('\n'),
+    body: behind + body,
     asides: asides.length,
   };
 }

@@ -186,7 +186,7 @@ const GENERIC = new Set([
   'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
 ]);
 
-const COLORS = new Set(`
+export const COLORS = new Set(`
   aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown
   burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan
   darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid

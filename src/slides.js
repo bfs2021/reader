@@ -5,11 +5,13 @@
  *
  *   ---                      optional front matter (author, date, paging, ...)
  *   author: Josh
+ *   background: paper.jpg    behind every slide (background.js)
  *   ---
  *
  *   # First slide
  *
  *   <!-- speaker notes -->
+ *   <!-- background: navy -->    behind this slide instead
  *
  *   ---
  *
@@ -17,15 +19,21 @@
  *
  * A line that is exactly `---` ends a slide, unless it is inside a code fence.
  * HTML comments are lifted out of a slide as its speaker notes: `slides`
- * sanitizes them away, so they never show in the terminal either.
+ * sanitizes them away, so they never show in the terminal either. That
+ * makes the notes the place for what reader is told about one slide: a
+ * `key: value` line there is read and taken out of the notes shown (its
+ * `background:` here, its `at:` and `time:` in pacing.js).
  */
 
 import path from 'node:path';
 import { render, renderNotes } from './render.js';
 import { readNotes, plan, planEnd, duration } from './pacing.js';
+import { readBackground, liftBackground } from './background.js';
 import { readEntry, makeKey } from '../features/asides/key.js';
 
 const SEPARATOR = /^---[ \t]*$/;
+// Front matter may be fenced with more dashes (`-----`), as a document's may.
+const MATTER = /^-{3,}[ \t]*$/;
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 const META = /^[ \t]*[\w-]+(?:[ \t]+\S)?[ \t]*:/;
 const NOTE = /<!--([\s\S]*?)-->/g;
@@ -42,11 +50,13 @@ export function slides(src, { file, read } = {}) {
   const out = [];
   // Kept by features across the slides, to number things through the deck.
   const shared = {};
+  const behind = readBackground(meta.background);
   for (const { text, line } of chunks) {
     const lifted = lift(text);
     if (!lifted.body.trim() && !lifted.notes) continue;
-    const { notes, at, budget } = readNotes(lifted.notes);
-    const r = render(lifted.body, { file, read, line, shared, asideKey: key });
+    const own = liftBackground(lifted.notes);
+    const { notes, at, budget } = readNotes(own.notes);
+    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind });
     css ||= `${r.css}\n${CSS}`;
     out.push({ body: unmast(r.body), notes, notesHtml: renderNotes(notes), line, at, budget });
   }
@@ -68,8 +78,8 @@ export function split(src) {
   const meta = {};
   const entries = [];
   let i = 0;
-  if (SEPARATOR.test(lines[0] ?? '')) {
-    const end = lines.findIndex((l, n) => n > 0 && SEPARATOR.test(l));
+  if (MATTER.test(lines[0] ?? '')) {
+    const end = lines.findIndex((l, n) => n > 0 && MATTER.test(l));
     const inner = end > 0 ? lines.slice(1, end) : [];
     if (end > 0 && inner.every((l) => !l.trim() || META.test(l))) {
       for (const l of inner) {

@@ -518,6 +518,34 @@ The Spolsky gloss is yours, not Kirsch's.
   read: "1.5 min." is the speaker's to keep to.
 - `at:` and `time:` lines aren't shown with the notes; a clock line is.
 
+**Backgrounds.** `background:` in the front matter is what's behind the
+page: a color, an image, or both, in either order. In a deck it's behind
+every slide, and a slide says otherwise with the same line in its notes:
+
+```markdown
+---
+background: images/paper.jpg
+---
+
+# Every slide is on paper
+
+---
+
+# Except the point you came to make
+
+<!-- background: midnightblue -->
+```
+
+- A color is a CSS color name or a `#hex`. On a dark one the text turns
+  light.
+- An image is a path from the note, or a URL, ending in `.png`, `.jpg`,
+  `.gif`, `.webp`, `.svg` or `.avif`. It covers the page. reader can't see
+  whether an image is dark, so say so with a color, which also shows while
+  the image loads: `background: images/stars.jpg black`.
+- `background: none` in a slide's notes leaves that slide plain.
+- A `background:` line isn't shown with the notes, unless it doesn't read
+  as a background.
+
 
 - Writes to disk about a second after you stop typing, and immediately on `⌘S`.
 - Writes are atomic (temp file, then rename).
@@ -585,6 +613,7 @@ $ npm run lint
 | `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `date`, `scripture`, `scripture-lds`, `search`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
+| `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, read mode), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
