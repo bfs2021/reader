@@ -18,6 +18,11 @@
  *   # Second slide
  *
  * A line that is exactly `---` ends a slide, unless it is inside a code fence.
+ * A slide's opening heading is its title, kept at the top (`.slide-title`),
+ * and the rest (`.slide-body`) sits in the middle of what's left; a slide of
+ * headings only, a title slide, is centered whole. One quote, image or
+ * line of math alone under the title is centered across the slide too.
+ *
  * HTML comments are lifted out of a slide as its speaker notes: `slides`
  * sanitizes them away, so they never show in the terminal either. That
  * makes the notes the place for what reader is told about one slide: a
@@ -58,7 +63,7 @@ export function slides(src, { file, read } = {}) {
     const { notes, at, budget } = readNotes(own.notes);
     const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind });
     css ||= `${r.css}\n${CSS}`;
-    out.push({ body: unmast(r.body), notes, notesHtml: renderNotes(notes), line, at, budget });
+    out.push({ body: titled(unmast(r.body), lifted.body), notes, notesHtml: renderNotes(notes), line, at, budget });
   }
   // When each slide should start, by the notes' checkpoints and budgets.
   const total = duration(meta.time);
@@ -162,6 +167,30 @@ function unmast(body) {
   return body.replace(/<header class="gm-masthead">[\s\S]*?<\/header>\s*/, '');
 }
 
+const PAIR = '<section class="gm-pair">\n<div class="gm-speaker">\n';
+const OPENING = /<(h[1-6])\b[^>]*>[\s\S]*?<\/\1>\n?/y;
+// What's left of a row that held only the title.
+const EMPTY = `${PAIR}</div>\n<div></div>\n</section>\n`;
+const HEADING_LINE = /^[ \t]*(?:#{1,6}[ \t]|:::)/;
+
+/**
+ * Sets a slide's opening heading apart from the rest of it, as
+ * `.slide-title` above `.slide-body`, for the stylesheet to keep one at the
+ * top and center the other. `src` is the slide as written: one that's all
+ * headings is left as it was, to be centered whole.
+ */
+function titled(body, src) {
+  if (src.split('\n').every((l) => !l.trim() || HEADING_LINE.test(l))) return body;
+  const at = body.indexOf(PAIR);
+  const end = body.lastIndexOf('</div>');
+  OPENING.lastIndex = at + PAIR.length;
+  const heading = at < 0 ? null : OPENING.exec(body);
+  if (!heading) return body;
+  let rest = PAIR + body.slice(OPENING.lastIndex, end);
+  if (rest.startsWith(EMPTY)) rest = rest.slice(EMPTY.length);
+  return `${body.slice(0, at)}<header class="slide-title">\n${heading[0].trim()}\n</header>\n<div class="slide-body">\n${rest}</div>\n</div>`;
+}
+
 // Scaled to the window, and centered on it, like a projected slide. The
 // `:root` prefix outranks the preview frame's own pane-sized rules.
 const CSS = `
@@ -177,4 +206,16 @@ const CSS = `
 :root .gm-doc h2 { font-size: 1.9rem; line-height: 1.15; margin: 0 0 0.6em; }
 :root .gm-doc pre { font-size: 0.8rem; }
 :root .gm-doc:not(:has(.gm-asides)) .gm-pair { grid-template-columns: 1fr; }
+/* the title at the top, the rest in the middle of what's left */
+:root .slide-body { flex: 1; display: flex; flex-direction: column; justify-content: safe center; }
+:root .slide-title > * { margin-top: 0; }
+:root .slide-title h3, :root .slide-title h4 { font-size: 1.4rem; }
+/* one quote, image or line of math alone on a slide: centered across it too */
+:root .gm-pair:only-of-type > .gm-speaker > :only-child:is(figure, blockquote:not(.alert)) {
+  width: fit-content; max-width: min(100%, 34em); margin-left: auto; margin-right: auto;
+}
+:root .gm-pair:only-of-type > .gm-speaker > figure:only-child { max-width: 100%; }
+:root .gm-pair:only-of-type > .gm-speaker > figure:only-child img { max-height: 64vh; object-fit: contain; margin: 0 auto; }
+:root .gm-pair:only-of-type > .gm-speaker > figure:only-child figcaption { text-align: center; }
+:root .gm-pair:only-of-type > .gm-speaker > p.math-display:only-child { font-size: 1.6em; }
 `;

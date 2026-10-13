@@ -72,6 +72,29 @@ test('slides renders each slide without a masthead and keeps its notes', () => {
   assert.match(out.css, /--gm-base: clamp/);
 });
 
+test('a slide\'s opening heading is set apart from the rest, unless it is all headings', () => {
+  const out = slides([
+    '# Title\n\n> a quote\n',
+    '# Talk\n## Subtitle\n',
+    'No title here.\n',
+    '## T\n\n~ about the title\n\n- a\n',
+  ].join('\n---\n\n'));
+  const [quote, cover, plain, noted] = out.slides;
+  assert.match(quote.body, /^<div class="gm-doc">\s*<header class="slide-title">\n<h1>Title<\/h1>\n<\/header>\n<div class="slide-body">\n<section class="gm-pair">\n<div class="gm-speaker">\n<blockquote>/);
+  assert.match(quote.body, /<\/section>\n<\/div>\n<\/div>$/);
+  assert.equal(quote.body.match(/<h1>/g).length, 1);
+  assert.doesNotMatch(cover.body, /slide-title|slide-body/);
+  assert.doesNotMatch(plain.body, /slide-title|slide-body/);
+  // An aside written against the title keeps its row.
+  assert.match(noted.body, /<div class="slide-body">\n<section class="gm-pair">\n<div class="gm-speaker">\n<\/div>\n<div class="gm-asides">/);
+});
+
+test('a title alone in its row leaves no empty row behind', () => {
+  const { body } = slides('# Title\n\n- a\n\n~ aside\n\n- b\n\n---\n\n# Two\n').slides[0];
+  assert.match(body, /<div class="slide-body">\n<section class="gm-pair">\n<div class="gm-speaker">\n<ul>/);
+  assert.equal(body.match(/<div class="gm-|<div class="slide-|<div>/g).length, body.match(/<\/div>/g).length);
+});
+
 test('isDeck needs a break after the front matter', () => {
   assert.equal(isDeck(DECK), true);
   assert.equal(isDeck('---\ntitle: x\n---\n\n# just a note\n'), false);

@@ -93,7 +93,8 @@ const FOCUS = 'pre[data-focus-steps]';
 export function steps(body) {
   const doc = new DOMParser().parseFromString(`<body>${body}</body>`, 'text/html');
   let n = 0;
-  let opening = true;
+  // A title the server set apart (`.slide-title`) is already out of the way.
+  let opening = !doc.querySelector('.slide-title');
   for (const pair of doc.querySelectorAll('.gm-pair')) {
     const before = n;
     for (const block of pair.querySelector(':scope > .gm-speaker')?.children || []) {

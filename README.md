@@ -445,6 +445,13 @@ reading order. A slide's opening heading isn't a step: it shows with the
 slide. An aside shows with the passage it sits beside. Steps not yet shown
 keep their space, so the slide doesn't shift as they appear.
 
+A slide's opening heading is its **title**, and stays at the top. The rest
+sits in the **middle** of the space under it, top to bottom. A slide that is
+all headings, a title slide, is centered whole, and so is one with no
+opening heading. A quote, an image or a `math:[…]` line that is the only
+thing on a slide besides its title is centered across the slide too, and an
+image there is kept to about two thirds of the slide's height.
+
 A slide **shrinks to fit** the window: everything on it together, puzzles
 included, as large as it fits, measured with every step showing so it keeps
 its size as they appear. It shrinks no further than 60%. Code still too
