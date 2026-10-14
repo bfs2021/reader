@@ -7,12 +7,12 @@
 
 const $ = (id) => document.getElementById(id);
 export const el = {
-  rootName: $('rootName'), crumb: $('crumb'), saveState: $('saveState'),
+  rootName: $('rootName'), crumb: $('crumb'), copyPath: $('copyPath'), saveState: $('saveState'),
   sidebarToggle: $('sidebarToggle'), helpToggle: $('helpToggle'), help: $('help'),
   split: $('split'), filter: $('filter'), files: $('files'),
   newBtn: $('newBtn'), crumbs: $('crumbs'), newForm: $('newForm'), newName: $('newName'),
   preview: $('preview'), pdfView: $('pdfView'), empty: $('empty'),
-  writePane: $('writePane'), editor: $('editor'),
+  writePane: $('writePane'), editor: $('editor'), gutter: $('gutter'), gutterToggle: $('gutterToggle'),
   conflict: $('conflict'), reloadBtn: $('reloadBtn'), overwriteBtn: $('overwriteBtn'),
   dirtyDot: $('dirtyDot'), counts: $('counts'), cursor: $('cursor'), measure: $('measure'), footPath: $('footPath'), toast: $('toast'),
   workBtn: $('workBtn'), presentBtn: $('presentBtn'), presentWrap: $('presentWrap'), fitPop: $('fitPop'),

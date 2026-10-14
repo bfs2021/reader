@@ -14,6 +14,7 @@
     <button class="ghost icon" id="sidebarToggle" title="Toggle file list (⌘\)" aria-label="Toggle file list">☰</button>
     <span class="mark" id="rootName">reader</span>
     <span class="crumb" id="crumb"></span>
+    <button class="ghost icon copy-path" id="copyPath" title="Copy the file's path" aria-label="Copy the file's path" hidden>⧉</button>
   </div>
   <div class="bar-right">
     <span class="save-state" id="saveState"></span>
@@ -65,11 +66,14 @@
       <div><code># Heading</code> <code>- list</code> <code>1. list</code> <code>&gt; quote</code> <code>---</code></div>
       <div><code>~ an aside</code> — your own voice, set beside the line above it</div>
       <div><code>---</code> alone on a line starts a new slide · <code>&lt;!-- notes --&gt;</code> are speaker notes</div>
-      <div class="keys">⌘S save · ⌘B bold · ⌘I italic · ⌘K link · ⌥↑ ⌥↓ file · ⌘\ files · ⌘. work · ⌘⇧. present</div>
+      <div class="keys">⌘S save · ⌘B bold · ⌘I italic · ⌘K link · ⌥↑ ⌥↓ file · ⌘⇧C copy file:line · ⌘\ files · ⌘. work · ⌘⇧. present</div>
     </div>
 
-    <textarea id="editor" spellcheck="true" disabled
-      placeholder="Write here — it renders on the left as you type."></textarea>
+    <div class="editor-wrap">
+      <div class="gutter" id="gutter" title="Click a number to copy the file and line" hidden></div>
+      <textarea id="editor" spellcheck="true" disabled
+        placeholder="Write here — it renders on the left as you type."></textarea>
+    </div>
 
     <footer class="write-foot">
       <div class="foot-info">
@@ -77,7 +81,10 @@
         <span id="counts"></span>
         <span id="cursor"></span>
       </div>
-      <span class="foot-path" id="footPath"></span>
+      <span class="foot-right">
+        <span class="foot-path" id="footPath"></span>
+        <button class="ghost small" id="gutterToggle" title="Line numbers on / off" aria-pressed="true">#</button>
+      </span>
     </footer>
   </section>
 </main>

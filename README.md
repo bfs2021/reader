@@ -812,6 +812,22 @@ each file's folder beside it.
 (`2026-09-25.md`) unless you give it another name. If that file already exists,
 it's opened instead. PDFs open read-only in the left pane.
 
+### Lines, and pointing at them
+
+The editor numbers its lines down the side: a number for each line in the
+file, however many rows it wraps to. `#` at the bottom right turns them off.
+
+To say where something is (to Claude, say, or in a message), copy it:
+
+- `⌘⇧C` copies the file and the line the caret is on,
+  `/Users/me/notes/talk.md:13`, or the lines selected, `talk.md:13-18`.
+- Clicking a line's number copies that line.
+- ⧉ by the file's name copies just its path.
+
+From another device (`--host`), a path on the server is no use, so what's
+copied is the file's address instead, `http://nas:8734/#notes/talk.md:13`.
+Opening that address opens the file at those lines.
+
 ### Versions
 
 Files that share a name are versions of one file:
@@ -931,6 +947,7 @@ images have to be committed for the runner to put them inside the page.
 | `⌘P` | print the document, a deck a page to a sheet |
 | `⌘B` `⌘I` `⌘K` | bold, italic, link |
 | `Tab` | indent two spaces |
+| `⌘⇧C` | copy the file and line (or lines selected) |
 | `Home` / `End` (`fn←` / `fn→`) | in the editor, the start / end of the line, as it wraps (`⇧` to select) |
 | `⌥↑` / `⌥↓` | previous / next file |
 | `↑` `↓` `→` `←` | in the file list: move, go into a folder or a file's versions, go back out (`⌫` too) |
@@ -995,7 +1012,7 @@ $ npm run lint
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `src/transition.js` | how one slide gives way to the next: `transition:` in the front matter, or in a slide's notes |
-| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
+| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `lines.js` (line numbers, copying where you are), `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |

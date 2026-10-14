@@ -2,6 +2,7 @@
  * Saving: autosave, explicit saves, conflicts with edits made elsewhere.
  */
 
+import { scheduleGutter } from './lines.js';
 import { el, state, deck, dirty, AUTOSAVE_DELAY } from './state.js';
 import { api } from './api.js';
 import { renderNow } from './render.js';
@@ -71,6 +72,7 @@ export async function reloadFromDisk() {
   setConflict(false);
   updateDirty();
   updateCounts();
+  scheduleGutter();
   renderNow();
   if (deck.open) loadDeck().then((ok) => (ok ? showSlide() : closeDeck()));
 }

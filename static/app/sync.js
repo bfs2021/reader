@@ -30,7 +30,7 @@ export const COPIED = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'le
   'whiteSpace', 'overflowWrap', 'wordBreak', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'];
 
 /** Each line's top in the editor, measured from the mirror, which only redraws the lines that changed. */
-function measure() {
+export function measure() {
   const t = el.editor;
   if (tops && measured === t.value) return tops;
   measured = t.value;

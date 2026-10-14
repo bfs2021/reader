@@ -18,6 +18,7 @@ import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
 import { wireFit } from './fit.js';
 import { wireSync } from './sync.js';
 import { printDocument } from './exporting.js';
+import { wireLines, copyLines, goToLines } from './lines.js';
 
 state.previewReady = whenReady(el.preview);
 deck.stageReady = whenReady(el.stage);
@@ -36,13 +37,15 @@ async function init() {
   go(rememberedDir(), null, { focus: false });
 
   // The file in the address, or the one last changed in the folder last shown.
-  const wanted = decodeURIComponent(location.hash.slice(1));
+  // The address can name lines too, as a copied one does: `#notes/talk.md:13-18`.
+  const [, wanted, line, last] = decodeURIComponent(location.hash.slice(1)).match(/^(.*?)(?::(\d+)(?:-(\d+))?)?$/);
   const under = state.files.filter((f) => dirOf(f.path) === state.dir);
   const first = state.files.find((f) => f.path === wanted)
     || under.find((f) => f.type === 'md') || state.files.find((f) => f.type === 'md') || state.files[0];
   if (first) {
     reveal(first.path);
     await open(first.path);
+    if (first.path === wanted && line) goToLines(Number(line), Number(last || line));
   } else showEmpty('No markdown files here yet. Press New to start one.');
 }
 
@@ -78,6 +81,7 @@ function wire() {
     deck.channel.addEventListener('message', onSpeakerMessage);
   }
   wireSync();
+  wireLines();
 
   el.filter.addEventListener('input', drawTree);
   el.files.addEventListener('keydown', onListKey);
@@ -170,6 +174,7 @@ function onKey(e) {
   }
   if (meta && !e.altKey && key === 's') { e.preventDefault(); save({ explicit: true }); return; }
   if (meta && !e.altKey && !e.shiftKey && key === 'p' && state.current?.type === 'md') { e.preventDefault(); print(); return; }
+  if (meta && e.shiftKey && !e.altKey && key === 'c' && state.current?.type === 'md') { e.preventDefault(); copyLines(); return; }
   if (meta && e.key === '\\') { e.preventDefault(); toggleSidebar(); return; }
   if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
   if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }
