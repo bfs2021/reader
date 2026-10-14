@@ -9,16 +9,20 @@
   cursor: text;
 }
 .field[data-lines] { max-width: none; }
-/* As tall as a line of the blank, so it sits level with the first. */
+/* As tall as a line of the blank, padded as it is, so it sits level with
+   the first. A long one wraps, so the blank keeps most of the row: the
+   label takes what it needs, up to about a third, and the blank is as many
+   lines as it is. */
 .field-label {
+  flex: 0 1 auto;
+  max-width: 35%;
   font-family: var(--gm-sans);
   font-size: 0.85em;
   line-height: calc(var(--field-line) / 0.85);
-  padding-top: calc(var(--field-pad) / 0.85);
+  padding: calc(var(--field-pad) / 0.85) 0;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--gm-ink-soft);
-  white-space: nowrap;
 }
 .field-label::after { content: ":"; }
 /* A rule under each line of the blank, on the page itself, with room round
@@ -26,6 +30,7 @@
 .field-value {
   --gm-field-rule: color-mix(in srgb, var(--gm-ink) 55%, transparent);
   flex: 1;
+  align-self: stretch;
   min-width: 6rem;
   box-sizing: content-box;
   min-height: calc(var(--lines, 1) * var(--field-line));
