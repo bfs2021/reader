@@ -46,6 +46,16 @@ test('render says whether the text is a deck, for the Present button', async () 
   assert.equal(out.deck, true);
 });
 
+test('render gives a deck being worked through as pages, and a document as itself', async () => {
+  const deck = await (await json('POST', '/api/render', { text: '# One\n\n---\n\n# [x] Two\n', pages: true })).json();
+  assert.equal(deck.deck, true);
+  assert.deepEqual(deck.pages.map((p) => p.line), [0, 3]);
+  assert.match(deck.pages[1].body, /<h1 class="task-heading"/);
+  const doc = await (await json('POST', '/api/render', { text: '# One\n', pages: true })).json();
+  assert.equal(doc.pages, undefined);
+  assert.match(doc.body, /One/);
+});
+
 test('slides splits a deck and lifts its notes', async () => {
   const res = await json('POST', '/api/slides', { text: '# One\n\n<!-- hi -->\n\n---\n\n# Two\n', path: 'deck.md' });
   const out = await res.json();

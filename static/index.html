@@ -21,7 +21,7 @@
       <button class="ghost small" id="presentBtn" title="Present as slides (⌘⇧.)" hidden>Present</button>
       <div class="fit-pop" id="fitPop" hidden></div>
     </span>
-    <button class="ghost small" id="readBtn" title="Read without editing (⌘.)">Read</button>
+    <button class="ghost small" id="workBtn" title="Work through it without editing (⌘.)">Work</button>
     <button class="ghost small" id="helpToggle">Formatting</button>
   </div>
 </header>
@@ -44,6 +44,12 @@
       sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
     <div class="pdf-view" id="pdfView" hidden></div>
     <div class="empty" id="empty" hidden></div>
+    <nav class="pages" id="pages" aria-label="Pages" hidden>
+      <button class="ghost small" id="pageBack" title="The page before (⌥←)">‹ Back</button>
+      <ol class="page-dots" id="pageDots"></ol>
+      <span class="page-count" id="pageCount"></span>
+      <button class="ghost small" id="pageNext" title="The next page (⌥→)">Next ›</button>
+    </nav>
   </section>
 
   <section class="pane write-pane" id="writePane">
@@ -58,7 +64,7 @@
       <div><code># Heading</code> <code>- list</code> <code>1. list</code> <code>&gt; quote</code> <code>---</code></div>
       <div><code>~ an aside</code> — your own voice, set beside the line above it</div>
       <div><code>---</code> alone on a line starts a new slide · <code>&lt;!-- notes --&gt;</code> are speaker notes</div>
-      <div class="keys">⌘S save · ⌘B bold · ⌘I italic · ⌘K link · ⌥↑ ⌥↓ file · ⌘\ files · ⌘. read · ⌘⇧. present</div>
+      <div class="keys">⌘S save · ⌘B bold · ⌘I italic · ⌘K link · ⌥↑ ⌥↓ file · ⌘\ files · ⌘. work · ⌘⇧. present</div>
     </div>
 
     <textarea id="editor" spellcheck="true" disabled

@@ -1,6 +1,6 @@
 /**
  * The app: a sidebar of files, the editor, the rendered page beside it, and
- * read mode and presenting. Each part is a module here; this one starts it
+ * work mode and presenting. Each part is a module here; this one starts it
  * and connects the page's events and keys to them.
  */
 
@@ -11,7 +11,8 @@ import { whenReady, showEmpty } from './render.js';
 import { save, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, applyEdit, onEditorInput } from './editing.js';
-import { toggleSidebar, restoreLayout, setReading } from './modes.js';
+import { toggleSidebar, restoreLayout, setWorking } from './modes.js';
+import { wirePages, paged, turn } from './pages.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
 import { wireFit } from './fit.js';
 import { wireSync } from './sync.js';
@@ -51,10 +52,12 @@ function wire() {
     }
     if (e.source !== el.preview.contentWindow) return;
     if (e.data?.type === 'edit') applyEdit(e.data);
+    else if (e.data?.type === 'swipe') turn(e.data.by);
     else if (e.data?.type === 'key') onKey({ ...e.data, preventDefault() {} });
   });
 
-  el.readBtn.addEventListener('click', () => setReading(!state.reading));
+  el.workBtn.addEventListener('click', () => setWorking(!state.working));
+  wirePages();
   wireFit();
   el.presentBtn.addEventListener('click', present);
   el.deck.addEventListener('click', (e) => {
@@ -133,10 +136,15 @@ function onKey(e) {
   if (meta && !e.altKey && e.code === 'Period') {
     e.preventDefault();
     if (e.shiftKey) present();
-    else setReading(!state.reading);
+    else setWorking(!state.working);
     return;
   }
-  if (state.reading && e.key === 'Escape') { setReading(false); return; }
+  if (state.working && e.key === 'Escape') { setWorking(false); return; }
+  if (paged() && e.altKey && !meta && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+    turn(e.key === 'ArrowLeft' ? -1 : 1);
+    return;
+  }
   if (meta && !e.altKey && key === 's') { e.preventDefault(); save({ explicit: true }); return; }
   if (meta && e.key === '\\') { e.preventDefault(); toggleSidebar(); return; }
   if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }

@@ -15,7 +15,8 @@ export const el = {
   writePane: $('writePane'), editor: $('editor'),
   conflict: $('conflict'), reloadBtn: $('reloadBtn'), overwriteBtn: $('overwriteBtn'),
   dirtyDot: $('dirtyDot'), counts: $('counts'), cursor: $('cursor'), measure: $('measure'), footPath: $('footPath'), toast: $('toast'),
-  readBtn: $('readBtn'), presentBtn: $('presentBtn'), presentWrap: $('presentWrap'), fitPop: $('fitPop'),
+  workBtn: $('workBtn'), presentBtn: $('presentBtn'), presentWrap: $('presentWrap'), fitPop: $('fitPop'),
+  pages: $('pages'), pageBack: $('pageBack'), pageNext: $('pageNext'), pageDots: $('pageDots'), pageCount: $('pageCount'),
   deck: $('deck'), stage: $('stage'), deckNotes: $('deckNotes'), deckBy: $('deckBy'), deckCount: $('deckCount'),
 };
 
@@ -34,7 +35,7 @@ export const state = {
   saving: Promise.resolve(),
   previewReady: null,
   pendingRender: null,
-  reading: false,       // read mode: rendered full width, not editable
+  working: false,       // work mode: rendered full width, filled in but not edited
 };
 
 // The slides being presented, if any. See "presenting" below.

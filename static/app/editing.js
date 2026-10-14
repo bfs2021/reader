@@ -38,11 +38,11 @@ export function insertLink() {
  * The rendered page (or a slide) asked for an edit: a checkbox ticked, a
  * field filled in, a puzzle played. It names the lines it was drawn from and
  * what they said (see edits.js); if they've changed since, the page was
- * behind, so it's drawn again instead. It works in read mode too: ticking a
+ * behind, so it's drawn again instead. It works in work mode too: ticking a
  * box or filling in a form isn't editing the file.
  *
  * `undo` puts the edit on the editor's undo stack, which means passing it
- * through the editor's focus; not in read mode or while presenting, though,
+ * through the editor's focus; not in work mode or while presenting, though,
  * and not for a field or puzzle, which would lose the keyboard. `drawn` says the page shows the
  * edit already and needn't be rendered again for it.
  */
@@ -57,7 +57,7 @@ export function applyEdit({ edits, undo = false, drawn = false }, { fromStage = 
   }
   const lines = t.value.split('\n').length;
   const { selectionStart, selectionEnd, scrollTop } = t;
-  if (undo && !state.reading && !deck.open) {
+  if (undo && !state.working && !deck.open) {
     t.focus({ preventScroll: true });
     t.setSelectionRange(change.start, change.end);
     if (!document.execCommand('insertText', false, change.text)) {

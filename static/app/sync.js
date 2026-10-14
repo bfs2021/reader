@@ -24,7 +24,7 @@ let easing = 0;
 let waiting = null;   // a line from the page, for when the editor is back in view
 
 const synced = () => state.current?.type === 'md' && !el.preview.hidden && !deck.open;
-const shown = () => !state.reading && el.editor.clientWidth > 0;
+const shown = () => !state.working && el.editor.clientWidth > 0;
 
 const COPIED = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'tabSize',
   'whiteSpace', 'overflowWrap', 'wordBreak', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'];
@@ -145,7 +145,7 @@ export function wireSync() {
   el.editor.addEventListener('scroll', () => {
     if (leader === 'editor' && !sending) sending = requestAnimationFrame(sendScroll);
   }, { passive: true });
-  // Its width changes how lines wrap; coming back from read mode, it catches
+  // Its width changes how lines wrap; coming back from work mode, it catches
   // up with where the page was read to.
   new ResizeObserver(() => {
     tops = null;

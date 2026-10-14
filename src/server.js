@@ -9,6 +9,7 @@
  *   GET  /api/export?path=     the document as one HTML file, to save
  *   POST /api/export           { path, drawn? } -> the same, with what the preview frame drew set into it
  *   POST /api/render           { text, path? } -> { css, body, deck }
+ *                              { text, path?, pages: true } -> for a deck, { css, deck, pages: [{ body, line }] }
  *   POST /api/slides           { text, path? } -> { css, title, slides: [{ body, notes, notesHtml, line, at, budget, plan }], end }
  *   GET  /content/<path>       raw bytes (PDFs, images a note links to)
  *
@@ -31,7 +32,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createContent, DOC_EXTS, PathError } from './content.js';
 import { render } from './render.js';
-import { slides, isDeck } from './slides.js';
+import { slides, pages, isDeck } from './slides.js';
 import { exportHtml } from './export.js';
 import { FEATURES } from '../features/index.js';
 
@@ -165,6 +166,11 @@ export function createServer({ root }) {
     const body = await readJson(req);
 
     if (route === '/api/render' && req.method === 'POST') {
+      // A deck being worked through is drawn a page to a slide.
+      if (body.pages && isDeck(body.text)) {
+        const { css, pages: list } = pages(body.text, { file: body.path, read });
+        if (list.length) return sendJson(res, { css, pages: list, deck: true });
+      }
       return sendJson(res, { ...render(body.text, { file: body.path, read, lines: true }), deck: isDeck(body.text) });
     }
     if (route === '/api/slides' && req.method === 'POST') {

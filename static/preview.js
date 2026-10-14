@@ -321,10 +321,26 @@
     window.parent.postMessage({ type: 'click', left: e.clientX < innerWidth / 3 }, '*');
   });
 
+  // Off a slide, a swipe across the page is passed up: it turns the page of
+  // a workbook. Not one that starts on what's dragged or scrolled sideways.
+  let touched = null;
+  document.addEventListener('touchstart', (e) => {
+    const still = e.touches.length === 1 && !e.target.closest?.('.puzzle, pre, table, input, textarea');
+    touched = still ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const from = touched;
+    touched = null;
+    if (!from || Preview.deck) return;
+    const dx = e.changedTouches[0].clientX - from.x;
+    const dy = e.changedTouches[0].clientY - from.y;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > 2 * Math.abs(dy)) window.parent.postMessage({ type: 'swipe', by: dx < 0 ? 1 : -1 }, '*');
+  }, { passive: true });
+
   const DECK_KEYS = new Set([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace']);
 
   // Clicking into the page gives this frame the keyboard, so pass the app's
-  // shortcuts (and Esc, which leaves read mode) up to it. On a slide, pass
+  // shortcuts (and Esc, which leaves work mode) up to it. On a slide, pass
   // every key: they're all the deck's.
   document.addEventListener('keydown', (e) => {
     const meta = e.metaKey || e.ctrlKey;
@@ -335,6 +351,10 @@
       return;
     }
     if (!meta && !e.altKey && e.key !== 'Escape') return;
+    // ⌥← and ⌥→ turn a workbook's page, but move by a word where there's typing.
+    const turning = e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key);
+    if (turning && e.target.closest?.('input:not([type=checkbox], [type=radio]), textarea, [contenteditable]')) return;
+    if (turning) e.preventDefault();
     if ((meta && ['s', '\\'].includes(e.key.toLowerCase())) || (meta && e.code === 'Period')
       || (e.altKey && ['ArrowUp', 'ArrowDown'].includes(e.key))) e.preventDefault();
     const { key, code, metaKey, ctrlKey, altKey, shiftKey } = e;

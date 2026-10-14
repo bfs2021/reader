@@ -131,7 +131,7 @@ Hover a date and a calendar shows its month, the day marked. Click the date
 month to month, and clicking a day writes it into the file in the date's
 place, saved like typing. The arrow keys move by a day or a week, `PageUp`
 and `PageDown` by a month, `Enter` picks, and `Esc` or a click elsewhere
-closes it. This works in read mode too, though not on a slide. A date that
+closes it. This works in work mode too, though not on a slide. A date that
 isn't one (`date:2026-02-30[]`) stays as typed.
 
 `->`, `<-` and `<->` show as →, ← and ↔. A backslash (`\->`) keeps them as
@@ -204,7 +204,7 @@ The value still goes on the one line in the file, wrapping only on the page,
 and a blank grows if it outruns its lines. Click the label, the blank, or
 beside them to fill it in, right on the page: `Enter` (or clicking away)
 writes it into the file, saved like typing; `Esc` puts it back; `Tab` and `⇧Tab` write it and
-move to the next field or the one before. As with puzzles, this works in read
+move to the next field or the one before. As with puzzles, this works in work
 mode too. The value is shown just as typed, with no markdown.
 
 A blockquote whose last line starts with `--` takes that line as its
@@ -297,7 +297,7 @@ A few GitHub conventions show as they do there:
   captioned "Ginger, 2019".
 
 - **Puzzles.** A fence named for a puzzle is drawn as the puzzle and can be
-  played right on the page, in edit, read and present modes alike. The
+  played right on the page, in edit, work and present modes alike. The
   fence's text *is* the puzzle and the progress made on it: each move is
   written back into the file, saved like typing, so it's there next time and
   reads as plain text anywhere else. Click a puzzle (or Tab to it) to play;
@@ -504,11 +504,22 @@ Everything else is ordinary markdown. Front matter (`Title`, `Author`, `Date`,
 `Tags`, `Speaker`, `Listener`) becomes the masthead; without a `Title` the
 file name is used. `Speaker` and `Listener` head the two columns.
 
-## Reading and presenting
+## Working and presenting
 
-**Read** (`⌘.`) hides the file list and the editor and gives the rendered page
-the whole window. Nothing can be typed into the file, but task checkboxes
+**Work** (`⌘.`) hides the file list and the editor and gives the rendered page
+the whole window, to read and to fill in. Nothing can be typed into the file, but task checkboxes
 and radio buttons still toggle, fields can be filled in, and puzzles can be played. `⌘.` or `Esc` goes back to editing. The mode is remembered.
+
+A deck (below) is a workbook in Work: each slide is a page, shown one at a
+time as a document is, at the size it's written and as long as it needs to
+be, with nothing of its notes. It opens on the page the cursor was on.
+
+- Under the page are **Back** and **Next**, and a dot for each page: click
+  one to go to that page. `⌥←` and `⌥→` turn the page too, as does a swipe.
+- A page is done, and its dot filled, when its opening heading's checkbox is
+  checked (`# [x] Gratitude`). A page whose heading has no checkbox is done
+  when every task on it is ticked and every radio list has a choice. A page
+  with nothing to tick doesn't count either way.
 
 A file in the format of [slides](https://github.com/maaslalani/slides) also
 gets **Present** (`⌘⇧.`). One file then works for both: `slides` in the
@@ -707,7 +718,8 @@ it was written as.
 | `Tab` | indent two spaces |
 | `⌥↑` / `⌥↓` | previous / next file |
 | `⌘\` | show / hide the file list |
-| `⌘.` | read mode on / off |
+| `⌘.` | work mode on / off |
+| `⌥←` / `⌥→` | in work mode, a deck's page before / next page |
 | `⌘⇧.` | present as slides |
 
 ## Options
@@ -746,7 +758,7 @@ $ npm run lint
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
-| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, read mode), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
+| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |

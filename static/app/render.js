@@ -8,6 +8,7 @@ import { toast } from './status.js';
 import { updatePresentable } from './deck.js';
 import { scheduleFitCheck } from './fit.js';
 import { sendScroll } from './sync.js';
+import { setPages } from './pages.js';
 
 // The frame says 'ready' when it loads, but it may have loaded before this
 // module ran and that message is gone. So also ask: a 'ping' is answered with
@@ -37,18 +38,20 @@ export async function renderNow({ resetScroll = false } = {}) {
   const path = state.current.path;
   let out;
   try {
-    out = await api('POST', '/api/render', { text: el.editor.value, path });
+    out = await api('POST', '/api/render', { text: el.editor.value, path, pages: state.working });
   } catch (err) {
     return toast(`render: ${err.message}`, true);
   }
   if (seq !== state.renderSeq) return;
   updatePresentable(out.deck);
   scheduleFitCheck(out.deck);
+  // A deck being worked through shows the one page it's turned to.
+  const page = setPages(out.pages, path);
   await state.previewReady;
   el.preview.contentWindow.postMessage({
     type: 'render',
     css: out.css,
-    body: out.body,
+    body: page ? page.body : out.body,
     base: baseFor(path),
     resetScroll,
     lines: el.editor.value.split('\n').length,

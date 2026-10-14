@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slides, split, lift, isDeck } from '../src/slides.js';
+import { slides, pages, split, lift, isDeck } from '../src/slides.js';
 
 const DECK = `---
 author: Josh
@@ -125,4 +125,14 @@ test('blank lines in a slide\'s code are kept', () => {
 test('notes are rendered as markdown', () => {
   const out = slides('# One\n\n<!--\n1. Open `server.js:37`, *slowly*.\n2. Then the rest.\n-->\n');
   assert.equal(out.slides[0].notesHtml, '<ol>\n<li>Open <code>server.js:37</code>, <em>slowly</em>.</li>\n<li>Then the rest.</li>\n</ol>');
+});
+
+test('a deck worked through is a page to a slide, drawn as a document, without its notes', () => {
+  const out = pages('---\ntitle: T\n---\n# One\n\n<!-- a note -->\n\n---\n\n<!-- only a note -->\n\n---\n\n# Two\n\n- [ ] task\n');
+  assert.equal(out.pages.length, 2);
+  assert.deepEqual(out.pages.map((p) => p.line), [3, 12]);
+  assert.match(out.pages[1].body, /class="task-box" data-line="15"/);
+  assert.match(out.pages[1].body, /<h1 data-line="13">Two<\/h1>/);
+  assert.doesNotMatch(out.pages[0].body, /a note|gm-masthead|slide-title/);
+  assert.doesNotMatch(out.css, /:root body \{ overflow: hidden; \}/);
 });

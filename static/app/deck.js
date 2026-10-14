@@ -6,7 +6,7 @@ import { el, state, deck, dirty, RENDER_DELAY } from './state.js';
 import { api } from './api.js';
 import { baseFor } from './render.js';
 import { save } from './saving.js';
-import { setReading } from './modes.js';
+import { setWorking } from './modes.js';
 import { toast } from './status.js';
 import * as moves from './moves.js';
 import { treatAsDeck } from './fit.js';
@@ -179,7 +179,7 @@ export function closeDeck() {
   el.deck.hidden = true;
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   deck.channel?.postMessage({ type: 'end' });
-  setReading(state.reading);
+  setWorking(state.working);
 }
 
 export function toggleNotes() {

@@ -119,14 +119,36 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .split.pdf-mode.no-sidebar { grid-template-columns: 0 minmax(0, 1fr) 0; }
 .split.pdf-mode .write-pane { visibility: hidden; }
 
-/* read mode: the page alone, nothing to type into */
-.split.read-mode { grid-template-columns: 0 minmax(0, 1fr) 0; }
-.split.read-mode .sidebar, .split.read-mode .write-pane { visibility: hidden; border: 0; }
-.split.read-mode .view-pane { border-right: 0; }
+/* work mode: the page alone, nothing to type into */
+.split.work-mode { grid-template-columns: 0 minmax(0, 1fr) 0; }
+.split.work-mode .sidebar, .split.work-mode .write-pane { visibility: hidden; border: 0; }
+.split.work-mode .view-pane { border-right: 0; }
 
 .pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .view-pane { background: #fff; border-right: 1px solid var(--line); position: relative; }
 .write-pane { background: var(--panel); }
+
+/* a workbook's pages, under the one showing: back, a dot each, next */
+.pages {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px; border-top: 1px solid var(--line); background: var(--panel);
+}
+.pages[hidden] { display: none; }
+.page-dots {
+  flex: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
+  list-style: none; margin: 0; padding: 0;
+}
+.page-dot { display: block; padding: 6px; background: none; border: 0; border-radius: 50%; }
+.page-dot::before {
+  content: ''; display: block; width: 9px; height: 9px; border-radius: 50%;
+  border: 1.5px solid var(--ink-faint); transition: background .12s, box-shadow .12s;
+}
+.page-dot:hover::before { border-color: var(--ink); }
+.page-dot.done::before { background: var(--accent); border-color: var(--accent); }
+.page-dot.now::before { box-shadow: 0 0 0 3px var(--line); border-color: var(--ink); }
+.page-dot.now.done::before { border-color: var(--accent); }
+.page-count { font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pages button:disabled { opacity: .35; cursor: default; }
 
 #preview { flex: 1; width: 100%; border: 0; background: #fff; }
 
@@ -277,6 +299,6 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   .split, .split.no-sidebar { grid-template-columns: 1fr; grid-template-rows: minmax(0, 52%) minmax(0, 48%); }
   .sidebar { display: none; }
   .view-pane { border-right: 0; border-bottom: 1px solid var(--line); }
-  .split.read-mode { grid-template-rows: minmax(0, 1fr) 0; }
-  .split.read-mode .view-pane { border-bottom: 0; }
+  .split.work-mode { grid-template-rows: minmax(0, 1fr) 0; }
+  .split.work-mode .view-pane { border-bottom: 0; }
 }

@@ -29,6 +29,9 @@
  * makes the notes the place for what reader is told about one slide: a
  * `key: value` line there is read and taken out of the notes shown (its
  * `background:` here, its `at:` and `time:` in pacing.js).
+ *
+ * The same file is a workbook when it's worked through and not presented
+ * (`pages`): each slide a page of the document, at the size it's written.
  */
 
 import path from 'node:path';
@@ -71,6 +74,28 @@ export function slides(src, { file, read } = {}) {
   const starts = plan(out, total);
   out.forEach((s, i) => { s.plan = starts[i]; });
   return { css: css || CSS, title, meta, slides: out, end: planEnd(out, starts, total) };
+}
+
+/**
+ * A deck as a workbook's pages: each slide drawn as a document is, not as a
+ * stage, with nothing of the slide's notes. `line` is where the page starts
+ * in the file, and its blocks carry theirs (`data-line`).
+ */
+export function pages(src, { file, read } = {}) {
+  const { meta, key, slides: chunks } = split(src);
+  let css = '';
+  const out = [];
+  const shared = {};
+  const behind = readBackground(meta.background);
+  for (const { text, line } of chunks) {
+    const lifted = lift(text);
+    if (!lifted.body.trim()) continue;
+    const own = liftBackground(lifted.notes);
+    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, lines: true });
+    css ||= r.css;
+    out.push({ body: unmast(r.body), line });
+  }
+  return { css, meta, pages: out };
 }
 
 /**
