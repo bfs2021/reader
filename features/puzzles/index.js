@@ -25,6 +25,11 @@
  * (`env.file`) and read with `env.read(path)`, which the server gives only
  * when it allows it; its text, or why it couldn't be read, is carried along
  * as `data-source` or `data-source-error`.
+ *
+ * For a page with nothing to draw them (an export), a puzzle the preview
+ * drew is written drawn: `env.drawn.puzzles` holds each board by its kind
+ * and text, which takes the code block's place, and the styles the boards
+ * take, written before the first.
  */
 
 import fs from 'node:fs';
@@ -65,6 +70,12 @@ export function puzzles(md) {
     const board = !source ? ''
       : source.error ? ` data-source-error="${escapeAttr(source.error)}"`
         : ` data-source="${escapeAttr(source.text)}"`;
+    const drawn = drawnBoard(puzzle, tokens[i].content, env);
+    if (drawn != null) {
+      const style = shared.puzzleStyles ? '' : `<style>${env.drawn.puzzles.css ?? ''}</style>`;
+      shared.puzzleStyles = true;
+      return `<div class="puzzle drawn" data-kind="${kind}" data-puzzle="${n}">${style}${drawn}</div>\n`;
+    }
     return `<div class="puzzle" data-kind="${kind}" data-puzzle="${n}"${lines}${board}>${html.replace(/\n$/, '')}</div>\n`;
   };
 }
@@ -93,6 +104,18 @@ function where(token, lines, env) {
   if (prefix === null) return {};
   const from = (env.lineBase ?? 0) + (env.sourceLines?.[open] ?? open) + 1;
   return { from, to: from + body.length, prefix };
+}
+
+/**
+ * What the preview drew of the puzzle, by its kind and its text: the board
+ * file's and the fence's, as the preview reads them. Null if it drew none.
+ */
+function drawnBoard({ kind, source }, content, env) {
+  const boards = env.drawn?.puzzles?.boards;
+  if (!boards || source?.error) return null;
+  const own = content.replace(/\n$/, '');
+  const key = `${kind}\n${source ? `${source.text}\n${own}` : own}`;
+  return Object.hasOwn(boards, key) && typeof boards[key] === 'string' ? boards[key] : null;
 }
 
 /** A board file named after the kind, read next to the document. */

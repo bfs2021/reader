@@ -3,6 +3,10 @@
  * with its stylesheet and the images it takes from the content directory
  * inside it, so it reads the same wherever it's opened.
  *
+ * A deck is saved as its pages, as it's worked through (slides.js), one
+ * after another and without its notes. Printed, each page starts a sheet
+ * of its own, and each sheet is numbered at its foot.
+ *
  * Nothing in the file draws. A diagram is in it as the preview frame drew
  * it, when the app sends that along (`drawn`, see render.js), and is
  * otherwise left as the text it was written as, as a puzzle is; a field or
@@ -12,6 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { render } from './render.js';
+import { isDeck, pages } from './slides.js';
 import { escapeHtml, escapeAttr } from '../features/source.js';
 
 const IMAGE_TYPES = {
@@ -27,6 +32,33 @@ const IMAGE_TYPES = {
 const IMG_SRC = /(<img\b[^>]*?\ssrc=")([^"]*)(")/g;
 // The backdrop's image (background.js), its quotes escaped for the attribute.
 const BACKDROP_URL = /(background-image: url\(&quot;)(.*?)(&quot;\))/g;
+
+// A deck's pages, one after another, each with what's behind it to itself.
+// On paper, each starts a sheet, and every sheet of them is numbered. What's
+// behind a page is set for a slide's screen, not a sheet, so paper is left
+// plain, with the page's own dark ink.
+const PAGES_CSS = `
+.gm-page { position: relative; isolation: isolate; }
+.gm-page > .gm-bg { position: absolute; }
+.gm-page + .gm-page { border-top: 1px solid var(--gm-rule); }
+@media print {
+  .gm-page { page: numbered; }
+  .gm-page + .gm-page { border-top: none; break-before: page; }
+  .gm-page > .gm-bg { display: none; }
+  :root.gm-dark {
+    --gm-ink: #1a1a1a; --gm-ink-soft: #555; --gm-aside-ink: #4a5a72;
+    --gm-rule: #d9d6d0; --gm-aside-rule: #b9c4d4; --gm-accent: #7a8ba3; --gm-paper: #fff;
+  }
+}
+@page numbered {
+  @bottom-center {
+    content: counter(page);
+    font-family: "Avenir Next", Avenir, "Helvetica Neue", Inter, system-ui, sans-serif;
+    font-size: 9pt;
+    color: #555;
+  }
+}
+`;
 
 // The preview frame's `ink()`: light text on a dark background.
 const INK = `<script>
@@ -47,7 +79,8 @@ const INK = `<script>
  */
 export function exportHtml(content, file, drawn) {
   const read = (rel) => content.read(rel).text;
-  const out = render(content.read(file).text, { file, read, drawn });
+  const text = content.read(file).text;
+  const out = (isDeck(text) && deck(text, { file, read, drawn })) || render(text, { file, read, drawn });
   const missing = [];
   const inline = (m, before, src, after) => `${before}${dataUrl(content, file, src, missing) ?? src}${after}`;
   const body = out.body.replace(IMG_SRC, inline).replace(BACKDROP_URL, inline);
@@ -67,6 +100,31 @@ ${body.includes('class="gm-bg"') ? INK : ''}</body>
 </html>
 `;
   return { name: `${path.basename(file, path.extname(file))}.html`, html, missing };
+}
+
+/**
+ * Which way a deck's sheets are turned: as `print:` says, `portrait` or
+ * `landscape`; else landscape for slides to present, which have speaker
+ * notes, and portrait for a packet to fill in, which hasn't.
+ */
+function orientation(text, meta) {
+  const said = meta.print?.toLowerCase();
+  if (['portrait', 'landscape'].includes(said)) return said;
+  return /<!--/.test(text) ? 'landscape' : 'portrait';
+}
+
+/**
+ * A deck as one page: `{ css, body, title }`, as render() gives a document,
+ * of each of its pages in turn; or null, when it has none.
+ */
+function deck(text, { file, read, drawn }) {
+  const { css, meta, pages: list } = pages(text, { file, read, drawn, lines: false });
+  if (!list.length) return null;
+  return {
+    css: `${css}${PAGES_CSS}@page numbered { size: ${orientation(text, meta)}; }\n`,
+    body: list.map((p) => `<div class="gm-page">\n${p.body.trim()}\n</div>`).join('\n'),
+    title: meta.title || path.basename(file, path.extname(file)),
+  };
 }
 
 /**

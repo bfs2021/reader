@@ -257,7 +257,11 @@ th, td { border: 0.75px solid var(--gm-rule); padding: 0.3rem 0.5rem; text-align
 }
 
 @media print {
+  /* what's drawn as a background -- a field's lines, a tint -- printed too */
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .gm-doc { max-width: none; margin: 0; padding: 0; }
+  /* with nothing beside it anywhere, the text has the sheet's whole width */
+  .gm-doc:not(:has(.gm-asides)) .gm-pair { grid-template-columns: 1fr; }
   .gm-masthead { break-after: avoid; }
   .gm-colheads { break-after: avoid; }
   .gm-pair { break-inside: auto; }

@@ -49,6 +49,42 @@ test('export refuses what it cannot save', async () => {
   await assert.rejects(reader(root), /which document/);
 });
 
+test('a deck is saved as its pages, without its notes, each a numbered sheet on paper', async () => {
+  const root = dir({ 'deck.md': '---\ntitle: Packet\nbackground: navy\n---\n\n# One\n\n<!-- a note -->\n\ntext\n*Page 1*\n---\n\n# Two\n\n<!-- background: none -->\n' });
+  await reader(root, 'deck.md', '--no-draw');
+  const html = fs.readFileSync(path.join(root, 'deck.html'), 'utf8');
+  assert.match(html, /<title>Packet<\/title>/);
+  const pages = [...html.matchAll(/<div class="gm-page">\n([\s\S]*?)\n<\/div>\n(?=<div class="gm-page">|<script|<\/body>)/g)].map((m) => m[1]);
+  assert.equal(pages.length, 2);
+  // The --- under a line of text ends the page; it doesn't underline it.
+  assert.match(pages[0], /^<div class="gm-bg" style="background-color: navy"><\/div>\n<div class="gm-doc">[\s\S]*<h1>One<\/h1>\n<p>text\n<em>Page 1<\/em><\/p>/);
+  assert.match(pages[1], /^<div class="gm-doc">[\s\S]*<h1>Two<\/h1>/);
+  assert.doesNotMatch(html.slice(html.indexOf('<body>')), /a note|gm-masthead|data-line/);
+  assert.match(html, /@media print \{\n {2}\.gm-page \{ page: numbered; \}\n {2}\.gm-page \+ \.gm-page \{ border-top: none; break-before: page; \}/);
+  assert.match(html, /@page numbered \{\n {2}@bottom-center \{\n {4}content: counter\(page\);/);
+});
+
+test('a deck with speaker notes prints across the sheet, one without down it, unless print: says', async () => {
+  const root = dir({
+    'talk.md': '# One\n\n<!-- say this -->\n\n---\n\n# Two\n',
+    'packet.md': '# One\n\n---\n\n# Two\n',
+    'turned.md': '---\nprint: Landscape\n---\n\n# One\n\n---\n\n# Two\n',
+  });
+  await reader(root, 'talk.md', 'packet.md', 'turned.md', '--no-draw');
+  const size = (name) => /@page numbered \{ size: (\w+); \}/.exec(fs.readFileSync(path.join(root, name), 'utf8'))?.[1];
+  assert.equal(size('talk.html'), 'landscape');
+  assert.equal(size('packet.html'), 'portrait');
+  assert.equal(size('turned.html'), 'landscape');
+});
+
+test('a document that is not a deck is saved whole', async () => {
+  const root = dir({ 'a.md': '# A\n\ntext\n' });
+  await reader(root, 'a.md', '--no-draw');
+  const html = fs.readFileSync(path.join(root, 'a.html'), 'utf8');
+  assert.match(html, /<header class="gm-masthead">/);
+  assert.doesNotMatch(html, /gm-page/);
+});
+
 test('export draws diagrams with a browser', { skip: !findBrowser() && 'no Chrome or Chromium here', timeout: 60000 }, async () => {
   const root = dir({ 'a.md': '```mermaid\nflowchart LR\n  draft --> publish\n```\n' });
   await reader(root, 'a.md');

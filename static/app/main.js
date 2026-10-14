@@ -17,6 +17,7 @@ import { wirePages, paged, turn } from './pages.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
 import { wireFit } from './fit.js';
 import { wireSync } from './sync.js';
+import { printDocument } from './exporting.js';
 
 state.previewReady = whenReady(el.preview);
 deck.stageReady = whenReady(el.stage);
@@ -135,6 +136,19 @@ function wire() {
   window.addEventListener('keydown', onKey);
 }
 
+/** Prints the open document, saved first, as its HTML file prints. */
+async function print() {
+  if (dirty()) {
+    await save();
+    if (dirty()) return toast('not saved, so not printed', true);
+  }
+  try {
+    await printDocument(state.current.path);
+  } catch (err) {
+    toast(`print: ${err.message}`, true);
+  }
+}
+
 function onKey(e) {
   const meta = e.metaKey || e.ctrlKey;
   const key = e.key.toLowerCase();
@@ -155,6 +169,7 @@ function onKey(e) {
     return;
   }
   if (meta && !e.altKey && key === 's') { e.preventDefault(); save({ explicit: true }); return; }
+  if (meta && !e.altKey && !e.shiftKey && key === 'p' && state.current?.type === 'md') { e.preventDefault(); print(); return; }
   if (meta && e.key === '\\') { e.preventDefault(); toggleSidebar(); return; }
   if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
   if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }

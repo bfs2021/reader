@@ -81,7 +81,9 @@ const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 // rendered document brings its own (the theme, a ::: block's colors, an
 // image's size), and images from anywhere a note points; it fetches
 // nothing, and only the app may frame it. Neither the app nor the speaker
-// view may be framed at all.
+// view may be framed at all. The page a document is printed from takes the
+// exported file written into it, which brings its styles and images inline
+// and runs nothing.
 const POLICY = (directives) => Object.entries(directives).map(([k, v]) => `${k} ${v}`).join('; ');
 const LOCKED = {
   'default-src': "'none'",
@@ -117,6 +119,13 @@ const PAGE_POLICIES = {
     'style-src': "'self' 'unsafe-inline'",
     'img-src': '* data: blob:',
     'font-src': "'self' data:",
+    'frame-ancestors': "'self'",
+  }),
+  'print.html': POLICY({
+    ...LOCKED,
+    'style-src': "'unsafe-inline'",
+    'img-src': 'data:',
+    'font-src': 'data:',
     'frame-ancestors': "'self'",
   }),
 };

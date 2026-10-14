@@ -839,8 +839,24 @@ Images and links in a note resolve relative to that note, so
 The export icon at the end of a document's row, shown when the row is
 hovered or open, saves it as one HTML file: the rendered page, with its stylesheet and
 the images it takes from the directory inside it. Nothing in that file draws:
-a diagram is in it as the preview drew it, and a puzzle is left as the text
-it was written as.
+a diagram or a puzzle is in it as the preview drew it, the puzzle as far as
+it's been played.
+
+A deck is saved as its pages, as Work shows them, one after another and
+without its speaker notes.
+
+**`⌘P`** prints the open document as that file prints, saving it first. A
+deck prints a page to a sheet: each page starts a sheet of its own,
+and every sheet is numbered at its foot, so a packet needs no `*Page 2*`
+typed in. Each page is scaled up, as much as twice, to fill its sheet, so
+a puzzle is bigger and there's more room to write. A page too long for one
+sheet runs onto the next as it is, and takes its number too. (The saved
+file, printed itself, leaves its pages at reading size.) A deck with speaker notes is taken for a talk and printed
+across the sheet, landscape; one without, for a packet, and printed down it.
+`print: landscape` or `print: portrait` in the front matter says otherwise.
+Backgrounds are left off paper; they're set for a screen. The
+numbers need Chrome 131 or later; other browsers print the sheets without
+them.
 
 `reader export` does the same from the command line, saving each document
 beside itself as `<name>.html`, or to `--out` when there's one:
@@ -894,6 +910,7 @@ images have to be committed for the runner to put them inside the page.
 | | |
 | --- | --- |
 | `⌘S` | save now |
+| `⌘P` | print the document, a deck a page to a sheet |
 | `⌘B` `⌘I` `⌘K` | bold, italic, link |
 | `Tab` | indent two spaces |
 | `⌥↑` / `⌥↓` | previous / next file |

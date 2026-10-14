@@ -24,7 +24,7 @@
 - [x] #3 directories: a folder at a time, with a file's versions (`slides.arc1.md`) as one row.
 - [ ] #7 navigation: a file's outline can be the level after a file in #3's folder view.
 - [ ] #17 search.
-- [ ] #6 page numbering.
+- [x] #6 print a deck one page per sheet, numbered.
 - [ ] #16 problems panel: this would also be the natural home for #4's overflow warnings.
 - [ ] #19 export: a handout or PDF of the deck could matter after the talk.
 - [ ] #18 templates.
@@ -37,6 +37,7 @@
 - [ ] #20 using documents without installing reader.
 - [ ] #53 `gh:` issue links titled with the issue. Waits: no other link fetches its own label.
 - [ ] #27 bringing a review back into a changed document, or sharing it live instead. For discussion; overlaps #20.
+- [ ] #55 handouts: a talk's slides as presented, several to a sheet. After #6.
 
 
 ## Daily dashboard

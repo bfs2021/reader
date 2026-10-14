@@ -1,5 +1,6 @@
 /**
- * Exporting: a document saved as one HTML file (src/export.js).
+ * Exporting: a document saved as one HTML file (src/export.js), or printed
+ * from one.
  *
  * That file draws nothing, so what the preview would draw (a diagram) is
  * drawn here first, in a frame of its own out of sight, and sent with the
@@ -8,11 +9,62 @@
 
 import { api, exportUrl } from './api.js';
 import { whenReady, baseFor } from './render.js';
+import { asPrinted, fill, sheet } from './sheets.js';
 
 const DRAW_TIMEOUT = 30000;
 
 /** Saves the document at `p`, as it is on disk, as an HTML file. */
 export async function exportDocument(p) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(await exported(p));
+  a.download = `${p.slice(p.lastIndexOf('/') + 1).replace(/\.[^.]*$/, '')}.html`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
+/**
+ * Prints the document at `p`, as it is on disk: the HTML file it would be
+ * saved as, which prints a deck a page to a sheet, numbered, each page
+ * sized to fill its sheet (sheets.js). It's written into a frame of its
+ * own, out of sight, whose page runs no scripts.
+ */
+export async function printDocument(p) {
+  const html = await (await exported(p)).text();
+  const frame = document.createElement('iframe');
+  frame.sandbox = 'allow-same-origin allow-modals';
+  frame.tabIndex = -1;
+  frame.setAttribute('aria-hidden', 'true');
+  frame.className = 'print-frame';
+  const done = () => frame.remove();
+  try {
+    await new Promise((resolve) => {
+      frame.addEventListener('load', resolve, { once: true });
+      frame.src = '/print.html';
+      document.body.append(frame);
+    });
+    const win = frame.contentWindow;
+    const doc = win.document;
+    doc.open();
+    doc.write(asPrinted(html));
+    doc.close();
+    await Promise.all([...doc.images].map((img) => img.decode().catch(() => {})));
+    await doc.fonts.ready;
+    // The sheet's size, as the page's is when it's printed, for what's
+    // sized by the window.
+    const { width, height } = sheet(doc);
+    frame.style.width = `${width}px`;
+    frame.style.height = `${height}px`;
+    fill(doc);
+    win.addEventListener('afterprint', () => setTimeout(done), { once: true });
+    win.print();
+  } catch (err) {
+    done();
+    throw err;
+  }
+}
+
+/** The document at `p`, as it is on disk, as the HTML file it's exported as. */
+async function exported(p) {
   const drawn = await drawnFor(p);
   const res = await fetch(exportUrl(p), {
     method: 'POST',
@@ -20,11 +72,7 @@ export async function exportDocument(p) {
     body: JSON.stringify({ path: p, drawn }),
   });
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `${res.status} ${res.statusText}`);
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(await res.blob());
-  a.download = `${p.slice(p.lastIndexOf('/') + 1).replace(/\.[^.]*$/, '')}.html`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  return res.blob();
 }
 
 /**

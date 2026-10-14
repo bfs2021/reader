@@ -6,11 +6,13 @@ blockquote:has(> .quote-by) {
   padding-left: 1.7rem;
   margin: 1rem 0;
 }
+/* Floated into the padding, not placed: Chrome prints a placed one in the
+   wrong spot on a page scaled to its sheet (static/app/sheets.js). */
 blockquote:has(> .quote-by)::before {
   content: "\201C";
-  position: absolute;
-  left: 0;
-  top: -0.4rem;
+  float: left;
+  height: 0;
+  margin: -0.4rem 0 0 -1.7rem;
   font-family: var(--gm-serif);
   font-style: normal;
   font-size: 2.6rem;

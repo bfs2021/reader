@@ -163,7 +163,11 @@ test('each page says what it may load: its own scripts only, nothing inline', as
   assert.match(await policy('/'), /style-src 'self'(;|$)/);
   assert.match(await policy('/preview.html'), /frame-ancestors 'self'/);
   assert.match(await policy('/preview.html'), /style-src 'self' 'unsafe-inline'/);
-  for (const page of ['index.html', 'speaker.html', 'preview.html']) {
+  const print = await policy('/print.html');
+  assert.match(print, /default-src 'none'/);
+  assert.doesNotMatch(print, /script-src/);
+  assert.match(print, /style-src 'unsafe-inline'/);
+  for (const page of ['index.html', 'speaker.html', 'preview.html', 'print.html']) {
     const html = await (await fetch(`${base}/${page}`)).text();
     assert.doesNotMatch(html, /<script>|<script(?![^>]*\bsrc=)[^>]*>|\son[a-z]+=/, `${page} has no inline script`);
   }

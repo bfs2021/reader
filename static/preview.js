@@ -390,7 +390,7 @@
     const turning = e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key);
     if (turning && e.target.closest?.('input:not([type=checkbox], [type=radio]), textarea, [contenteditable]')) return;
     if (turning) e.preventDefault();
-    if ((meta && ['s', '\\'].includes(e.key.toLowerCase())) || (meta && e.code === 'Period')
+    if ((meta && ['s', 'p', '\\'].includes(e.key.toLowerCase())) || (meta && e.code === 'Period')
       || (e.altKey && ['ArrowUp', 'ArrowDown'].includes(e.key))) e.preventDefault();
     const { key, code, metaKey, ctrlKey, altKey, shiftKey } = e;
     window.parent.postMessage({ type: 'key', key, code, metaKey, ctrlKey, altKey, shiftKey }, '*');

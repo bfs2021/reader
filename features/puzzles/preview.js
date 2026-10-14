@@ -20,6 +20,10 @@
  * names as `data-from` and `data-to` (see edits.js), each line starting with
  * `data-prefix` for a puzzle in a quote or a list.
  *
+ * What each puzzle drew is also handed back (`Preview.drawn()`), for an
+ * export, which has nothing to draw them: by its kind and text, the board
+ * as it stands, and the styles every board takes.
+ *
  * Each kind lives in kinds/<kind>.js and registers itself here with
  * `mount(host, text, ui, post)`: draw the puzzle into `host` from `text`
  * (false if the text can't be read), keep what the reader was doing in `ui`,
@@ -34,6 +38,9 @@
   // What the reader was doing in each puzzle -- where the cursor was, whether
   // pencil marks were on -- kept across re-renders, which replace the page.
   const memory = new Map();
+  // Each board drawn, by its kind and text, and the styles they take.
+  const keys = new WeakMap();
+  let styles = '';
 
   function register(kind, impl, css = '') {
     KINDS[kind] = impl;
@@ -77,6 +84,7 @@
         unreadable(host, source == null ? '' : 'its board file');
         continue;
       }
+      keys.set(host, `${host.dataset.kind}\n${text}`);
       host.tabIndex = 0;
       if (index === focus) host.focus({ preventScroll: true });
     }
@@ -119,6 +127,7 @@
   }
 
   function addStyle(css) {
+    styles += css;
     const style = document.createElement('style');
     style.textContent = css;
     document.head.append(style);
@@ -151,6 +160,14 @@
       return playing ? Number(playing.dataset.puzzle) : null;
     },
     restore: (root, playing) => hydrate(root, playing),
+    drawn: () => {
+      const boards = {};
+      for (const host of document.querySelectorAll('.puzzle[data-kind]')) {
+        if (!keys.has(host)) continue;
+        boards[keys.get(host)] = [...host.children].filter((e) => !e.matches('.puzzle-bar, .puzzle-help')).map((e) => e.outerHTML).join('');
+      }
+      return { puzzles: { css: styles, boards } };
+    },
   });
 
   window.Puzzles = { register, hydrate, owns, frame };

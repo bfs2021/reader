@@ -78,3 +78,15 @@ test('a board file is paired with its own fence, wherever the fences are', () =>
   assert.match(hosts[0], /data-from="1"/);
   assert.match(hosts[1], /data-kind="maze" data-puzzle="1" data-from="5" data-to="6" data-source=/);
 });
+
+test('a puzzle the preview drew is written drawn, its styles once, for a page with nothing to draw it', () => {
+  const read = () => '+--+\n|SE|\n+--+';
+  const drawn = { puzzles: { css: '.maze { color: red; }', boards: { 'maze\n+--+\n|SE|\n+--+\npath: R': '<svg id="a"></svg>', 'sudoku\n5 3 .': '<div id="b"></div>' } } };
+  const src = '```maze one.maze\npath: R\n```\n\n```sudoku\n5 3 .\n```\n\n```sudoku\n.\n```\n';
+  const { body } = render(src, { file: 'packet.md', read, drawn });
+  assert.match(body, /<div class="puzzle drawn" data-kind="maze" data-puzzle="0"><style>\.maze \{ color: red; \}<\/style><svg id="a"><\/svg><\/div>/);
+  assert.match(body, /<div class="puzzle drawn" data-kind="sudoku" data-puzzle="1"><div id="b"><\/div><\/div>/);
+  // One it didn't draw is left as its text.
+  assert.match(body, /<div class="puzzle" data-kind="sudoku" data-puzzle="2" [^>]*><pre><code class="language-sudoku">\.\n/);
+  assert.equal(body.match(/<style>/g).length, 1);
+});
