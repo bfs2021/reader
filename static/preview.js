@@ -204,43 +204,77 @@
     if (leading && !telling) telling = requestAnimationFrame(tell);
   }, { passive: true });
 
+  /** Puts a render in place: the page, its steps, its fit and its scroll. */
+  function draw(m) {
+    const y = window.scrollY;
+    if (m.base) base.href = m.base;
+    if (theme.textContent !== m.css) theme.textContent = m.css;
+    dim = Boolean(m.dim);
+    // What features and puzzles were in the middle of carries over.
+    Preview.replace(document.body, () => {
+      document.body.innerHTML = m.body;
+      // Steps to come are hidden before anything measures the page (a
+      // puzzle drawing itself, the background's color being read, the
+      // fit below): a step first seen showing would fade out, flashing
+      // on screen as it went.
+      if (m.reveal != null) hideLater(m.reveal);
+      ink();
+    });
+    hidePeek();
+    Preview.deck = Boolean(m.deck);
+    document.documentElement.classList.toggle('deck', Preview.deck);
+    fit();
+    if (m.measure != null) settled().then(() => fit(m.measure));
+    if (m.reveal != null) reveal(m.reveal);
+    marks = null;
+    if (m.lines != null) lines = m.lines;
+    if (m.resetScroll) {
+      cancelAnimationFrame(easing);
+      easing = 0;
+      window.scrollTo(0, 0);
+    } else {
+      window.scrollTo(0, y);
+      // What's above may have grown or shrunk; put the editor back level.
+      tell();
+    }
+  }
+
+  // One slide giving way to the next: the page as it was and as it is now
+  // are drawn over each other while the one is swapped for the other, and
+  // the stylesheet moves them by `data-transition`. Where the browser can't,
+  // or the reader has asked for less motion, it's a cut. What arrives before
+  // the swap happens goes into it (`waiting`): a later render in place of
+  // this one, a step onto the slide that's coming and not the one leaving.
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let waiting = null;
+  let moves = 0;
+
+  function show(m) {
+    if (waiting) {
+      waiting = m;
+      return;
+    }
+    const moved = m.transition && m.transition !== 'none' && document.startViewTransition && !calm.matches;
+    if (!moved) return draw(m);
+    waiting = m;
+    const root = document.documentElement;
+    const mine = ++moves;
+    root.dataset.transition = m.transition;
+    const done = () => { if (mine === moves) delete root.dataset.transition; };
+    document.startViewTransition(() => {
+      const latest = waiting;
+      waiting = null;
+      draw(latest);
+    }).finished.then(done, done);
+  }
+
   window.addEventListener('message', (e) => {
     if (e.source !== window.parent) return;
     const m = e.data || {};
     if (m.type === 'ping') {
       window.parent.postMessage({ type: 'ready' }, '*');
     } else if (m.type === 'render') {
-      const y = window.scrollY;
-      if (m.base) base.href = m.base;
-      if (theme.textContent !== m.css) theme.textContent = m.css;
-      dim = Boolean(m.dim);
-      // What features and puzzles were in the middle of carries over.
-      Preview.replace(document.body, () => {
-        document.body.innerHTML = m.body;
-        // Steps to come are hidden before anything measures the page (a
-        // puzzle drawing itself, the background's color being read, the
-        // fit below): a step first seen showing would fade out, flashing
-        // on screen as it went.
-        if (m.reveal != null) hideLater(m.reveal);
-        ink();
-      });
-      hidePeek();
-      Preview.deck = Boolean(m.deck);
-      document.documentElement.classList.toggle('deck', Preview.deck);
-      fit();
-      if (m.measure != null) settled().then(() => fit(m.measure));
-      if (m.reveal != null) reveal(m.reveal);
-      marks = null;
-      if (m.lines != null) lines = m.lines;
-      if (m.resetScroll) {
-        cancelAnimationFrame(easing);
-        easing = 0;
-        window.scrollTo(0, 0);
-      } else {
-        window.scrollTo(0, y);
-        // What's above may have grown or shrunk; put the editor back level.
-        tell();
-      }
+      show(m);
     } else if (m.type === 'drawn') {
       // What features drew of the last render, once all of it is in place.
       (async () => {
@@ -248,7 +282,8 @@
         window.parent.postMessage({ type: 'drawn', drawn: Preview.drawn() }, '*');
       })();
     } else if (m.type === 'reveal') {
-      reveal(m.reveal);
+      if (waiting) waiting.reveal = m.reveal;
+      else reveal(m.reveal);
     } else if (m.type === 'scroll') {
       follow(m.line);
     }

@@ -10,7 +10,7 @@
  *   POST /api/export           { path, drawn? } -> the same, with what the preview frame drew set into it
  *   POST /api/render           { text, path? } -> { css, body, deck }
  *                              { text, path?, pages: true } -> for a deck, { css, deck, pages: [{ body, line }] }
- *   POST /api/slides           { text, path? } -> { css, title, slides: [{ body, notes, notesHtml, line, at, budget, plan }], end }
+ *   POST /api/slides           { text, path? } -> { css, title, slides: [{ body, notes, notesHtml, line, at, budget, plan, transition }], end }
  *   GET  /content/<path>       raw bytes (PDFs, images a note links to)
  *
  * Local only: the server refuses requests whose Host isn't loopback (DNS

@@ -136,3 +136,11 @@ test('a deck worked through is a page to a slide, drawn as a document, without i
   assert.doesNotMatch(out.pages[0].body, /a note|gm-masthead|slide-title/);
   assert.doesNotMatch(out.css, /:root body \{ overflow: hidden; \}/);
 });
+
+test("a slide's transition is its notes', or the deck's, or none, and isn't shown with the notes", () => {
+  const out = slides('---\ntransition: Fade\n---\n# One\n\n<!--\nsay hi\ntransition: up\n-->\n\n---\n\n# Two\n\n<!-- transition: now the demo -->\n\n---\n\n# Three\n');
+  assert.deepEqual(out.slides.map((s) => s.transition), ['up', 'fade', 'fade']);
+  assert.equal(out.slides[0].notes, 'say hi');
+  assert.equal(out.slides[1].notes, 'transition: now the demo');
+  assert.deepEqual(slides('# One\n\n---\n\n# Two\n').slides.map((s) => s.transition), ['none', 'none']);
+});

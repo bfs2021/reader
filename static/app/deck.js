@@ -26,6 +26,10 @@ import { findScreens, roomScreen, speakerFeatures, placeSpeaker } from './screen
 // end. `N` shows the rest of the slide, or the next one whole; `P` goes
 // back to the start of the slide, or to the start of the previous one. See
 // moves.js.
+//
+// A slide can say how it leaves for the next (`transition`, see
+// src/transition.js). Going on from it plays that, and coming back to it
+// plays it the other way round; a jump to any other slide is a cut.
 
 /** Present is offered for a file the server says is a deck when it renders it. */
 export function updatePresentable(isDeck = false) {
@@ -122,13 +126,13 @@ function step(node, n) {
 }
 
 /** Puts the current slide on the stage; with `render: false`, only its reveal. */
-export async function showSlide({ render = true } = {}) {
+export async function showSlide({ render = true, transition } = {}) {
   const i = deck.index;
   const slide = deck.slides[i];
   await deck.stageReady;
   if (!deck.open || deck.index !== i) return;
   el.stage.contentWindow.postMessage(render
-    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal }
+    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition }
     : { type: 'reveal', reveal: deck.reveal }, '*');
   el.deckCount.textContent = paging(i);
   el.deckNotes.innerHTML = slide.notesHtml;
@@ -151,9 +155,19 @@ export function go(i, reveal = 0) {
   const shown = Math.min(deck.slides[index].steps, Math.max(0, reveal));
   if (index === deck.index && shown === deck.reveal) return;
   const render = index !== deck.index;
+  const transition = between(deck.index, index);
   deck.index = index;
   deck.reveal = shown;
-  showSlide({ render });
+  showSlide({ render, transition });
+}
+
+const BACKWARDS = { up: 'down', down: 'up', left: 'right', right: 'left' };
+
+/** The transition from slide `from` to slide `to`, if they're neighbours. */
+function between(from, to) {
+  if (to === from + 1) return deck.slides[from].transition;
+  const leaving = to === from - 1 ? deck.slides[to].transition : null;
+  return leaving && (BACKWARDS[leaving] ?? leaving);
 }
 
 const move = (to) => {

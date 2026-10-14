@@ -20,6 +20,18 @@
 .step-hidden { visibility: hidden; opacity: 0; }
 .step-dim { opacity: .25; }
 
+/* one slide giving way to the next (preview.js sets data-transition): the
+ * way named is the way both move. A fade is the browser's own. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .45s; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+:root:is([data-transition="up"], [data-transition="down"], [data-transition="left"], [data-transition="right"])::view-transition-old(root) { animation-name: gm-leave; }
+:root:is([data-transition="up"], [data-transition="down"], [data-transition="left"], [data-transition="right"])::view-transition-new(root) { animation-name: gm-arrive; }
+:root[data-transition="up"] { --gm-x: 0%; --gm-y: -100%; }
+:root[data-transition="down"] { --gm-x: 0%; --gm-y: 100%; }
+:root[data-transition="left"] { --gm-x: -100%; --gm-y: 0%; }
+:root[data-transition="right"] { --gm-x: 100%; --gm-y: 0%; }
+@keyframes gm-leave { to { translate: var(--gm-x) var(--gm-y); } }
+@keyframes gm-arrive { from { translate: calc(-1 * var(--gm-x)) calc(-1 * var(--gm-y)); } }
+
 /* a slide shrunk to fit (preview.js sets --fit): everything on it together,
  * inside the slide's margins. Code that still won't fit across wraps, and a
  * slide that still won't fit at all scrolls. */

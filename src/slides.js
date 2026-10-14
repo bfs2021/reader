@@ -13,6 +13,7 @@
  *
  *   <!-- speaker notes -->
  *   <!-- background: navy -->    behind this slide instead
+ *   <!-- transition: up -->      how this slide leaves for the next (transition.js)
  *
  *   ---
  *
@@ -28,7 +29,7 @@
  * sanitizes them away, so they never show in the terminal either. That
  * makes the notes the place for what reader is told about one slide: a
  * `key: value` line there is read and taken out of the notes shown (its
- * `background:` here, its `at:` and `time:` in pacing.js).
+ * `background:` here, its `transition:`, its `at:` and `time:` in pacing.js).
  *
  * The same file is a workbook when it's worked through and not presented
  * (`pages`): each slide a page of the document, at the size it's written.
@@ -38,6 +39,7 @@ import path from 'node:path';
 import { render, renderNotes } from './render.js';
 import { readNotes, plan, planEnd, duration } from './pacing.js';
 import { readBackground, liftBackground } from './background.js';
+import { readTransition, liftTransition } from './transition.js';
 import { readEntry, makeKey } from '../features/asides/key.js';
 
 const SEPARATOR = /^---[ \t]*$/;
@@ -60,14 +62,16 @@ export function slides(src, { file, read } = {}) {
   // Kept by features across the slides, to number things through the deck.
   const shared = {};
   const behind = readBackground(meta.background);
+  const leaving = readTransition(meta.transition) ?? 'none';
   for (const { text, line } of chunks) {
     const lifted = lift(text);
     if (!lifted.body.trim() && !lifted.notes) continue;
     const own = liftBackground(lifted.notes);
-    const { notes, at, budget } = readNotes(own.notes);
+    const moved = liftTransition(own.notes);
+    const { notes, at, budget } = readNotes(moved.notes);
     const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta });
     css ||= `${r.css}\n${CSS}`;
-    out.push({ body: titled(unmast(r.body), lifted.body), notes, notesHtml: renderNotes(notes), line, at, budget });
+    out.push({ body: titled(unmast(r.body), lifted.body), notes, notesHtml: renderNotes(notes), line, at, budget, transition: moved.transition ?? leaving });
   }
   // When each slide should start, by the notes' checkpoints and budgets.
   const total = duration(meta.time);

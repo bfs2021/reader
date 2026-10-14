@@ -682,6 +682,38 @@ background: images/paper.jpg
 - A `background:` line isn't shown with the notes, unless it doesn't read
   as a background.
 
+**Transitions.** `transition:` says how one slide gives way to the next. In
+the front matter it's the deck's; in a slide's notes it's how that slide
+leaves, so it goes just above the `---` it's about:
+
+```markdown
+---
+transition: fade
+---
+
+# Most slides fade
+
+---
+
+# This one is pushed up and off
+
+<!-- transition: up -->
+
+---
+
+# By this one
+```
+
+- `up`, `down`, `left` and `right` are the way the slides move: the one
+  leaving goes off that way, and the next comes on after it. `fade` fades
+  one into the other. `none`, a cut, is what a deck that doesn't say gets.
+- Going back a slide plays it the other way round. Jumping to a slide
+  (`Home`, `End`, the speaker view) is a cut.
+- Steps within a slide and the speaker view don't move, and neither does
+  anything for someone whose system asks for reduced motion.
+- A `transition:` line isn't shown with the notes, unless it doesn't read
+  as a transition.
+
 
 - Writes to disk about a second after you stop typing, and immediately on `⌘S`.
 - Writes are atomic (temp file, then rename).
@@ -758,6 +790,7 @@ $ npm run lint
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
+| `src/transition.js` | how one slide gives way to the next: `transition:` in the front matter, or in a slide's notes |
 | `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
