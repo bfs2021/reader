@@ -72,6 +72,8 @@
 .field.field-inline {
   display: inline-flex;
   flex-direction: column;
+  /* Blank and caption the same width, so each is centered on the other. */
+  align-items: stretch;
   gap: 0;
   margin: 0 0.15em;
   max-width: 100%;
