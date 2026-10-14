@@ -349,10 +349,10 @@
   });
   window.addEventListener('scroll', hidePeek, { passive: true });
 
-  // On a slide, a click anywhere but a link or a puzzle moves the deck, the
-  // left third back and the rest forward.
+  // On a slide, a click anywhere but a link, a puzzle or a tab moves the
+  // deck, the left third back and the rest forward.
   document.addEventListener('click', (e) => {
-    if (!Preview.deck || (e.target.closest && e.target.closest('a[href], .puzzle'))) return;
+    if (!Preview.deck || (e.target.closest && e.target.closest('a[href], .puzzle, .tab'))) return;
     window.parent.postMessage({ type: 'click', left: e.clientX < innerWidth / 3 }, '*');
   });
 

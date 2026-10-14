@@ -1,0 +1,44 @@
+/* versions of a passage (index.js adds which pane a checked tab shows) */
+.tabs, .compare {
+  --diff-added: rgba(47, 111, 62, .16);
+  --diff-removed: rgba(161, 50, 74, .13);
+  margin: 1rem 0;
+}
+
+/* a tab: a radio button, out of sight, and its label, which is clicked */
+.tab {
+  position: relative; display: inline-block;
+  padding: .2em 0 .3em; margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-family: var(--gm-sans); font-size: .82rem; color: var(--gm-ink-soft);
+  cursor: pointer; user-select: none;
+}
+.tab:hover { color: var(--gm-ink); }
+.tab > input { position: absolute; opacity: 0; pointer-events: none; margin: 0; }
+.tab:has(> input:focus-visible) { outline: 2px solid var(--gm-accent); outline-offset: 2px; }
+
+/* tabs: a row of them over the one pane showing */
+.tab-bar { display: flex; flex-wrap: wrap; gap: 0 1.2em; border-bottom: 1px solid var(--gm-rule); }
+.tab-bar > .tab:has(> input:checked) { color: var(--gm-ink); border-bottom-color: var(--gm-accent); }
+.tab-pane { display: none; padding-top: .6em; }
+.tab-pane > :first-child, .compare-pane > .tab + * { margin-top: 0; }
+.tab-pane > :last-child, .compare-pane > :last-child { margin-bottom: 0; }
+
+/* compare: every version side by side, each headed by its tab */
+.compare {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  gap: 1.6em;
+}
+.compare-pane { min-width: 0; }
+.compare-pane > .tab { margin-bottom: .5em; }
+.diff { border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+/* on paper, every tab's pane, one after another, each under its name */
+@media print {
+  .tab-bar { display: none; }
+  .tab-pane { display: block !important; }
+  .tab-pane::before {
+    content: attr(data-label); display: block; margin-bottom: .3em;
+    font-family: var(--gm-sans); font-size: .82rem; color: var(--gm-ink-soft);
+  }
+}

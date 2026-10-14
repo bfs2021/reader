@@ -29,7 +29,8 @@
 - [ ] #19 export: a handout or PDF of the deck could matter after the talk.
 - [ ] #18 templates.
 - [x] #25 `gh:owner/repo#n[]` and `gh:owner/repo@sha[]`, linking an issue or a commit. Titles split off to #53.
-- [ ] #26 tabs for more than one version of a passage (Java/Kotlin, NIV/KJV), then inlining text from a reference. For discussion; tabs first.
+- [x] #26 tabs for more than one version of a passage (Java/Kotlin, NIV/KJV), then inlining text from a reference. For discussion; tabs first.
+- [ ] #54 inlining a passage's text from a reference (`scripture` fence, includes), split from #26.
 
 ## P3
 - [ ] #13 answer keys.

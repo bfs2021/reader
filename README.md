@@ -283,6 +283,52 @@ weekly code change
 - An aside written in a columns block, or right after it, sits beside all
   of it.
 
+A `:::` block named `tabs` holds **more than one version** of a passage, the
+same code in Java and in Kotlin, say, and shows one at a time:
+
+````markdown
+::: tabs
+```java
+http.oauth2Login(Customizer.withDefaults());
+```
+
+```kotlin
+http { oauth2Login { } }
+```
+:::
+````
+
+- Each block is a tab, named for its fence's language (`Java`, `Kotlin`),
+  or numbered. To name tabs yourself, or give one more than a block, start
+  each with a `+++` line naming it: `+++ Maven`, `+++ Gradle`.
+- The first tab shows until you pick another. Picking one picks it in every
+  block on the page that has a tab of that name. The pick is remembered, so
+  it holds as you edit and in the next document you open; a block shows the
+  tab picked most lately of those it has. Picking Gradle leaves Java or
+  Kotlin as it was.
+- On paper, every tab shows, one after another. In an exported file, each
+  block still switches, but on its own.
+
+A `:::` block named `compare` sets the versions **side by side** instead,
+and marks the words they differ by, as a diff does:
+
+```markdown
+::: compare
++++ NIV
+LORD, you are my God; I will exalt you and praise your name
++++ KJV
+O LORD, thou art my God; I will exalt thee, I will praise thy name
+:::
+```
+
+- Click a version's name to compare the others against it. Its words that
+  another version lacks are tinted red, and the other versions' words that
+  it lacks green. The first is compared against until you pick another, and
+  the pick is shared and remembered as a tab's is.
+- Words are compared without regard to case or punctuation. Code is
+  compared too, apart from the text and as written: a name, a number or
+  each mark of punctuation is a word.
+
 A few GitHub conventions show as they do there:
 
 - **Callouts.** A blockquote that opens with `[!NOTE]`, `[!TIP]`,
@@ -907,7 +953,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups, the trash, branching, renaming and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `tabs`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
@@ -918,6 +964,7 @@ $ npm run lint
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |
 | `static/edits.js` | edits the preview asks for, checked against the lines they were drawn from |
+| `static/picks.js` | the versions picked in `tabs` and `compare` blocks, kept for the frames, which have no storage of their own |
 | `features/puzzles/` | puzzle fences: found and wrapped (`index.js`), drawn, played and posted back in the preview (`preview.js`) |
 | `features/puzzles/kinds/` | one file per kind of puzzle; a file here is a fence name |
 | `static/speaker.html` | the speaker view for a deck being presented |
