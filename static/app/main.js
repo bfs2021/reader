@@ -19,6 +19,8 @@ import { wireFit } from './fit.js';
 import { wireSync } from './sync.js';
 import { printDocument } from './exporting.js';
 import { wireLines, copyLines, goToLines } from './lines.js';
+import { wireOutline } from './outline.js';
+import { wireGoTo, openGoTo, isGoTo } from './goto.js';
 
 state.previewReady = whenReady(el.preview);
 deck.stageReady = whenReady(el.stage);
@@ -57,7 +59,7 @@ function wire() {
     // The stage takes the mouse, for image previews, so it hands back the
     // keys and clicks that drive the deck.
     if (deck.open && e.source === el.stage.contentWindow) {
-      if (e.data?.type === 'key') deckKey(e.data);
+      if (e.data?.type === 'key') (isGoTo(e.data) ? openGoTo : deckKey)(e.data);
       else if (e.data?.type === 'click') (e.data.left ? back : next)();
       else if (e.data?.type === 'edit') applyEdit(e.data, { fromStage: true });
       return;
@@ -82,6 +84,8 @@ function wire() {
   }
   wireSync();
   wireLines();
+  wireOutline();
+  wireGoTo();
 
   el.filter.addEventListener('input', drawTree);
   el.files.addEventListener('keydown', onListKey);
@@ -156,6 +160,11 @@ async function print() {
 function onKey(e) {
   const meta = e.metaKey || e.ctrlKey;
   const key = e.key.toLowerCase();
+  if (isGoTo(e)) {
+    e.preventDefault();
+    openGoTo();
+    return;
+  }
   if (deck.open) {
     if (deckKey(e)) e.preventDefault();
     return;

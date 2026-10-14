@@ -1,0 +1,235 @@
+/**
+ * A file's outline.
+ *
+ * What the outline lists:
+ *
+ * - With `---` between them, the parts: each one entry, named by its first
+ *   heading or, without one, its first line. The `#` to `###` headings
+ *   after that are nested under it.
+ * - Without `---` (an ideas page), the `#` to `###` headings themselves.
+ * - In a talk (a deck with speaker notes, or `type: slides`), the slides,
+ *   by their titles, and not the headings inside them. A slide that holds
+ *   only a `#` heading, a section's title slide, gathers the slides after
+ *   it up to the next one.
+ *
+ * Front matter is never an entry. Lines are counted from 0; an entry runs
+ * from `line` up to, not including, `end`, and `head` is its first line
+ * that isn't blank. A heading's entry runs to the
+ * next heading at its level or above, and never past the end of its part.
+ *
+ * No DOM here, so the tests can run it.
+ */
+
+const SEPARATOR = /^---[ \t]*$/;
+const MATTER = /^-{3,}[ \t]*$/;
+const META = /^[ \t]*[\w-]+(?:[ \t]+\S)?[ \t]*:/;
+const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
+const HEADING = /^ {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$/;
+const DEEPEST = 3;
+
+/**
+ * `{ matter, talk, parts, entries }`: the front matter's lines, whether the
+ * file is a talk, each part's `{ line, end }`, and the outline's entries,
+ * each `{ title, kind, level, line, end, children }`.
+ */
+export function outline(src) {
+  const lines = String(src ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const matter = frontMatter(lines);
+  const seen = visible(lines, matter ? matter.end : 0);
+
+  const parts = [];
+  let start = matter ? matter.end : 0;
+  for (let i = start; i <= lines.length; i++) {
+    if (i < lines.length && !(seen[i] !== null && SEPARATOR.test(lines[i]))) continue;
+    if (lines.slice(start, i).some((l) => l.trim())) parts.push({ line: start, end: i });
+    start = i + 1;
+  }
+
+  const headings = [];
+  seen.forEach((l, i) => {
+    const m = l && HEADING.exec(l);
+    if (m) headings.push({ level: m[1].length, title: plain(m[2].replace(/^\[[ xX]\][ \t]+/, '')), line: i });
+  });
+
+  const notes = lines.some((l, i) => i >= (matter?.end ?? 0) && seen[i] !== null && l.includes('<!--'));
+  const type = String(matter?.meta.type || '').toLowerCase();
+  const talk = parts.length > 1 && (type === 'slides' || (notes && type !== 'workbook'));
+
+  let entries;
+  if (parts.length <= 1) entries = nest(headings.filter((h) => h.level <= DEEPEST), lines.length, 'heading');
+  else if (talk) entries = slides(parts, headings, seen);
+  else entries = parts.map((p) => part(p, headings, seen));
+  const heads = (list) => list.forEach((e) => {
+    e.head = e.line;
+    while (e.head < e.end - 1 && !lines[e.head].trim()) e.head++;
+    heads(e.children);
+  });
+  heads(entries);
+  return { matter, talk, parts, entries };
+}
+
+/** Every entry, in the order of the file, with its depth. */
+export function flatten(entries, depth = 0, out = []) {
+  for (const e of entries) {
+    out.push({ ...e, depth });
+    flatten(e.children, depth + 1, out);
+  }
+  return out;
+}
+
+/**
+ * The entries whose titles match `query`, best first: the words of the
+ * title it starts, then where it's found in one, then its letters in order.
+ */
+export function find(entries, query) {
+  const q = query.trim().toLowerCase();
+  const all = flatten(entries);
+  if (!q) return all;
+  const scored = [];
+  for (const e of all) {
+    const t = e.title.toLowerCase();
+    const at = t.indexOf(q);
+    let score;
+    if (at === 0) score = 3000;
+    else if (at > 0) score = (/\W/.test(t[at - 1]) ? 2000 : 1000) - at;
+    else {
+      let gaps = 0;
+      let i = -1;
+      for (const c of q) {
+        const j = t.indexOf(c, i + 1);
+        if (j < 0) { gaps = -1; break; }
+        gaps += j - i - 1;
+        i = j;
+      }
+      if (gaps < 0) continue;
+      score = 500 - gaps;
+    }
+    scored.push({ e, score });
+  }
+  return scored.sort((a, b) => b.score - a.score).map((s) => s.e);
+}
+
+/**
+ * Front matter, as a deck reads it (src/slides.js): fenced by dashes on the
+ * first line, and every line in it `key: value`.
+ */
+function frontMatter(lines) {
+  if (!MATTER.test(lines[0] ?? '')) return null;
+  const close = lines.findIndex((l, n) => n > 0 && MATTER.test(l));
+  if (close < 0) return null;
+  const inner = lines.slice(1, close);
+  if (!inner.every((l) => !l.trim() || META.test(l))) return null;
+  const meta = {};
+  for (const l of inner) {
+    const at = l.indexOf(':');
+    if (at > 0) meta[l.slice(0, at).trim().toLowerCase()] = l.slice(at + 1).trim().replace(/^(["'])(.*)\1$/, '$2');
+  }
+  return { start: 0, end: close + 1, meta };
+}
+
+/**
+ * Each line as it reads outside notes: `null` inside a code fence, where
+ * nothing is a heading or a break, and with any `<!-- -->` taken out.
+ */
+function visible(lines, from) {
+  const out = lines.map(() => '');
+  let fence = null;
+  let note = false;
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i];
+    const f = FENCE.exec(l);
+    if (fence || (f && !note)) {
+      out[i] = null;
+      if (!fence) fence = f[1];
+      else if (f && f[1][0] === fence[0] && f[1].length >= fence.length && !l.trim().slice(f[1].length).trim()) fence = null;
+      continue;
+    }
+    let text = '';
+    let rest = l;
+    while (rest) {
+      if (note) {
+        const close = rest.indexOf('-->');
+        if (close < 0) break;
+        note = false;
+        rest = rest.slice(close + 3);
+      } else {
+        const open = rest.indexOf('<!--');
+        if (open < 0) { text += rest; break; }
+        text += rest.slice(0, open);
+        note = true;
+        rest = rest.slice(open + 4);
+      }
+    }
+    out[i] = text;
+  }
+  return out;
+}
+
+/** A title as it reads: the marks of emphasis, code and links taken off. */
+function plain(s) {
+  return s
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1')
+    .replace(/(\*\*|__|~~|\*|`)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** What a part with no heading is called: its first line. */
+function firstLine(p, seen) {
+  for (let i = p.line; i < p.end; i++) {
+    const l = seen[i]?.trim();
+    if (!l) continue;
+    const t = plain(l.replace(/^(?:[-*+]|\d+[.)]|>|~|:::)\s*/, '').replace(/^\[[ xX]\][ \t]+/, ''));
+    if (t) return t.length > 60 ? `${t.slice(0, 59).trimEnd()}…` : t;
+  }
+  return 'Notes';
+}
+
+/** The first heading of a part, if it's the first thing in it. */
+function opening(p, headings, seen) {
+  const first = seen.findIndex((l, i) => i >= p.line && i < p.end && l?.trim());
+  return headings.find((h) => h.line === first) || null;
+}
+
+function part(p, headings, seen) {
+  const top = opening(p, headings, seen);
+  const inside = headings.filter((h) => h.line > p.line && h.line < p.end && h !== top && h.level <= DEEPEST);
+  return {
+    title: top?.title || firstLine(p, seen), kind: 'part', level: 0, line: p.line, end: p.end,
+    children: nest(inside, p.end, 'heading'),
+  };
+}
+
+/** Headings in a tree, each running to the next at its level or above. */
+function nest(headings, end, kind) {
+  const roots = [];
+  const stack = [];
+  headings.forEach((h, i) => {
+    const next = headings.slice(i + 1).find((o) => o.level <= h.level);
+    const entry = { title: h.title, kind, level: h.level, line: h.line, end: next ? next.line : end, children: [] };
+    while (stack.length && stack.at(-1).level >= h.level) stack.pop();
+    (stack.at(-1)?.children || roots).push(entry);
+    stack.push(entry);
+  });
+  return roots;
+}
+
+/** A talk's slides, each section's under its title slide. */
+function slides(parts, headings, seen) {
+  const roots = [];
+  let section = null;
+  for (const p of parts) {
+    const top = opening(p, headings, seen);
+    const shown = seen.slice(p.line, p.end).filter((l) => l?.trim());
+    const entry = { title: top?.title || firstLine(p, seen), kind: 'slide', level: 0, line: p.line, end: p.end, children: [] };
+    if (top?.level === 1 && shown.length === 1) {
+      section = { ...entry, kind: 'section' };
+      roots.push(section);
+    } else if (section) {
+      section.children.push(entry);
+      section.end = p.end;
+    } else roots.push(entry);
+  }
+  return roots;
+}

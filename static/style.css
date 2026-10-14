@@ -230,6 +230,52 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   background: var(--bg); border: 1px solid var(--ink-faint); border-radius: 5px; outline: none;
 }
 
+/* the open file's outline: its parts and headings, nested */
+.files li.entry-row { padding-left: calc(var(--depth) * 12px); }
+.fold {
+  flex: none; width: 18px; height: 24px; padding: 0; border: 0; background: none;
+  color: var(--ink-faint); font-size: 10px; cursor: pointer;
+}
+.fold:disabled { visibility: hidden; }
+.entry {
+  flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px;
+  padding: 4px 8px 4px 2px; border: 0; background: transparent; border-radius: 6px;
+  color: var(--ink-soft); text-align: left; font: inherit; font-size: 13px; cursor: pointer;
+}
+.entry .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry .num { font-size: 11px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.entry.part, .entry.section { color: var(--ink); }
+.entry:hover { color: var(--ink); }
+.entry:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: -2px; }
+.files li:has(.entry.at) { background: var(--line); }
+.entry.at { color: var(--ink); }
+.outline-empty { padding: 8px 10px; font-size: 12.5px; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------------- go to -- */
+
+.goto {
+  position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 30;
+  width: min(460px, calc(100vw - 32px)); padding: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 10px 34px rgba(0,0,0,.2);
+}
+.goto input {
+  width: 100%; box-sizing: border-box; padding: 7px 10px;
+  font: inherit; font-size: 14px; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px; outline: none;
+}
+.goto input:focus { border-color: var(--ink-faint); }
+.goto-list { list-style: none; margin: 6px 0 0; padding: 0; max-height: 50vh; overflow: auto; }
+.goto-list:empty { display: none; }
+.goto-list li {
+  display: flex; align-items: baseline; gap: 10px; padding: 5px 10px 5px calc(10px + var(--depth) * 14px);
+  border-radius: 6px; font-size: 13px; color: var(--ink-soft); cursor: pointer;
+}
+.goto-list li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goto-list li .sub { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+.goto-list li.on { background: var(--line); color: var(--ink); }
+.goto-list li.none { color: var(--ink-faint); cursor: default; }
+
 /* ---------------------------------------------------------------- pdf -- */
 
 .pdf-view { flex: 1; overflow: auto; background: var(--bg); padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }

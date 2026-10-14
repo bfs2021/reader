@@ -17,6 +17,7 @@ export const el = {
   dirtyDot: $('dirtyDot'), counts: $('counts'), cursor: $('cursor'), measure: $('measure'), toast: $('toast'),
   workBtn: $('workBtn'), presentBtn: $('presentBtn'), presentWrap: $('presentWrap'), fitPop: $('fitPop'),
   pages: $('pages'), pageBack: $('pageBack'), pageNext: $('pageNext'), pageDots: $('pageDots'), pageCount: $('pageCount'),
+  goto: $('goto'), gotoInput: $('gotoInput'), gotoList: $('gotoList'),
   deck: $('deck'), stage: $('stage'), deckNotes: $('deckNotes'), deckBy: $('deckBy'), deckCount: $('deckCount'),
 };
 
@@ -29,6 +30,7 @@ export const state = {
   files: [],
   dir: '',              // the folder the file list shows
   group: null,          // or the versions of this file in it, by name
+  outline: false,       // or, below either, the open file's outline
   current: null,        // { path, type }
   saved: '',            // text as last written to / read from disk
   mtime: null,          // disk mtime that `saved` corresponds to

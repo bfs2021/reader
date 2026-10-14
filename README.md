@@ -812,6 +812,38 @@ each file's folder beside it.
 (`2026-09-25.md`) unless you give it another name. If that file already exists,
 it's opened instead. PDFs open read-only in the left pane.
 
+### The outline, and going to a place
+
+The `›` at the end of the open file's row (or `→` on it) goes one level
+further in, to the file's **outline**. The path above the list, or `←`, comes back
+out to the files.
+
+- With `---` between parts, as a day of talks taken down in one file has,
+  each part is an entry, named by its first heading, or by its first line
+  when it has none. Its `#` to `###` headings are under it.
+- Without `---`, the outline is the `#` to `###` headings, nested.
+- In a talk (a deck with speaker notes, or `type: slides` in its front
+  matter), each slide is an entry, named by its title, and the headings in a
+  slide aren't listed. A slide that holds only a `#` heading starts a
+  section, and the slides after it, up to the next one, are under it.
+
+Click an entry to go there: the editor and the page beside it both move to
+it. A part or a page's number is beside it. As you scroll, the entry you're
+in is marked, and its part opens. Parts are folded otherwise; `▸` and `▾`,
+or `→` and `←`, open and fold one. The outline follows the open file, so
+`⌥↑` and `⌥↓` still step through the folder's files.
+
+**`⌃G`** (Control, not `⌘`, which is the browser's find again) asks where to go:
+
+- `12` is page 12, the twelfth part, or slide 12 of a talk.
+- `:340` is line 340.
+- Anything else finds an entry by its title: where it starts, then a word
+  in it, then its letters in order. With nothing typed, the box lists the
+  whole outline.
+
+It works in Work too, where page 12 is the page with that number, and while
+presenting, where `12` is slide 12.
+
 ### Lines, and pointing at them
 
 The editor numbers its lines down the side: a number for each line in the
@@ -948,9 +980,11 @@ images have to be committed for the runner to put them inside the page.
 | `⌘B` `⌘I` `⌘K` | bold, italic, link |
 | `Tab` | indent two spaces |
 | `⌘⇧C` | copy the file and line (or lines selected) |
+| `⌃G` | go to a page, a slide, a line (`:340`) or a heading |
 | `Home` / `End` (`fn←` / `fn→`) | in the editor, the start / end of the line, as it wraps (`⇧` to select) |
 | `⌥↑` / `⌥↓` | previous / next file |
-| `↑` `↓` `→` `←` | in the file list: move, go into a folder or a file's versions, go back out (`⌫` too) |
+| `↑` `↓` `→` `←` | in the file list: move, go into a folder, a file's versions or the open file's outline, go back out (`⌫` too) |
+| `→` `←` | in the outline: open or fold an entry, or go back out |
 | `F2` / `⌘⌫` | in the file list: rename, or move to the trash |
 | `⌘\` | show / hide the file list |
 | `⌘.` | work mode on / off |
@@ -1012,7 +1046,7 @@ $ npm run lint
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `src/transition.js` | how one slide gives way to the next: `transition:` in the front matter, or in a slide's notes |
-| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `lines.js` (line numbers, copying where you are), `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
+| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `outline.js` and `sections.js` (the open file's outline), `goto.js` (going to a place, `⌃G`), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `lines.js` (line numbers, copying where you are), `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |

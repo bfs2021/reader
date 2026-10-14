@@ -133,12 +133,18 @@ function stopEasing() {
   easing = 0;
 }
 
+/** The line at the top of the editor. */
+// A little below the very top, where a line taken to the top (goto.js) is put.
+export const topLine = () => Math.floor(lineAt(el.editor.scrollTop + 8));
+
+/** The editor leads, as when it's scrolled by hand: the page follows where it's put. */
+export function lead() {
+  leader = 'editor';
+  waiting = null;
+  stopEasing();
+}
+
 export function wireSync() {
-  const lead = () => {
-    leader = 'editor';
-    waiting = null;
-    stopEasing();
-  };
   for (const type of ['wheel', 'pointerdown', 'touchstart', 'keydown']) {
     el.editor.addEventListener(type, lead, { passive: true });
   }

@@ -66,7 +66,7 @@
       <div><code># Heading</code> <code>- list</code> <code>1. list</code> <code>&gt; quote</code> <code>---</code></div>
       <div><code>~ an aside</code> — your own voice, set beside the line above it</div>
       <div><code>---</code> alone on a line starts a new slide · <code>&lt;!-- notes --&gt;</code> are speaker notes</div>
-      <div class="keys">⌘S save · ⌘B bold · ⌘I italic · ⌘K link · ⌥↑ ⌥↓ file · ⌘⇧C copy file:line · ⌘\ files · ⌘. work · ⌘⇧. present</div>
+      <div class="keys">⌘S save · ⌘B bold · ⌘I italic · ⌘K link · ⌥↑ ⌥↓ file · ⌘⇧C copy file:line · ⌃G go to · ⌘\ files · ⌘. work · ⌘⇧. present</div>
     </div>
 
     <div class="editor-wrap">
@@ -96,6 +96,11 @@
     <span class="deck-keys">n p step · N slide end · P slide start · T notes · S speaker view · F full screen · Esc done</span>
     <span id="deckCount"></span>
   </footer>
+</div>
+
+<div class="goto" id="goto" hidden>
+  <input id="gotoInput" autocomplete="off" spellcheck="false" aria-label="Go to">
+  <ol class="goto-list" id="gotoList"></ol>
 </div>
 
 <div class="toast" id="toast" hidden></div>

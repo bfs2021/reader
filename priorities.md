@@ -13,7 +13,7 @@
 - [x] #12 Two-screen presenting, pacing, and notes shown as markdown. The notes part is quick. Two screens and pacing are the larger part.
 - [x] #2 Attributed asides. Ready to start: it needs front-matter parsing and its own design work, but nothing from another issue.
 - [x] #58 line numbers in the editor, and copying the file and line (`/path/madlib.md:13`) at the caret; its URL when served to others.
-- [ ] #7 outline: slides, and conference notes split by `---`. Then go-to.
+- [x] #7 outline: slides, and conference notes split by `---`. Then go-to.
 - [ ] #61 extract a section from the outline into a sibling file: a day of talks, a week of ideas.
 - [ ] #8 Slide overview grid.
 - [ ] #14 Quote and statement layouts. For consideration, decided together with #4.

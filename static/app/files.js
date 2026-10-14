@@ -1,7 +1,8 @@
 /**
  * The file list, a folder at a time, and opening and creating files.
  * versions.js works out which files are versions of which, and manage.js
- * branches, renames and deletes them.
+ * branches, renames and deletes them. One level below the open file is its
+ * outline (outline.js).
  */
 
 import { el, state, dirty } from './state.js';
@@ -13,8 +14,9 @@ import { renderNow, showPreview } from './render.js';
 import { scheduleGutter } from './lines.js';
 import { setSaveState, updateCounts, toast } from './status.js';
 import { updatePresentable } from './deck.js';
-import { folderView, filtered, findGroup, groupOf, hasFolder, dirOf } from './versions.js';
+import { folderView, filtered, findGroup, groupOf, hasFolder, dirOf, splitPath } from './versions.js';
 import { branch, rename, trash, promote } from './manage.js';
+import { drawOutline, entryKey } from './outline.js';
 
 // Drawn with the text's own colour; the trash's is set red in the stylesheet.
 const ICONS = {
@@ -33,7 +35,8 @@ export async function loadTree() {
 
 /**
  * One folder at a time, its files by name and then the folders under it;
- * or one file's versions; or, while filtering, every match in one flat list.
+ * or one file's versions; or the open file's outline; or, while filtering,
+ * every match in one flat list.
  */
 export function drawTree() {
   // A name being edited stays put; the list is drawn again when it's done.
@@ -41,7 +44,8 @@ export function drawTree() {
   // Redrawn under the keyboard (the list reloads when the window gets focus),
   // the row that had focus keeps it.
   const had = el.files.contains(document.activeElement) ? document.activeElement : null;
-  const same = had && (had.dataset.group ? `.group[data-group="${CSS.escape(had.dataset.group)}"]`
+  const same = had && (had.dataset.entry ? `.entry[data-entry="${CSS.escape(had.dataset.entry)}"]`
+    : had.dataset.group ? `.group[data-group="${CSS.escape(had.dataset.group)}"]`
     : had.dataset.path ? `.file[data-path="${CSS.escape(had.dataset.path)}"]`
     : had.dataset.dir ? `.folder[data-dir="${CSS.escape(had.dataset.dir)}"]` : null);
   drawRows();
@@ -59,6 +63,7 @@ function drawRows() {
     for (const row of filtered(state.files, q)) el.files.append(rowItem(row, { dir: row.dir }));
     return;
   }
+  if (state.outline && state.current?.type === 'md') return drawOutline();
   if (state.group) {
     const group = findGroup(state.files, state.dir, state.group);
     for (const v of group.versions) el.files.append(versionItem(group, v));
@@ -71,12 +76,13 @@ function drawRows() {
 
 function drawCrumbs(shown) {
   const parts = state.dir ? state.dir.split('/') : [];
-  el.crumbs.hidden = !shown || (!parts.length && !state.group);
+  el.crumbs.hidden = !shown || (!parts.length && !state.group && !state.outline);
   el.crumbs.replaceChildren();
   if (el.crumbs.hidden) return;
   const steps = [{ label: state.rootName, dir: '', group: null }];
   parts.forEach((part, i) => steps.push({ label: part, dir: parts.slice(0, i + 1).join('/'), group: null }));
   if (state.group) steps.push({ label: state.group, dir: state.dir, group: state.group });
+  if (state.outline && state.current) steps.push({ label: splitPath(state.current.path).name.replace(/\.(md|markdown)$/i, '') });
   steps.forEach((s, i) => {
     if (i) el.crumbs.append(Object.assign(document.createElement('span'), { className: 'sep', textContent: '›' }));
     const b = document.createElement('button');
@@ -114,7 +120,7 @@ function rowItem(row, { dir = '' } = {}) {
       f.type === 'md' && action('branch', 'Branch: copy as another version', () => branch(f.path)),
       f.type === 'md' && exportLink(f.path),
       action('trash', 'Move to the trash', () => trash(f.path)),
-    ]));
+    ]), outlineInto(f));
     return li;
   }
   const b = button('file group', row.name, [dir, `${row.versions.length} versions`].filter(Boolean).join(' · '));
@@ -141,8 +147,16 @@ function versionItem(group, v) {
     md && action('branch', 'Branch: copy as another version', () => branch(v.file.path)),
     md && exportLink(v.file.path),
     action('trash', 'Move to the trash', () => trash(v.file.path)),
-  ]));
+  ]), outlineInto(v.file));
   return li;
+}
+
+/** Into the open file's outline, from its row. */
+function outlineInto(f) {
+  if (f.type !== 'md' || state.current?.path !== f.path) return '';
+  const into = action('into', 'Outline', showOutline);
+  into.textContent = '›';
+  return into;
 }
 
 /** What can be done to a row, shown when it's hovered, focused or open. */
@@ -191,14 +205,16 @@ function action(cls, title, onClick) {
   return b;
 }
 
-/** Show a folder, or one file's versions in it, and remember the folder. */
-export function go(dir, group = null, { focus = true } = {}) {
-  const from = { dir: state.dir, group: state.group };
+/** Show a folder, or one file's versions in it, or the open file's outline below them; and remember the folder. */
+export function go(dir, group = null, { focus = true, outline = false } = {}) {
+  const from = { dir: state.dir, group: state.group, outline: state.outline };
   state.dir = dir;
   state.group = group;
+  state.outline = outline;
   try { localStorage.setItem(`reader:dir:${state.root}`, dir); } catch { /* ignore */ }
   drawTree();
   if (!focus) return;
+  if (outline) return (el.files.querySelector('.entry.at') || rows()[0])?.focus();
   // Going up lands on the folder or the file just left.
   const back = from.group && !group ? `.group[data-group="${CSS.escape(from.group)}"]`
     : childOn(dir, from.dir) ? `.folder[data-dir="${CSS.escape(childOn(dir, from.dir))}"]`
@@ -213,8 +229,16 @@ function childOn(dir, below) {
   return prefix + below.slice(prefix.length).split('/')[0];
 }
 
+/** The open file's outline, below the folder or versions it's listed in. */
+export function showOutline() {
+  if (state.current?.type !== 'md') return;
+  const group = groupOf(state.files, state.current.path);
+  go(dirOf(state.current.path), group && group.opens.path !== state.current.path ? group.name : null, { outline: true });
+}
+
 export function up() {
-  if (state.group) go(state.dir, null);
+  if (state.outline) go(state.dir, state.group);
+  else if (state.group) go(state.dir, null);
   else if (state.dir) go(dirOf(state.dir), null);
 }
 
@@ -228,12 +252,13 @@ export function reveal(p) {
   go(dirOf(p), group && group.opens.path !== p ? group.name : null, { focus: false });
 }
 
-const rows = () => [...el.files.querySelectorAll('.file, .folder')];
+const rows = () => [...el.files.querySelectorAll('.file, .folder, .entry')];
 
-/** Arrows move down the list; → goes into a folder or a file's versions, ← back out. */
+/** Arrows move down the list; → goes into a folder, a file's versions or the open file's outline, ← back out. */
 export function onListKey(e) {
   if (e.target.matches('input')) return;
   const at = document.activeElement;
+  if (at?.matches('.entry') && entryKey(e, at)) return e.preventDefault();
   const list = rows();
   const i = list.indexOf(at);
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -242,6 +267,9 @@ export function onListKey(e) {
   } else if (e.key === 'ArrowRight' && at?.matches('.folder, .group')) {
     e.preventDefault();
     go(at.dataset.dir, at.dataset.group || null);
+  } else if (e.key === 'ArrowRight' && at?.matches('.file')) {
+    e.preventDefault();
+    (state.current?.path === at.dataset.path ? Promise.resolve() : open(at.dataset.path)).then(showOutline);
   } else if (e.key === 'F2' && at?.matches('.file')) {
     e.preventDefault();
     rename(at.dataset.path, { group: at.dataset.group || null });
@@ -285,8 +313,15 @@ export function visiblePaths() {
   return [...el.files.querySelectorAll('.file')].map((b) => b.dataset.path);
 }
 
+/** The files in the folder or versions shown, or that the outline is shown below. */
+function listedPaths() {
+  if (!state.outline || el.filter.value.trim()) return visiblePaths();
+  if (state.group) return findGroup(state.files, state.dir, state.group)?.versions.map((v) => v.file.path) ?? [];
+  return folderView(state.files, state.dir).rows.map((r) => (r.kind === 'file' ? r.file.path : r.opens.path));
+}
+
 export function step(delta) {
-  const paths = visiblePaths();
+  const paths = listedPaths();
   if (!paths.length) return;
   const i = paths.indexOf(state.current?.path);
   const next = paths[Math.min(paths.length - 1, Math.max(0, i + delta))];
@@ -326,6 +361,12 @@ export async function open(p) {
     renderNow({ resetScroll: true });
   }
 
+  // The outline shown is the open file's, wherever it's listed.
+  if (state.outline && type === 'md') {
+    const group = groupOf(state.files, p);
+    state.dir = dirOf(p);
+    state.group = group && group.opens.path !== p ? group.name : null;
+  } else state.outline = false;
   history.replaceState(null, '', `#${encodeURIComponent(p)}`);
   document.title = `${p} — ${state.rootName}`;
   el.crumb.textContent = p;

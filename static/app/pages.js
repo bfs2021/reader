@@ -52,6 +52,11 @@ export function turnTo(i) {
 
 export const turn = (by) => turnTo(book.index + by);
 
+/** Turns to the page that line `line` of the file is on. */
+export function turnToLine(line) {
+  if (book.pages) turnTo(Math.max(0, book.pages.findLastIndex((p) => p.line <= line)));
+}
+
 export function wirePages() {
   el.pageBack.addEventListener('click', () => turn(-1));
   el.pageNext.addEventListener('click', () => turn(1));
