@@ -767,6 +767,53 @@ the images it takes from the directory inside it. Nothing in that file draws:
 a diagram is in it as the preview drew it, and a puzzle is left as the text
 it was written as.
 
+`reader export` does the same from the command line, saving each document
+beside itself as `<name>.html`, or to `--out` when there's one:
+
+```console
+$ reader export presentation.md
+presentation.md -> presentation.html
+```
+
+It reads from the current directory. A diagram is drawn by Chrome or
+Chromium, run headless: the one at `CHROME_PATH`, or one installed where it
+usually is. Without one, or with `--no-draw`, a diagram is left as its text.
+An image the document names that isn't in the directory is left as a link,
+and said so.
+
+### Keeping the HTML in step, on GitHub
+
+reader is also a GitHub Action that exports documents and commits the HTML
+that changed, so a pushed `.md` doesn't leave its `.html` behind:
+
+```yaml
+# .github/workflows/export.yml
+on:
+  push:
+    paths: [presentation.md, images/**]
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jzheaux/reader@main
+        with:
+          files: presentation.md
+```
+
+`files` takes more than one, separated by spaces or new lines, and globs
+like `slides/*.md`. `commit: false` leaves the HTML for a later step, and
+`message` is the commit's. The commit is pushed with the workflow's own
+token, which doesn't start another run.
+
+Diagrams are drawn by the runner's Chrome with the runner's fonts, so their
+lines and boxes may differ a little from the ones drawn on your machine. The
+images have to be committed for the runner to put them inside the page.
+
 ## Keys
 
 | | |
@@ -786,6 +833,7 @@ it was written as.
 ```console
 $ reader [dir] [--port 8734] [--no-browser] [--open <file>]
          [--host <address>] [--allow-host <name>]...
+$ reader export <file>... [--out <file>] [--no-draw]
 ```
 
 `dir` defaults to the current directory. The server only listens on
@@ -823,6 +871,8 @@ $ npm run lint
 | | |
 | --- | --- |
 | `bin/reader.js` | CLI |
+| `src/export-cli.js`, `src/browser.js` | `reader export`, and the headless browser it draws with |
+| `action.yml` | the GitHub Action |
 | `src/server.js` | HTTP API and static files |
 | `src/content.js` | the content directory: listing, safe paths, saves, backups, branching and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |

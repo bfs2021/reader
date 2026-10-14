@@ -1,0 +1,53 @@
+name: reader export
+description: Save markdown documents as HTML with reader, and commit what changed.
+branding:
+  icon: file-text
+  color: gray-dark
+
+inputs:
+  files:
+    description: The documents to export, separated by spaces or newlines, relative to the repository. Each is saved beside itself as <name>.html.
+    required: true
+  commit:
+    description: Commit and push the HTML that changed. 'false' leaves it in the working tree for a later step.
+    default: 'true'
+  message:
+    description: The commit message.
+    default: Export HTML with reader
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Install reader
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci --omit=dev --no-audit --no-fund
+
+    - name: Export
+      shell: bash
+      env:
+        FILES: ${{ inputs.files }}
+      run: |
+        files=( $FILES )
+        node "$GITHUB_ACTION_PATH/bin/reader.js" export "${files[@]}"
+        printf '%s\n' "${files[@]}" | sed 's/\.[^./]*$/.html/' > "$RUNNER_TEMP/reader-exported"
+
+    - name: Commit
+      if: inputs.commit == 'true'
+      shell: bash
+      env:
+        MESSAGE: ${{ inputs.message }}
+      run: |
+        while IFS= read -r file; do git add -- "$file"; done < "$RUNNER_TEMP/reader-exported"
+        if git diff --cached --quiet; then
+          echo "The HTML is up to date."
+          exit 0
+        fi
+        git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "$MESSAGE"
+        git push

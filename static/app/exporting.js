@@ -13,9 +13,7 @@ const DRAW_TIMEOUT = 30000;
 
 /** Saves the document at `p`, as it is on disk, as an HTML file. */
 export async function exportDocument(p) {
-  const { text } = await api('GET', `/api/file?path=${encodeURIComponent(p)}`);
-  const out = await api('POST', '/api/render', { text, path: p });
-  const drawn = await draw(out, p);
+  const drawn = await drawnFor(p);
   const res = await fetch(exportUrl(p), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -27,6 +25,15 @@ export async function exportDocument(p) {
   a.download = `${p.slice(p.lastIndexOf('/') + 1).replace(/\.[^.]*$/, '')}.html`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
+/**
+ * What the preview frame draws of the document at `p`, as it is on disk.
+ * Also what `reader export` asks a headless browser for (src/browser.js).
+ */
+export async function drawnFor(p) {
+  const { text } = await api('GET', `/api/file?path=${encodeURIComponent(p)}`);
+  return draw(await api('POST', '/api/render', { text, path: p }), p);
 }
 
 /** What the preview frame draws of a rendered page, by feature. */

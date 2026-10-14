@@ -40,14 +40,16 @@ const INK = `<script>
 `;
 
 /**
- * `{ name, html }` for the document at `file`: the name to save it under,
- * and the page. `content` is the content directory (content.js), and `drawn`
+ * `{ name, html, missing }` for the document at `file`: the name to save it
+ * under, the page, and the images it names from the directory that aren't
+ * there, left as links. `content` is the content directory (content.js), and `drawn`
  * what the preview frame drew of the document, if it was asked.
  */
 export function exportHtml(content, file, drawn) {
   const read = (rel) => content.read(rel).text;
   const out = render(content.read(file).text, { file, read, drawn });
-  const inline = (m, before, src, after) => `${before}${dataUrl(content, file, src) ?? src}${after}`;
+  const missing = [];
+  const inline = (m, before, src, after) => `${before}${dataUrl(content, file, src, missing) ?? src}${after}`;
   const body = out.body.replace(IMG_SRC, inline).replace(BACKDROP_URL, inline);
   const html = `<!doctype html>
 <html lang="en">
@@ -64,24 +66,26 @@ ${body}
 ${body.includes('class="gm-bg"') ? INK : ''}</body>
 </html>
 `;
-  return { name: `${path.basename(file, path.extname(file))}.html`, html };
+  return { name: `${path.basename(file, path.extname(file))}.html`, html, missing };
 }
 
 /**
  * The image at `src`, as written in the page of the document at `file`, as
  * a `data:` URL; or null when it isn't a file of the content directory's (a
- * URL, a missing file) and stays as it is.
+ * URL, a missing file) and stays as it is. A missing file goes on `missing`.
  */
-function dataUrl(content, file, src) {
+function dataUrl(content, file, src, missing) {
   const ref = src.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<');
   if (!ref || /^([a-z][a-z0-9+.-]*:|\/|#)/i.test(ref)) return null;
+  let rel;
   try {
-    const rel = path.posix.normalize(path.posix.join(path.posix.dirname(file), decodeURIComponent(ref.replace(/[?#].*$/, ''))));
+    rel = path.posix.normalize(path.posix.join(path.posix.dirname(file), decodeURIComponent(ref.replace(/[?#].*$/, ''))));
     const type = IMAGE_TYPES[path.extname(rel).toLowerCase()];
     if (!type) return null;
     const { abs } = content.statFile(rel);
     return escapeAttr(`data:${type};base64,${fs.readFileSync(abs).toString('base64')}`);
   } catch {
+    if (rel && !missing.includes(rel)) missing.push(rel);
     return null;
   }
 }

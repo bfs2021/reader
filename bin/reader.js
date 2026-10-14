@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  *   reader <dir> [--port 8734] [--no-browser] [--host <address> --allow-host <name>]
+ *   reader export <file>... [--out <file>] [--no-draw]
  *
- * Serve a directory of markdown for reading and editing in the browser.
+ * Serve a directory of markdown for reading and editing in the browser, or
+ * save documents in it as HTML (src/export-cli.js).
  */
 
 import fs from 'node:fs';
@@ -11,6 +13,7 @@ import { spawn } from 'node:child_process';
 import { createServer } from '../src/server.js';
 
 const USAGE = `usage: reader <dir> [--port 8734] [--no-browser] [--host <addr> --allow-host <name>]
+       reader export <file>... [--out <file>] [--no-draw]
 
   <dir>          the content directory to serve (default: current directory)
   --port <n>     port to listen on (default: 8734, or the next free one)
@@ -69,6 +72,16 @@ function openBrowser(url) {
   } catch {
     /* the URL is printed anyway */
   }
+}
+
+if (process.argv[2] === 'export') {
+  const { main } = await import('../src/export-cli.js');
+  try {
+    await main(process.argv.slice(3));
+  } catch (err) {
+    fail(err.message);
+  }
+  process.exit(0);
 }
 
 const LOCAL = new Set(['127.0.0.1', 'localhost', '::1']);
