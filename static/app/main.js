@@ -9,7 +9,7 @@ import { api } from './api.js';
 import { loadTree, drawTree, visiblePaths, step, open, today, createFile } from './files.js';
 import { whenReady, showEmpty } from './render.js';
 import { save, reloadFromDisk, checkDisk } from './saving.js';
-import { toast } from './status.js';
+import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, applyEdit, onEditorInput } from './editing.js';
 import { toggleSidebar, restoreLayout, setReading } from './modes.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
@@ -38,6 +38,8 @@ async function init() {
 
 function wire() {
   el.editor.addEventListener('input', onEditorInput);
+  // Heard on the document, where every browser reports the editor's cursor moving.
+  document.addEventListener('selectionchange', updateCursor);
   window.addEventListener('message', (e) => {
     // The stage takes the mouse, for image previews, so it hands back the
     // keys and clicks that drive the deck.

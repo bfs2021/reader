@@ -1,5 +1,5 @@
 /**
- * The bits of status around the editor: saved or not, word count, toasts.
+ * The bits of status around the editor: saved or not, word count, where the cursor is, toasts.
  */
 
 import { el, state, dirty } from './state.js';
@@ -23,6 +23,21 @@ export function updateCounts() {
   el.counts.textContent = state.current?.type === 'md'
     ? `${words} word${words === 1 ? '' : 's'}${asides ? ` · ${asides} aside${asides === 1 ? '' : 's'}` : ''}`
     : '';
+  updateCursor();
+}
+
+/** The line and character the cursor is at, both counted from 1; of a selection, the end that moves. */
+export function updateCursor() {
+  const t = el.editor;
+  if (state.current?.type !== 'md') {
+    el.cursor.textContent = '';
+    return;
+  }
+  const at = t.selectionDirection === 'backward' ? t.selectionStart : t.selectionEnd;
+  const before = t.value.slice(0, at);
+  const lineStart = before.lastIndexOf('\n') + 1;
+  const line = (before.match(/\n/g) || []).length + 1;
+  el.cursor.textContent = `line ${line}, character ${at - lineStart + 1}`;
 }
 
 let toastTimer = 0;
