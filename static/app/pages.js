@@ -1,11 +1,12 @@
 /**
  * A deck being worked through: a workbook, a page to a slide, one shown at a
  * time. Under it are Back and Next and a dot for each page, filled once the
- * page is done.
+ * page is done; a long one's dots go in blocks (see dots.js).
  */
 
 import { el } from './state.js';
 import { renderNow } from './render.js';
+import { layout } from './dots.js';
 
 const book = {
   pages: null,          // [{ body, line }] while a deck is being worked through
@@ -77,21 +78,46 @@ export function mark(body, i) {
   return { title, done: tasks.every(checked) && [...choices.values()].every((group) => group.some(checked)) };
 }
 
+function dot({ title, done }, i, index) {
+  const dot = document.createElement('button');
+  dot.type = 'button';
+  dot.className = 'page-dot';
+  dot.classList.toggle('done', Boolean(done));
+  dot.classList.toggle('now', i === index);
+  dot.title = title;
+  dot.setAttribute('aria-label', `Page ${i + 1}: ${title}${done ? ', done' : ''}`);
+  if (i === index) dot.setAttribute('aria-current', 'page');
+  dot.addEventListener('click', () => turnTo(i));
+  return dot;
+}
+
+/**
+ * A closed block of pages, named by its first and filled as far as its pages
+ * are done; it opens on its first.
+ */
+function block(marks, from, to) {
+  const range = `${from + 1}–${to}`;
+  const counted = marks.slice(from, to).filter((m) => m.done != null);
+  const done = counted.filter((m) => m.done).length;
+  const mark = document.createElement('button');
+  mark.type = 'button';
+  mark.className = 'page-block';
+  mark.textContent = from + 1;
+  mark.style.setProperty('--done', `${counted.length ? (100 * done) / counted.length : 0}%`);
+  mark.classList.toggle('done', counted.length > 0 && done === counted.length);
+  const summary = `Pages ${range}${counted.length ? `, ${done} of ${counted.length} done` : ''}`;
+  mark.title = summary;
+  mark.setAttribute('aria-label', summary);
+  mark.addEventListener('click', () => turnTo(from));
+  return mark;
+}
+
 function draw() {
   const { pages, index } = book;
   const marks = pages.map((p, i) => mark(p.body, i));
-  el.pageDots.replaceChildren(...marks.map(({ title, done }, i) => {
+  el.pageDots.replaceChildren(...layout(pages.length, index).map((m) => {
     const li = document.createElement('li');
-    const dot = document.createElement('button');
-    dot.type = 'button';
-    dot.className = 'page-dot';
-    dot.classList.toggle('done', Boolean(done));
-    dot.classList.toggle('now', i === index);
-    dot.title = title;
-    dot.setAttribute('aria-label', `Page ${i + 1}: ${title}${done ? ', done' : ''}`);
-    if (i === index) dot.setAttribute('aria-current', 'page');
-    dot.addEventListener('click', () => turnTo(i));
-    li.append(dot);
+    li.append('page' in m ? dot(marks[m.page], m.page, index) : block(marks, m.from, m.to));
     return li;
   }));
   const counted = marks.filter((m) => m.done != null);
