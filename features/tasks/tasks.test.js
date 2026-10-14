@@ -64,3 +64,16 @@ test('boxes on a slide know their lines in the file', () => {
 test('the stylesheet comes with the feature', () => {
   assert.match(render('- [ ] x\n').css, /li\.task \{ list-style: none; \}/);
 });
+
+test('a checkbox at the head of a heading marks it, and knows its line', () => {
+  const { body } = render('# [ ] Gratitude\n\n## [x] Ways\n');
+  assert.match(body, /<h1 class="task-heading"[^>]*><input type="checkbox" class="task-box" data-line="0" data-on="# \[x\] Gratitude" data-off="# \[ \] Gratitude"> Gratitude<\/h1>/);
+  assert.match(body, /<h2 class="task-heading"[^>]*><input type="checkbox" class="task-box" data-line="2" [^>]* checked> Ways<\/h2>/);
+});
+
+test('a heading has no radio button, and an escaped box stays as typed', () => {
+  const { body } = render('# ( ) one\n\n# \\[ ] two\n');
+  assert.doesNotMatch(body, /<input/);
+  assert.match(body, /<h1[^>]*>\( \) one<\/h1>/);
+  assert.match(body, /<h1[^>]*>\[ \] two<\/h1>/);
+});

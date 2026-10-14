@@ -1,7 +1,9 @@
 /**
  * `- [ ]` and `- [x]` at the head of a list item are a checkbox; `- ( )` and
  * `- (x)` a radio button, one choice to a list. They work wherever a list
- * does: in a quote, in an aside.
+ * does: in a quote, in an aside. `# [ ]` at the head of a heading is a
+ * checkbox too, for the section under it, or the page of a workbook, being
+ * done; there's no radio button there.
  *
  * Each box carries its line, and that line as it reads checked and
  * unchecked, so the preview can rewrite it when the box is clicked. A box
@@ -14,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeAsides, readLines, placeholder, splitText, escapeAttr, addClass } from '../source.js';
 
 const TASK = /^([ \t]*(?:[>~][ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:\[([ xX])\]|\(([ xX])\))(?=[ \t]|$)/;
+const HEADING = /^( {0,3}#{1,6}[ \t]+)\[([ xX])\](?=[ \t]|$)/;
 const OPEN = '\uE000';
 const CLOSE = '\uE001';
 const PLACED = new RegExp(`${OPEN}(\\d+)${CLOSE}`, 'g');
@@ -22,14 +25,17 @@ const AT_HEAD = new RegExp(`^${OPEN}(\\d+)${CLOSE}[ \\t]?`);
 export function tasks(md) {
   beforeAsides(md, 'task_lines', (state) => {
     const boxes = [];
-    readLines(state, (line, n) => line.replace(TASK, (m, lead, box, radio) => {
-      const radioButton = box === undefined;
-      const mark = radioButton ? radio : box;
-      const checked = mark !== ' ';
-      const as = (on) => (checked && on ? line : line.replace(TASK, (t, l, b) => `${l}${b ? '[' : '('}${on ? 'x' : ' '}${b ? ']' : ')'}`));
-      boxes.push({ line: n, radio: radioButton, mark, checked, on: as(true), off: as(false) });
-      return `${lead}${placeholder(OPEN, CLOSE, boxes.length - 1)}`;
-    }));
+    readLines(state, (line, n) => {
+      const written = HEADING.test(line) ? HEADING : TASK;
+      return line.replace(written, (m, lead, box, radio) => {
+        const radioButton = box === undefined;
+        const mark = radioButton ? radio : box;
+        const checked = mark !== ' ';
+        const as = (on) => (checked && on ? line : line.replace(written, (t, l, b) => `${l}${b ? '[' : '('}${on ? 'x' : ' '}${b ? ']' : ')'}`));
+        boxes.push({ line: n, radio: radioButton, mark, checked, on: as(true), off: as(false) });
+        return `${lead}${placeholder(OPEN, CLOSE, boxes.length - 1)}`;
+      });
+    });
     // Shared with the asides' own parses, which count lists on from here.
     if (boxes.length) state.env.tasks = { boxes, lists: 0 };
   });
@@ -43,13 +49,14 @@ export function tasks(md) {
       const t = tokens[i];
       if (t.type === 'bullet_list_open' || t.type === 'ordered_list_open') lists.push(++tasks.lists);
       else if (t.type === 'bullet_list_close' || t.type === 'ordered_list_close') lists.pop();
-      else if (t.type === 'list_item_open') {
+      else if (t.type === 'list_item_open' || t.type === 'heading_open') {
+        const heading = t.type === 'heading_open';
         const inline = tokens[i + 1]?.type === 'paragraph_open' ? tokens[i + 2] : tokens[i + 1];
         const first = inline?.type === 'inline' ? inline.children?.[0] : null;
         const m = first?.type === 'text' && AT_HEAD.exec(first.content);
         const box = m && tasks.boxes[Number(m[1])];
         if (!box) continue;
-        addClass(t, 'task');
+        addClass(t, heading ? 'task-heading' : 'task');
         first.content = first.content.slice(m[0].length);
         const input = new state.Token('task_box', 'input', 0);
         input.meta = { ...box, group: lists.at(-1) };

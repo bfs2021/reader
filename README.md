@@ -286,7 +286,9 @@ A few GitHub conventions show as they do there:
 - **Tasks.** `- [ ] take out the trash` shows a checkbox, and `- [x]` a
   checked one. Clicking a box rewrites the `[ ]` in the file, as an ordinary
   (undoable) edit. `- ( )` and `- (x)` are radio buttons instead: only one in
-  a list can be chosen, and choosing one clears the others' `(x)`.
+  a list can be chosen, and choosing one clears the others' `(x)`. A heading
+  takes a checkbox too, `## [ ] Stretch`, to mark what's under it done;
+  `## \[ ] Stretch` keeps the brackets as typed.
 
 - **Tables.** Pipe tables, with `:---:` and `---:` for alignment.
 
