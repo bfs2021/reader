@@ -111,6 +111,8 @@ in the brackets are shown instead of the address.
 | `bluesky:jzheaux[]` | `bsky.app/profile/jzheaux.bsky.social` | @jzheaux.bsky.social |
 | `bluesky:jzheaux.dev[]` | `bsky.app/profile/jzheaux.dev` | @jzheaux.dev |
 | `gh:jzheaux[]` | `github.com/jzheaux` | github.com/jzheaux |
+| `gh:jzheaux/reader#25[]` | `github.com/jzheaux/reader/issues/25` | jzheaux/reader#25 |
+| `gh:jzheaux/reader@f61f000[]` | `github.com/jzheaux/reader/commit/f61f000` | jzheaux/reader@f61f000 |
 | `fb:jzheaux[]` | `facebook.com/jzheaux` | facebook.com/jzheaux |
 | `insta:jzheaux[]` | `instagram.com/jzheaux` | @jzheaux |
 | `yt:jzheaux[]` | `youtube.com/@jzheaux` | @jzheaux |

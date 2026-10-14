@@ -16,6 +16,18 @@ test('each site has its address, and its way of writing a name', () => {
   assert.equal(socialLink('gh', '', ''), null);
 });
 
+test('a GitHub issue or commit is written as GitHub writes it', () => {
+  assert.deepEqual(socialLink('gh', 'jzheaux/reader#25', ''), { href: 'https://github.com/jzheaux/reader/issues/25', label: 'jzheaux/reader#25' });
+  assert.deepEqual(socialLink('gh', 'jzheaux/reader@f61f000a1b2c', ''), { href: 'https://github.com/jzheaux/reader/commit/f61f000a1b2c', label: 'jzheaux/reader@f61f000' });
+  assert.deepEqual(socialLink('gh', 'jzheaux/reader#25', 'the ticket'), { href: 'https://github.com/jzheaux/reader/issues/25', label: 'the ticket' });
+  assert.equal(socialLink('gh', 'jzheaux#25', ''), null, 'an issue is in a repository');
+  assert.equal(socialLink('gh', 'jzheaux/reader#x', ''), null);
+  assert.equal(socialLink('gh', 'jzheaux/reader@nothex', ''), null);
+  const { body } = render('- [ ] gh:jzheaux/reader#25[] and gh:jzheaux/reader@f61f000[]\n');
+  assert.match(body, /<a class="social social-gh" href="https:\/\/github\.com\/jzheaux\/reader\/issues\/25">jzheaux\/reader#25<\/a>/);
+  assert.match(body, /<a class="social social-gh" href="https:\/\/github\.com\/jzheaux\/reader\/commit\/f61f000">jzheaux\/reader@f61f000<\/a>/);
+});
+
 test('a profile is a link marked with its site', () => {
   const { body } = render('Find me: linkedin:jzheaux[] and gh:jzheaux[*here*], not `yt:x[]`, sigh:x[] or gh:[]\n');
   assert.match(body, /<a class="social social-linkedin" href="https:\/\/www\.linkedin\.com\/in\/jzheaux">linkedin\.com\/in\/jzheaux<\/a>/);

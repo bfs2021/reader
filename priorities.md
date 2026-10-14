@@ -28,12 +28,13 @@
 - [ ] #16 problems panel: this would also be the natural home for #4's overflow warnings.
 - [ ] #19 export: a handout or PDF of the deck could matter after the talk.
 - [ ] #18 templates.
-- [ ] #25 `github:` links titled with the issue. Small, and this file could then use it.
+- [x] #25 `gh:owner/repo#n[]` and `gh:owner/repo@sha[]`, linking an issue or a commit. Titles split off to #53.
 - [ ] #26 tabs for more than one version of a passage (Java/Kotlin, NIV/KJV), then inlining text from a reference. For discussion; tabs first.
 
 ## P3
 - [ ] #13 answer keys.
 - [ ] #20 using documents without installing reader.
+- [ ] #53 `gh:` issue links titled with the issue. Waits: no other link fetches its own label.
 - [ ] #27 bringing a review back into a changed document, or sharing it live instead. For discussion; overlaps #20.
 
 

@@ -5,6 +5,8 @@
  *   linkedin:jzheaux[]     linkedin.com/in/jzheaux
  *   bluesky:jzheaux[]      @jzheaux.bsky.social
  *   gh:jzheaux[]           github.com/jzheaux
+ *   gh:jzheaux/reader#5[]  jzheaux/reader#5, the issue (or pull request)
+ *   gh:jzheaux/reader@f61f000[]  jzheaux/reader@f61f000, the commit
  *   fb:jzheaux[]           facebook.com/jzheaux
  *   insta:jzheaux[]        @jzheaux
  *   yt:jzheaux[]           @jzheaux
@@ -44,7 +46,14 @@ const SITES = {
   },
   gh: {
     icon: 'github',
-    at: (name) => ({ href: `https://github.com/${name}`, label: `github.com/${name}` }),
+    at: (name) => {
+      // As GitHub writes its own references: `owner/repo#5`, `owner/repo@sha`.
+      const ref = /^([\w.-]+\/[\w.-]+)(?:#(\d+)|@([0-9a-f]{7,40}))$/i.exec(name);
+      if (ref?.[2]) return { href: `https://github.com/${ref[1]}/issues/${ref[2]}`, label: `${ref[1]}#${ref[2]}` };
+      if (ref?.[3]) return { href: `https://github.com/${ref[1]}/commit/${ref[3]}`, label: `${ref[1]}@${ref[3].slice(0, 7)}` };
+      if (/[#@]/.test(name)) return null;
+      return { href: `https://github.com/${name}`, label: `github.com/${name}` };
+    },
   },
   fb: {
     icon: 'facebook',
@@ -68,6 +77,7 @@ export function socialLink(scheme, path, label) {
   const name = bare(path).replace(/^\/+|\/+$/g, '');
   if (!name || !SITES[scheme]) return null;
   const found = SITES[scheme].at(name);
+  if (!found) return null;
   return { href: found.href, label: label.trim() || found.label };
 }
 
@@ -76,7 +86,7 @@ export function social(md) {
     schemeLinks(md, {
       name: `social_${scheme}`,
       scheme,
-      path: /[\w.@/-]*/,
+      path: /[\w.@/#-]*/,
       link: (path, label) => {
         const found = socialLink(scheme, path, label);
         return found && { ...found, attrs: [['class', `social social-${scheme}`]] };
