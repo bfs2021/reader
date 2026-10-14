@@ -6,6 +6,8 @@
  *   read(rel)                  { text, mtime }
  *   write(rel, text, opts)     atomic, with a conflict check and backups
  *   create(name?)              a new file, today's date by default
+ *   branch(from, to)           a copy of a document, as another version of it
+ *   promote(rel, base)         make a version the main one, `base.ext`
  *   resolve(rel)               absolute path, or a PathError
  *
  * Paths crossing this boundary are always root-relative with `/` separators.
@@ -205,7 +207,74 @@ export function createContent(rootDir) {
     return { path: toRel(abs), created, mtime: fs.statSync(abs).mtimeMs };
   }
 
-  return { root, resolve, list, read, write, create, statFile, backupRoot };
+  /** Copy a document to a new name, to work on beside the original. */
+  function branch(from, to) {
+    const { abs: fromAbs } = statFile(from);
+    const toAbs = resolve(to);
+    if (!DOC_EXTS.has(path.extname(fromAbs).toLowerCase())) throw new PathError(`not a document: ${from}`);
+    if (!DOC_EXTS.has(path.extname(toAbs).toLowerCase())) throw new PathError(`versions must be markdown: ${to}`);
+    fs.mkdirSync(path.dirname(toAbs), { recursive: true });
+    try {
+      fs.copyFileSync(fromAbs, toAbs, fs.constants.COPYFILE_EXCL);
+    } catch (err) {
+      if (err.code === 'EEXIST') throw new ConflictError(`${to} already exists`);
+      throw err;
+    }
+    return { path: toRel(toAbs), mtime: fs.statSync(toAbs).mtimeMs };
+  }
+
+  /**
+   * Make `rel` (`slides.arc1.md`) the main version of `base` (`slides`): it
+   * takes the name `slides.md`, and the file that had it becomes a version
+   * named after the day it was last changed (`slides.oct13.md`).
+   */
+  function promote(rel, base) {
+    const { abs } = statFile(rel);
+    const ext = path.extname(abs);
+    const stem = path.basename(abs, ext);
+    if (!DOC_EXTS.has(ext.toLowerCase())) throw new PathError(`not a document: ${rel}`);
+    if (typeof base !== 'string' || !stem.startsWith(base + '.') || base.includes('/')) {
+      throw new PathError(`${rel} is not a version of ${base}`);
+    }
+    const dir = path.dirname(abs);
+    const mainAbs = path.join(dir, base + ext);
+    const moved = [];
+    if (fs.existsSync(mainAbs)) {
+      const day = monthDay(new Date(fs.statSync(mainAbs).mtimeMs));
+      let aside = path.join(dir, `${base}.${day}${ext}`);
+      for (let n = 2; fs.existsSync(aside); n++) aside = path.join(dir, `${base}.${day}-${n}${ext}`);
+      moved.push(move(mainAbs, aside));
+    }
+    moved.push(move(abs, mainAbs));
+    return { path: toRel(mainAbs), moved };
+  }
+
+  /** Rename a file, and its backups with it, never over another file. */
+  function move(fromAbs, toAbs) {
+    const from = toRel(fromAbs);
+    const to = toRel(toAbs);
+    resolve(to);
+    if (fs.existsSync(toAbs)) throw new ConflictError(`${to} already exists`);
+    fs.renameSync(fromAbs, toAbs);
+    const oldBackups = path.join(backupRoot, from);
+    const newBackups = path.join(backupRoot, to);
+    if (fs.existsSync(oldBackups)) {
+      if (!fs.existsSync(newBackups)) {
+        fs.mkdirSync(path.dirname(newBackups), { recursive: true });
+        fs.renameSync(oldBackups, newBackups);
+      } else {
+        // Left from an earlier file by this name: they're named by time, so they mix.
+        for (const name of fs.readdirSync(oldBackups)) {
+          const dest = path.join(newBackups, name);
+          if (!fs.existsSync(dest)) fs.renameSync(path.join(oldBackups, name), dest);
+        }
+        fs.rmSync(oldBackups, { recursive: true, force: true });
+      }
+    }
+    return { from, to };
+  }
+
+  return { root, resolve, list, read, write, create, branch, promote, statFile, backupRoot };
 }
 
 function pad(n, w = 2) {
@@ -214,6 +283,12 @@ function pad(n, w = 2) {
 
 function today(d = new Date()) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+function monthDay(d) {
+  return `${MONTHS[d.getMonth()]}${d.getDate()}`;
 }
 
 function stamp(d = new Date()) {

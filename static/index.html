@@ -31,11 +31,13 @@
     <div class="side-head">
       <input id="filter" type="search" placeholder="Filter…" autocomplete="off" spellcheck="false">
       <button class="ghost small" id="newBtn" title="New file">New</button>
+      <button class="ghost small" id="branchBtn" disabled title="Copy the open file, as another version of it">Branch</button>
     </div>
     <form class="new-form" id="newForm" hidden>
       <input id="newName" autocomplete="off" spellcheck="false">
       <button class="primary small" type="submit">Create</button>
     </form>
+    <div class="crumbs" id="crumbs" hidden></div>
     <ul class="files" id="files"></ul>
   </nav>
 

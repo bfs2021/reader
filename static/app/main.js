@@ -6,7 +6,8 @@
 
 import { el, state, deck, dirty } from './state.js';
 import { api } from './api.js';
-import { loadTree, drawTree, visiblePaths, step, open, today, createFile } from './files.js';
+import { dirOf } from './versions.js';
+import { loadTree, drawTree, visiblePaths, step, open, createFile, showNewForm, go, reveal, rememberedDir, onListKey } from './files.js';
 import { whenReady, showEmpty } from './render.js';
 import { save, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
@@ -27,14 +28,21 @@ async function init() {
   restoreLayout();
   const info = await api('GET', '/api/info');
   state.rootName = info.name;
+  state.root = info.root;
   el.rootName.textContent = info.name;
   el.rootName.title = info.root;
   await loadTree();
+  go(rememberedDir(), null, { focus: false });
 
+  // The file in the address, or the one last changed in the folder last shown.
   const wanted = decodeURIComponent(location.hash.slice(1));
-  const first = state.files.find((f) => f.path === wanted) || state.files.find((f) => f.type === 'md') || state.files[0];
-  if (first) await open(first.path);
-  else showEmpty('No markdown files here yet. Press New to start one.');
+  const under = state.files.filter((f) => dirOf(f.path) === state.dir);
+  const first = state.files.find((f) => f.path === wanted)
+    || under.find((f) => f.type === 'md') || state.files.find((f) => f.type === 'md') || state.files[0];
+  if (first) {
+    reveal(first.path);
+    await open(first.path);
+  } else showEmpty('No markdown files here yet. Press New to start one.');
 }
 
 function wire() {
@@ -71,8 +79,12 @@ function wire() {
   wireSync();
 
   el.filter.addEventListener('input', drawTree);
+  el.files.addEventListener('keydown', onListKey);
   el.filter.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      el.files.querySelector('.file, .folder')?.focus();
+    } else if (e.key === 'Enter') {
       const first = visiblePaths()[0];
       if (first) open(first);
     } else if (e.key === 'Escape') {
@@ -81,14 +93,12 @@ function wire() {
     }
   });
 
-  el.newBtn.addEventListener('click', () => {
-    el.newForm.hidden = !el.newForm.hidden;
-    if (!el.newForm.hidden) {
-      el.newName.value = today();
-      el.newName.focus();
-      el.newName.setSelectionRange(0, el.newName.value.length - 3);
-    }
-  });
+  for (const [btn, branching] of [[el.newBtn, false], [el.branchBtn, true]]) {
+    btn.addEventListener('click', () => {
+      if (!el.newForm.hidden && Boolean(el.newForm.dataset.from) === branching) el.newForm.hidden = true;
+      else showNewForm(branching);
+    });
+  }
   el.newForm.addEventListener('submit', (e) => {
     e.preventDefault();
     createFile(el.newName.value.trim());

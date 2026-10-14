@@ -10,7 +10,7 @@ export const el = {
   rootName: $('rootName'), crumb: $('crumb'), saveState: $('saveState'),
   sidebarToggle: $('sidebarToggle'), helpToggle: $('helpToggle'), help: $('help'),
   split: $('split'), filter: $('filter'), files: $('files'),
-  newBtn: $('newBtn'), newForm: $('newForm'), newName: $('newName'),
+  newBtn: $('newBtn'), branchBtn: $('branchBtn'), crumbs: $('crumbs'), newForm: $('newForm'), newName: $('newName'),
   preview: $('preview'), pdfView: $('pdfView'), empty: $('empty'),
   writePane: $('writePane'), editor: $('editor'),
   conflict: $('conflict'), reloadBtn: $('reloadBtn'), overwriteBtn: $('overwriteBtn'),
@@ -25,7 +25,10 @@ export const AUTOSAVE_DELAY = 1000;
 
 export const state = {
   rootName: '',
+  root: '',
   files: [],
+  dir: '',              // the folder the file list shows
+  group: null,          // or the versions of this file in it, by name
   current: null,        // { path, type }
   saved: '',            // text as last written to / read from disk
   mtime: null,          // disk mtime that `saved` corresponds to

@@ -103,3 +103,41 @@ test('create defaults to today, adds .md, and does not clobber', () => {
   assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), 'keep\n');
   assert.throws(() => content.create('x.pdf'), PathError);
 });
+
+test('branch copies a document to a new name, never over another', () => {
+  const { root, content } = fixture();
+  assert.equal(content.branch('a.md', 'a.draft.md').path, 'a.draft.md');
+  assert.equal(fs.readFileSync(path.join(root, 'a.draft.md'), 'utf8'), '# a\n');
+  assert.throws(() => content.branch('a.md', 'a.draft.md'), ConflictError);
+  assert.throws(() => content.branch('a.md', 'a.draft.txt'), PathError);
+});
+
+test('promote swaps a version in as the main one, and its backups go with it', () => {
+  const { root, content } = fixture();
+  content.branch('a.md', 'a.arc1.md');
+  content.write('a.arc1.md', '# arc1\n', { explicit: true });
+  content.write('a.md', '# a, changed\n', { explicit: true });
+  const when = new Date(2026, 9, 2);
+  fs.utimesSync(path.join(root, 'a.md'), when, when);
+
+  const out = content.promote('a.arc1.md', 'a');
+  assert.deepEqual(out, { path: 'a.md', moved: [{ from: 'a.md', to: 'a.oct2.md' }, { from: 'a.arc1.md', to: 'a.md' }] });
+  assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), '# arc1\n');
+  assert.equal(fs.readFileSync(path.join(root, 'a.oct2.md'), 'utf8'), '# a, changed\n');
+
+  const backups = (rel) => fs.readdirSync(path.join(content.backupRoot, rel)).map((f) => fs.readFileSync(path.join(content.backupRoot, rel, f), 'utf8'));
+  assert.deepEqual(backups('a.oct2.md'), ['# a\n']);
+  assert.deepEqual(backups('a.md'), ['# a\n']);
+  assert.equal(fs.existsSync(path.join(content.backupRoot, 'a.arc1.md')), false);
+});
+
+test('promote finds a free name for the old main version, and refuses what is not a version', () => {
+  const { root, content } = fixture();
+  const when = new Date(2026, 9, 2);
+  content.branch('a.md', 'a.oct2.md');
+  content.branch('a.md', 'a.b.md');
+  fs.utimesSync(path.join(root, 'a.md'), when, when);
+  assert.equal(content.promote('a.b.md', 'a').moved[0].to, 'a.oct2-2.md');
+  assert.throws(() => content.promote('a.md', 'b'), PathError);
+  assert.throws(() => content.promote('a.oct2.md', '../a'), PathError);
+});

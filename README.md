@@ -726,11 +726,37 @@ transition: fade
 
 ## Files
 
-The sidebar lists `.md`, `.markdown` and `.pdf` files anywhere under the
-directory, most recently modified first. It skips dot-directories and
-`node_modules`. **New** creates a file named after today's date
+The sidebar shows one folder at a time: its `.md`, `.markdown` and `.pdf`
+files by name, then the folders under it that have any. Click a folder to go
+into it, and the path above the list to come back out. It skips
+dot-directories and `node_modules`, and remembers the folder you were in.
+Typing in **Filter…** searches every folder at once, as one flat list with
+each file's folder beside it.
+
+**New** creates a file in the folder you're in, named after today's date
 (`2026-09-25.md`) unless you give it another name. If that file already exists,
 it's opened instead. PDFs open read-only in the left pane.
+
+### Versions
+
+Files that share a name are versions of one file:
+
+```
+slides.md            the main version
+slides.arc1.md       arc1
+slides.sketch.md     sketch
+```
+
+They take one row, `slides`, which opens `slides.md`. The `›` at the end of
+the row lists the versions, with the day each was last changed. `a.b.md` is
+a version of `a` when `a.md` is in the same folder, or another `a.*` file is:
+`v1.2-notes.md` on its own is just a file. With no `slides.md`, the row opens
+the version changed last.
+
+**Branch** copies the open file as another version, `slides.draft.md` unless
+you name it. The `★` beside a version makes it the main one: `slides.arc1.md`
+becomes `slides.md`, and the old `slides.md` becomes a version named after
+the day it was last changed, `slides.oct13.md`. Backups move with each file.
 
 Images and links in a note resolve relative to that note, so
 `![](photo.jpg)` next to the file works.
@@ -749,6 +775,7 @@ it was written as.
 | `⌘B` `⌘I` `⌘K` | bold, italic, link |
 | `Tab` | indent two spaces |
 | `⌥↑` / `⌥↓` | previous / next file |
+| `↑` `↓` `→` `←` | in the file list: move, go into a folder or a file's versions, go back out (`⌫` too) |
 | `⌘\` | show / hide the file list |
 | `⌘.` | work mode on / off |
 | `⌥←` / `⌥→` | in work mode, a deck's page before / next page |
@@ -797,7 +824,7 @@ $ npm run lint
 | --- | --- |
 | `bin/reader.js` | CLI |
 | `src/server.js` | HTTP API and static files |
-| `src/content.js` | the content directory: listing, safe paths, saves, backups |
+| `src/content.js` | the content directory: listing, safe paths, saves, backups, branching and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
 | `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
@@ -806,7 +833,7 @@ $ npm run lint
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `src/transition.js` | how one slide gives way to the next: `transition:` in the front matter, or in a slide's notes |
-| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js`, `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
+| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `versions.js` (folders, and which files are versions of which), `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |

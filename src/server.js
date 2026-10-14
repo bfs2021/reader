@@ -6,6 +6,8 @@
  *   GET  /api/file?path=       { text, mtime }
  *   PUT  /api/file             { path, text, baseMtime, force?, explicit? }
  *   POST /api/new              { name? }
+ *   POST /api/branch           { from, to } -> a copy of a document, as another version
+ *   POST /api/promote          { path, base } -> { path, moved: [{ from, to }] }
  *   GET  /api/export?path=     the document as one HTML file, to save
  *   POST /api/export           { path, drawn? } -> the same, with what the preview frame drew set into it
  *   POST /api/render           { text, path? } -> { css, body, deck }
@@ -190,6 +192,8 @@ export function createServer({ root, allowHosts = [] }) {
     if (route === '/api/new' && req.method === 'POST') {
       return sendJson(res, content.create(body.name));
     }
+    if (route === '/api/branch' && req.method === 'POST') return sendJson(res, content.branch(body.from, body.to));
+    if (route === '/api/promote' && req.method === 'POST') return sendJson(res, content.promote(body.path, body.base));
     return send(res, 404, 'not found', 'text/plain');
   }
 
