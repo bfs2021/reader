@@ -16,6 +16,16 @@
  *   @ Session: ( ) Sat AM (x) Sat PM ( ) Sun AM
  *
  * Each button carries the line as it reads with only it picked.
+ *
+ * A blank can also sit inside a sentence, as in a madlib: `[@ ` and what
+ * goes there, which is shown small under the blank, and the answer after a
+ * colon once it's filled in:
+ *
+ *   I am from a [@ an ordinary item from childhood: quilt] and [@ a place].
+ *
+ * A line can have several, so each carries where it starts and ends on its
+ * line too. One followed by `(` or `[` is a link's text, and one in `code`
+ * or after a backslash is left as typed.
  */
 
 import fs from 'node:fs';
@@ -28,6 +38,21 @@ const OPEN = '\uE010';
 const CLOSE = '\uE012';
 const PLACED = new RegExp(`${OPEN}(\\d+)${CLOSE}`, 'g');
 const MARK = /\(([ xX])\)/g;
+const INLINE = /\[@[ \t]+([^\]:\n]*?[^\]:\s])[ \t]*(?::[ \t]*([^\]\n]*?))?[ \t]*\](?![([])/g;
+const CODE = /(`+)[\s\S]*?[^`]\1(?!`)|(`+)\2(?!`)/g;
+
+/** The inline fields in `line`, outside its code spans: `[{ start, end, label, value }]`. */
+function inlineFields(line) {
+  if (!line.includes('[@')) return [];
+  const code = [...line.matchAll(CODE)].map((m) => [m.index, m.index + m[0].length]);
+  const found = [];
+  for (const m of line.matchAll(INLINE)) {
+    const start = m.index;
+    if (line[start - 1] === '\\' || code.some(([a, b]) => start >= a && start < b)) continue;
+    found.push({ start, end: start + m[0].length, label: m[1], value: m[2] ?? '' });
+  }
+  return found;
+}
 
 /**
  * The choices in `value`, if that's all it is: `[{ label, checked, on }]`,
@@ -53,10 +78,19 @@ function choices(line, head, value) {
 export function fields(md) {
   beforeAsides(md, 'field_lines', (state) => {
     const found = [];
-    readLines(state, (line, n) => line.replace(FIELD, (m, label, colons, value) => {
-      found.push({ line: n, text: line, head: HEAD.exec(line)[0], label, value, lines: colons.length });
-      return placeholder(OPEN, CLOSE, found.length - 1);
-    }));
+    readLines(state, (line, n) => {
+      if (!FIELD.test(line)) {
+        // Back to front, so each one's place on the line is still as written.
+        return inlineFields(line).reduceRight((out, f) => {
+          found.push({ ...f, line: n, text: line, inline: true });
+          return out.slice(0, f.start) + placeholder(OPEN, CLOSE, found.length - 1) + out.slice(f.end);
+        }, line);
+      }
+      return line.replace(FIELD, (m, label, colons, value) => {
+        found.push({ line: n, text: line, head: HEAD.exec(line)[0], label, value, lines: colons.length });
+        return placeholder(OPEN, CLOSE, found.length - 1);
+      });
+    });
     if (found.length) state.env.fields = found;
   });
 
@@ -65,7 +99,7 @@ export function fields(md) {
     if (!found) return;
     splitText(state, PLACED, (k) => {
       if (!found[k]) return null;
-      const t = new state.Token('field', 'span', 0);
+      const t = new state.Token(found[k].inline ? 'field_inline' : 'field', 'span', 0);
       t.meta = found[k];
       return t;
     });
@@ -91,6 +125,16 @@ export function fields(md) {
     return `${open}${tall}>`
       + `<span class="field-label">${escapeHtml(label)}</span>`
       + `<span class="field-value" data-value="${v}">${v}</span></span>`;
+  };
+
+  // The blank first, so the sentence lines up with what's written on it.
+  md.renderer.rules.field_inline = (tokens, i) => {
+    const { line, text, start, end, label, value } = tokens[i].meta;
+    const v = escapeHtml(value);
+    return `<span class="field field-inline" data-line="${line}" data-text="${escapeAttr(text)}"`
+      + ` data-head="${escapeAttr(`[@ ${label}`)}" data-start="${start}" data-end="${end}">`
+      + `<span class="field-value" data-value="${v}">${v}</span>`
+      + `<span class="field-label">${escapeHtml(label)}</span></span>`;
   };
 }
 

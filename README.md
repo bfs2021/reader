@@ -218,6 +218,24 @@ radio buttons in a row after the label:
 
 Clicking one writes `(x)` in front of it, and `( )` in front of the rest.
 
+A blank can also sit inside a sentence, filled in the way a madlib is:
+`[@ ` and what goes there, which shows small under the blank.
+
+```markdown
+I am from a [@ a specific ordinary item from childhood] and [@ a product name].
+```
+
+shows as
+
+> I am from a \_\_\_\_\_\_\_\_\_\_\_\_ and \_\_\_\_\_\_\_\_.<br>
+> <sub>&emsp;&emsp;&emsp;&emsp;&emsp;a specific ordinary item from childhood&emsp;&emsp;a product name</sub>
+
+It's filled in as a field is, and the answer is written after a colon,
+`[@ a product name: Tang]`, and shown bold, to stand apart from the
+sentence. Square brackets typed into it are written as round ones, so they
+don't end it early. One followed by `(` is a link, as `[text](url)` is, and a backslash
+(`\[@ `) keeps it as typed.
+
 A blockquote whose last line starts with `--` takes that line as its
 attribution, set right-aligned under the quote. Links, and `scripture:`, work
 there as anywhere:

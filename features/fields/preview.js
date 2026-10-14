@@ -4,15 +4,37 @@
  * text wrapping onto more lines as it needs them. Enter, or clicking away,
  * writes the value into the file; Esc puts it back as it was; Tab and
  * Shift-Tab write it and move to the next field or the one before. A field
- * of choices writes its line as it reads with the one picked. Runs in the
- * preview frame.
+ * of choices writes its line as it reads with the one picked. A field in a
+ * sentence (`[@ what goes here: answer]`) writes its answer into its place
+ * on the line, moving along the others after it. Runs in the preview frame.
  */
 (() => {
   let editing = null;
 
   const fieldLabel = (f) => f.querySelector('.field-label')?.textContent ?? '';
-  const fieldAt = (line, label) => [...document.querySelectorAll('.field')]
-    .find((f) => f.dataset.line === String(line) && fieldLabel(f) === label);
+  const fieldAt = (line, label, start) => [...document.querySelectorAll('.field')]
+    .find((f) => f.dataset.line === String(line) && fieldLabel(f) === label && f.dataset.start === start);
+
+  /** `field`'s line as written with `value` in it, the fields beside it told where they are now. */
+  function written(field, value) {
+    if (field.dataset.start === undefined) return value ? `${field.dataset.head} ${value}` : field.dataset.head;
+    const was = field.dataset.text;
+    const start = Number(field.dataset.start);
+    const end = Number(field.dataset.end);
+    const piece = value ? `${field.dataset.head}: ${value}]` : `${field.dataset.head}]`;
+    const now = was.slice(0, start) + piece + was.slice(end);
+    const moved = piece.length - (end - start);
+    for (const f of document.querySelectorAll(`.field[data-line="${field.dataset.line}"][data-start]`)) {
+      const at = Number(f.dataset.start);
+      if (f === field) f.dataset.end = String(start + piece.length);
+      else if (at > start) {
+        f.dataset.start = String(at + moved);
+        f.dataset.end = String(Number(f.dataset.end) + moved);
+      }
+      f.dataset.text = now;
+    }
+    return now;
+  }
 
   function openField(field, { value, start, end } = {}) {
     const slot = field.querySelector('.field-value');
@@ -39,14 +61,16 @@
       if (done) return;
       done = true;
       if (editing?.input === input) editing = null;
-      const after = commit ? input.value.replace(/\s+/g, ' ').trim() : before;
+      let after = commit ? input.value.replace(/\s+/g, ' ').trim() : before;
+      // In a sentence, a `]` would end the field early: brackets go round.
+      if (field.dataset.start !== undefined) after = after.replace(/\[/g, '(').replace(/\]/g, ')');
       slot.textContent = after;
       slot.dataset.value = after;
       if (after !== before) {
         // The line as written, with the new value after its colons.
         const line = Number(field.dataset.line);
         const was = field.dataset.text;
-        const now = after ? `${field.dataset.head} ${after}` : field.dataset.head;
+        const now = written(field, after);
         field.dataset.text = now;
         Preview.edit([{ from: line, to: line + 1, before: [was], after: [now] }]);
       }
@@ -57,7 +81,7 @@
       done = true;
       editing = null;
       return {
-        line: field.dataset.line, label: fieldLabel(field),
+        line: field.dataset.line, label: fieldLabel(field), at: field.dataset.start,
         value: input.value, start: input.selectionStart, end: input.selectionEnd,
       };
     };
@@ -97,7 +121,7 @@
     keep: () => editing?.keep(),
     restore: (root, filling) => {
       if (!filling) return;
-      const field = fieldAt(filling.line, filling.label);
+      const field = fieldAt(filling.line, filling.label, filling.at);
       if (field) openField(field, filling);
     },
   });
