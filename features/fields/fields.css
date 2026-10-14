@@ -37,6 +37,15 @@
 }
 .field:hover .field-value { --gm-field-rule: var(--gm-ink); }
 .field-value:has(> textarea) { --gm-field-rule: var(--gm-accent); }
+/* A field to pick from: its choices in a row, wrapping as they need to. */
+.field[data-choices] { cursor: default; }
+.field-choices {
+  display: flex; flex-wrap: wrap; gap: 0 1.2em;
+  padding-top: var(--field-pad);
+  line-height: var(--field-line);
+}
+.field-choice { display: inline-flex; align-items: center; gap: 0.35em; cursor: pointer; white-space: nowrap; }
+.field-choice > .choice-box { margin: 0; cursor: pointer; }
 .field-value > textarea {
   all: unset;
   display: block;

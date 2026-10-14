@@ -3,8 +3,9 @@
  * on its label, its blank, or beside them opens the blank for typing, the
  * text wrapping onto more lines as it needs them. Enter, or clicking away,
  * writes the value into the file; Esc puts it back as it was; Tab and
- * Shift-Tab write it and move to the next field or the one before. Runs in
- * the preview frame.
+ * Shift-Tab write it and move to the next field or the one before. A field
+ * of choices writes its line as it reads with the one picked. Runs in the
+ * preview frame.
  */
 (() => {
   let editing = null;
@@ -68,15 +69,25 @@
       e.stopPropagation();
       close(e.key !== 'Escape');
       if (e.key !== 'Tab') return;
-      const all = [...document.querySelectorAll('.field')];
+      const all = [...document.querySelectorAll('.field:not([data-choices])')];
       const next = all[all.indexOf(field) + (e.shiftKey ? -1 : 1)];
       if (next) openField(next);
     });
     input.addEventListener('blur', () => close(true));
   }
 
+  document.addEventListener('change', (e) => {
+    const field = e.target.matches?.('.field-choice > input') && e.target.closest('.field');
+    if (!field) return;
+    const line = Number(field.dataset.line);
+    const was = field.dataset.text;
+    const now = e.target.dataset.on;
+    field.dataset.text = now;
+    if (now !== was) Preview.edit([{ from: line, to: line + 1, before: [was], after: [now] }], { undo: true });
+  });
+
   document.addEventListener('click', (e) => {
-    const f = !Preview.deck && e.target.closest && e.target.closest('.field');
+    const f = !Preview.deck && e.target.closest && e.target.closest('.field:not([data-choices])');
     if (f && !(e.target instanceof HTMLTextAreaElement)) openField(f);
   });
 

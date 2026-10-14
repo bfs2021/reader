@@ -34,6 +34,26 @@ test('a field in a ::: block is styled with it', () => {
   assert.match(body, /<p style="color: red"><span class="field" data-line="1" /);
 });
 
+test('a field of ( ) choices is radio buttons in a row, each knowing its line with only it picked', () => {
+  const { body } = render('@ Session: ( ) Sat AM  (x) Sat PM ( ) Sun (late)\n');
+  assert.match(body, /<span class="field" data-line="0" data-text="@ Session: \( \) Sat AM {2}\(x\) Sat PM \( \) Sun \(late\)" data-head="@ Session:" data-choices><span class="field-label">Session<\/span><span class="field-choices">/);
+  const radios = [...body.matchAll(/<label class="field-choice"><input type="radio" class="choice-box" name="field-0" data-on="([^"]*)"( checked)?> ([^<]*)<\/label>/g)]
+    .map(([, on, checked, label]) => ({ on, checked: Boolean(checked), label }));
+  assert.deepEqual(radios, [
+    { on: '@ Session: (x) Sat AM  ( ) Sat PM ( ) Sun (late)', checked: false, label: 'Sat AM' },
+    { on: '@ Session: ( ) Sat AM  (x) Sat PM ( ) Sun (late)', checked: true, label: 'Sat PM' },
+    { on: '@ Session: ( ) Sat AM  ( ) Sat PM (x) Sun (late)', checked: false, label: 'Sun (late)' },
+  ]);
+});
+
+test('a value that is only partly choices is written in, as typed', () => {
+  for (const value of ['before ( ) A ( ) B', '( ) A ( )', '(y) A']) {
+    const { body } = render(`@ Pick: ${value}\n`);
+    assert.doesNotMatch(body, /field-choices/, value);
+    assert.match(body, /class="field-value"/, value);
+  }
+});
+
 test('the stylesheet comes with the feature', () => {
   assert.match(render('@ A: b\n').css, /\.field \{/);
 });

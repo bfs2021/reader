@@ -207,6 +207,15 @@ writes it into the file, saved like typing; `Esc` puts it back; `Tab` and `⇧Ta
 move to the next field or the one before. As with puzzles, this works in work
 mode too. The value is shown just as typed, with no markdown.
 
+A field whose value is nothing but `( )` choices is one to pick from, its
+radio buttons in a row after the label:
+
+```markdown
+@ Session: ( ) Sat AM ( ) Sat PM ( ) Sun AM ( ) Sun PM
+```
+
+Clicking one writes `(x)` in front of it, and `( )` in front of the rest.
+
 A blockquote whose last line starts with `--` takes that line as its
 attribution, set right-aligned under the quote. Links, and `scripture:`, work
 there as anywhere:

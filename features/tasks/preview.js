@@ -12,7 +12,8 @@
   };
   document.addEventListener('change', (e) => {
     const box = e.target;
-    if (!box.matches || !box.matches('input.task-box, input.choice-box')) return;
+    // A field's choices share a line, and the field writes it (fields/preview.js).
+    if (!box.matches || !box.matches('input.task-box, input.choice-box') || box.closest('.field')) return;
     const group = box.type === 'radio'
       ? [...document.querySelectorAll('input.choice-box')].filter((b) => b.name === box.name)
       : [box];

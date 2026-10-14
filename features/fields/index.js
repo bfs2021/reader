@@ -9,6 +9,13 @@
  * The field carries its line, the line as written and its head (up to the
  * colons), so the preview can open the blank for typing and write the new
  * value back after the head. The value is shown as typed, with no markdown.
+ *
+ * A value that's all `( )` and `(x)` choices is one to pick instead, its
+ * radio buttons in a row:
+ *
+ *   @ Session: ( ) Sat AM (x) Sat PM ( ) Sun AM
+ *
+ * Each button carries the line as it reads with only it picked.
  */
 
 import fs from 'node:fs';
@@ -20,6 +27,28 @@ const HEAD = /^@[ \t]+[^:\n]*?[^:\s][ \t]*:+/;
 const OPEN = '\uE010';
 const CLOSE = '\uE012';
 const PLACED = new RegExp(`${OPEN}(\\d+)${CLOSE}`, 'g');
+const MARK = /\(([ xX])\)/g;
+
+/**
+ * The choices in `value`, if that's all it is: `[{ label, checked, on }]`,
+ * `on` being `line` as it reads with only that one picked.
+ */
+function choices(line, head, value) {
+  if (!value.startsWith('(')) return null;
+  const parts = value.split(MARK);
+  const found = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const label = parts[i + 1].trim();
+    if (!label) return null;
+    found.push({ label, checked: parts[i] !== ' ' });
+  }
+  if (parts[0] !== '' || !found.length) return null;
+  const rest = line.slice(head.length);
+  return found.map((c, k) => {
+    let at = 0;
+    return { ...c, on: head + rest.replace(MARK, () => (at++ === k ? '(x)' : '( )')) };
+  });
+}
 
 export function fields(md) {
   beforeAsides(md, 'field_lines', (state) => {
@@ -49,9 +78,17 @@ export function fields(md) {
 
   md.renderer.rules.field = (tokens, i) => {
     const { line, text, head, label, value, lines } = tokens[i].meta;
+    const open = `<span class="field" data-line="${line}" data-text="${escapeAttr(text)}" data-head="${escapeAttr(head)}"`;
+    const picks = choices(text, head, value);
+    if (picks) {
+      return `${open} data-choices><span class="field-label">${escapeHtml(label)}</span><span class="field-choices">`
+        + picks.map((c) => `<label class="field-choice"><input type="radio" class="choice-box" name="field-${line}"`
+          + ` data-on="${escapeAttr(c.on)}"${c.checked ? ' checked' : ''}> ${escapeHtml(c.label)}</label>`).join('')
+        + '</span></span>';
+    }
     const v = escapeHtml(value);
     const tall = lines > 1 ? ` data-lines="${lines}" style="--lines: ${lines}"` : '';
-    return `<span class="field" data-line="${line}" data-text="${escapeAttr(text)}" data-head="${escapeAttr(head)}"${tall}>`
+    return `${open}${tall}>`
       + `<span class="field-label">${escapeHtml(label)}</span>`
       + `<span class="field-value" data-value="${v}">${v}</span></span>`;
   };
