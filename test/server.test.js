@@ -1,6 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { createServer } from '../src/server.js';
@@ -165,5 +166,24 @@ test('each page says what it may load: its own scripts only, nothing inline', as
   for (const page of ['index.html', 'speaker.html', 'preview.html']) {
     const html = await (await fetch(`${base}/${page}`)).text();
     assert.doesNotMatch(html, /<script>|<script(?![^>]*\bsrc=)[^>]*>|\son[a-z]+=/, `${page} has no inline script`);
+  }
+});
+
+test('a request addressed to another host is refused, unless the server was started with its name', async () => {
+  const ask = (port, host) => new Promise((resolve, reject) => {
+    http.get({ host: '127.0.0.1', port, path: '/api/info', headers: { Host: host } }, (res) => {
+      res.resume();
+      resolve(res.statusCode);
+    }).on('error', reject);
+  });
+  assert.equal(await ask(server.address().port, 'my-nas:8734'), 403);
+  const named = createServer({ root, allowHosts: ['My-NAS'] }).server;
+  await new Promise((r) => named.listen(0, '127.0.0.1', r));
+  try {
+    assert.equal(await ask(named.address().port, 'my-nas:8734'), 200);
+    assert.equal(await ask(named.address().port, 'localhost'), 200);
+    assert.equal(await ask(named.address().port, 'evil.example'), 403);
+  } finally {
+    named.close();
   }
 });

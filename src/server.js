@@ -13,8 +13,9 @@
  *   POST /api/slides           { text, path? } -> { css, title, slides: [{ body, notes, notesHtml, line, at, budget, plan, transition }], end }
  *   GET  /content/<path>       raw bytes (PDFs, images a note links to)
  *
- * Local only: the server refuses requests whose Host isn't loopback (DNS
- * rebinding) and mutating requests that aren't JSON (a cross-site form post
+ * Local unless told otherwise: the server refuses requests whose Host isn't
+ * loopback, or a name it was started with (`allowHosts`), which is what
+ * stops DNS rebinding; and mutating requests that aren't JSON (a cross-site form post
  * can't set that content type without a CORS preflight, which we never
  * answer).
  *
@@ -120,8 +121,9 @@ const PAGE_POLICIES = {
 // and a PDF can't reach the API anyway.
 const CONTENT_SANDBOX = { 'Content-Security-Policy': 'sandbox' };
 
-export function createServer({ root }) {
+export function createServer({ root, allowHosts = [] }) {
   const content = createContent(root);
+  const hosts = new Set([...LOOPBACK, ...allowHosts.map((h) => h.toLowerCase())]);
 
   const server = http.createServer(async (req, res) => {
     try {
@@ -137,8 +139,8 @@ export function createServer({ root }) {
   const read = (rel) => content.read(rel).text;
 
   async function handle(req, res) {
-    const host = (req.headers.host || '').replace(/:\d+$/, '');
-    if (!LOOPBACK.has(host)) return send(res, 403, 'forbidden host', 'text/plain');
+    const host = (req.headers.host || '').replace(/:\d+$/, '').toLowerCase();
+    if (!hosts.has(host)) return send(res, 403, 'forbidden host', 'text/plain');
 
     const url = new URL(req.url, 'http://localhost');
     const route = url.pathname;
