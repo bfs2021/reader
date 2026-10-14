@@ -17,6 +17,12 @@
  *
  * The preview frame draws it (preview.js), with Mermaid kept in vendor/,
  * loaded the first time a page has a diagram.
+ *
+ * A page with nothing to draw it (an export) is given what the frame drew,
+ * `env.drawn.mermaid`, the SVG for each fence's text, and is written as the
+ * frame leaves it:
+ *
+ *   <div class="mermaid drawn">…the code block…<div class="mermaid-figure">…the svg…</div></div>
  */
 
 import fs from 'node:fs';
@@ -35,7 +41,13 @@ export function mermaids(md) {
     token.attrs = attrs;
     const wrapper = Object.assign(new Token('div', 'div', 1), { attrs: attrs?.map((a) => [...a]) ?? null });
     addClass(wrapper, 'mermaid');
-    return `<div${self.renderAttrs(wrapper)}>${html.replace(/\n$/, '')}</div>\n`;
+    // The text the frame reads back from the code block (preview.js).
+    const source = token.content.replace(/\n$/, '');
+    const all = env.drawn?.mermaid;
+    const svg = all && Object.hasOwn(all, source) && typeof all[source] === 'string' ? all[source] : null;
+    if (svg) addClass(wrapper, 'drawn');
+    const figure = svg ? `<div class="mermaid-figure">${svg}</div>` : '';
+    return `<div${self.renderAttrs(wrapper)}>${html.replace(/\n$/, '')}${figure}</div>\n`;
   };
 }
 

@@ -1,5 +1,5 @@
 /**
- * Markdown (with `~` asides) -> { css, body } for the preview pane.
+ * Markdown (with `~` asides) -> { css, body, title } for the preview pane.
  *
  * One markdown-it parses every document, with each feature's plugin
  * (features/), asides and front matter among them. columns.js lays the
@@ -39,11 +39,13 @@ md.core.ruler.push('reader_lines', (state) => {
  * `background` is what's behind the page (see background.js) when it isn't
  * the front matter's to say: a slide's own, or its deck's, or null for none.
  * `fonts` is likewise the front matter that names the fonts (see fonts.js):
- * a slide's deck's.
+ * a slide's deck's. `drawn` is what the preview frame drew of the page, by
+ * feature (`{ mermaid: { text: svg } }`), to set into it where the page will
+ * have nothing to draw it (export.js).
  */
-export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts } = {}) {
+export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, drawn } = {}) {
   const text = src || '';
-  const env = { lineBase: line, file, read, shared, asideKey, lines };
+  const env = { lineBase: line, file, read, shared, asideKey, lines, drawn };
   const tokens = md.parse(text, env);
   const meta = env.frontMatter || {};
   const asides = env.asides || [];
@@ -62,6 +64,7 @@ export function render(src, { file, read, line = 0, shared = {}, asideKey, lines
     css: [page.css.trim(), CSS, BACKGROUND_CSS, ...FEATURES.map((f) => f.css).filter(Boolean), fontCss(fonts ?? meta)].filter(Boolean).join('\n'),
     body: behind + body,
     asides: asides.length,
+    title,
   };
 }
 

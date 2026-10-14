@@ -241,6 +241,12 @@
         // What's above may have grown or shrunk; put the editor back level.
         tell();
       }
+    } else if (m.type === 'drawn') {
+      // What features drew of the last render, once all of it is in place.
+      (async () => {
+        while (Preview.pending().length) await Promise.all(Preview.pending());
+        window.parent.postMessage({ type: 'drawn', drawn: Preview.drawn() }, '*');
+      })();
     } else if (m.type === 'reveal') {
       reveal(m.reveal);
     } else if (m.type === 'scroll') {

@@ -79,6 +79,34 @@ test('refuses escapes, non-JSON writes and foreign hosts', async () => {
   assert.equal(status, 403);
 });
 
+test('exports a document as one HTML file, its images inside it', async () => {
+  fs.writeFileSync(path.join(root, 'dot.png'), Buffer.from('iVBORw0KGgo=', 'base64'));
+  fs.writeFileSync(path.join(root, 'out.md'), '---\ntitle: Out & about\nbackground: dot.png navy\n---\n\n![a dot](dot.png)\n\n![far](https://example.com/far.png)\n');
+  const res = await fetch(`${base}/api/export?path=out.md`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /text\/html/);
+  assert.equal(res.headers.get('content-disposition'), `attachment; filename="out.html"; filename*=UTF-8''out.html`);
+  const html = await res.text();
+  assert.match(html, /<title>Out &amp; about<\/title>/);
+  assert.match(html, /<style>[\s\S]*--gm-aside-col/);
+  assert.match(html, /<img src="data:image\/png;base64,iVBORw0KGgo="/);
+  assert.match(html, /background-image: url\(&quot;data:image\/png;base64,iVBORw0KGgo=&quot;\)/);
+  assert.match(html, /<img src="https:\/\/example\.com\/far\.png"/);
+  assert.doesNotMatch(html, /data-line=/);
+
+  fs.writeFileSync(path.join(root, 'chart.md'), '```mermaid\ngraph TD\n```\n');
+  const drawn = await json('POST', '/api/export', { path: 'chart.md', drawn: { mermaid: { 'graph TD': '<svg id="m1"></svg>' } } });
+  assert.equal(drawn.status, 200);
+  assert.match(drawn.headers.get('content-disposition'), /filename="chart\.html"/);
+  assert.match(await drawn.text(), /<div class="mermaid drawn"><pre>[\s\S]*<\/pre><div class="mermaid-figure"><svg id="m1"><\/svg><\/div><\/div>/);
+  assert.doesNotMatch(await (await fetch(`${base}/api/export?path=chart.md`)).text(), /mermaid-figure"/);
+  assert.equal((await json('POST', '/api/export', { path: 'doc.pdf' })).status, 400);
+
+  assert.equal((await fetch(`${base}/api/export?path=doc.pdf`)).status, 400);
+  assert.equal((await fetch(`${base}/api/export?path=gone.md`)).status, 404);
+  assert.equal((await fetch(`${base}/api/export?path=${encodeURIComponent('../x.md')}`)).status, 400);
+});
+
 test('serves content files sandboxed, so their scripts never run as the app', async () => {
   for (const file of ['page.html', 'pic.svg', 'note.md']) {
     const res = await fetch(`${base}/content/${file}`);

@@ -8,6 +8,13 @@ test('a mermaid fence is wrapped for the preview to draw, its text kept as code'
   assert.match(body, /<div class="mermaid"><pre><code class="language-mermaid">flowchart LR\n {2}a --&gt; b\n<\/code><\/pre><\/div>/);
 });
 
+test('a fence the preview drew is written drawn, for a page with nothing to draw it', () => {
+  const src = '```mermaid\nflowchart LR\n  a --> b\n```\n\n```mermaid\ngraph TD\n```\n';
+  const { body } = render(src, { drawn: { mermaid: { 'flowchart LR\n  a --> b': '<svg id="m1"></svg>' } } });
+  assert.match(body, /<div class="mermaid drawn"><pre><code class="language-mermaid">flowchart LR\n {2}a --&gt; b\n<\/code><\/pre><div class="mermaid-figure"><svg id="m1"><\/svg><\/div><\/div>/);
+  assert.match(body, /<div class="mermaid"><pre><code class="language-mermaid">graph TD\n<\/code><\/pre><\/div>/);
+});
+
 test('other fences are left alone', () => {
   const { body } = render('```js\nx\n```\n\n```\nmermaid\n```\n');
   assert.doesNotMatch(body, /class="mermaid"/);

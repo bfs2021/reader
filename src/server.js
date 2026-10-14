@@ -6,6 +6,8 @@
  *   GET  /api/file?path=       { text, mtime }
  *   PUT  /api/file             { path, text, baseMtime, force?, explicit? }
  *   POST /api/new              { name? }
+ *   GET  /api/export?path=     the document as one HTML file, to save
+ *   POST /api/export           { path, drawn? } -> the same, with what the preview frame drew set into it
  *   POST /api/render           { text, path? } -> { css, body, deck }
  *   POST /api/slides           { text, path? } -> { css, title, slides: [{ body, notes, notesHtml, line, at, budget, plan }], end }
  *   GET  /content/<path>       raw bytes (PDFs, images a note links to)
@@ -27,9 +29,10 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createContent } from './content.js';
+import { createContent, DOC_EXTS, PathError } from './content.js';
 import { render } from './render.js';
 import { slides, isDeck } from './slides.js';
+import { exportHtml } from './export.js';
 import { FEATURES } from '../features/index.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -145,6 +148,7 @@ export function createServer({ root }) {
       }
       if (route === '/api/tree') return sendJson(res, { files: content.list() });
       if (route === '/api/file') return sendJson(res, content.read(url.searchParams.get('path')));
+      if (route === '/api/export') return sendExport(res, url.searchParams.get('path') || '');
       if (FEATURE_SCRIPTS.has(route)) return sendFile(res, FEATURE_SCRIPTS.get(route));
       if (route.startsWith('/content/')) {
         const rel = decodeURIComponent(route.slice('/content/'.length));
@@ -174,10 +178,21 @@ export function createServer({ root }) {
       });
       return sendJson(res, result);
     }
+    if (route === '/api/export' && req.method === 'POST') return sendExport(res, body.path, body.drawn);
     if (route === '/api/new' && req.method === 'POST') {
       return sendJson(res, content.create(body.name));
     }
     return send(res, 404, 'not found', 'text/plain');
+  }
+
+  function sendExport(res, rel, drawn) {
+    if (!DOC_EXTS.has(path.extname(String(rel)).toLowerCase())) throw new PathError(`not a document: ${rel}`);
+    const { name, html } = exportHtml(content, rel, drawn);
+    // Saved, never shown here: it carries a script of its own.
+    return send(res, 200, html, TYPES['.html'], {
+      ...CONTENT_SANDBOX,
+      'Content-Disposition': `attachment; filename="${name.replace(/[^\x20-\x7e]|["\\]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(name)}`,
+    });
   }
 
   function serveStatic(res, route) {

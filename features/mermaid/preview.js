@@ -10,6 +10,9 @@
  * each text drew is kept, and a diagram being changed goes on showing what
  * it last drew until the new one is ready. Its error, while the text is
  * half typed, shows under that, faded.
+ *
+ * What the page's diagrams drew is also handed back by their text
+ * (`Preview.drawn()`), for an export, which has nothing to draw them.
  */
 (() => {
   let loaded = null;
@@ -110,5 +113,8 @@
     if (drawn.size > 300) for (const source of drawn.keys()) if (!wanted.has(source)) drawn.delete(source);
   }
 
-  Preview.register({ restore: (root) => hydrate(root) });
+  Preview.register({
+    restore: (root) => hydrate(root),
+    drawn: () => ({ mermaid: Object.fromEntries(hosts().map((host) => [text(host), drawn.get(text(host))?.svg]).filter(([, svg]) => svg)) }),
+  });
 })();

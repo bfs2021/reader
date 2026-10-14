@@ -1,0 +1,59 @@
+/**
+ * Exporting: a document saved as one HTML file (src/export.js).
+ *
+ * That file draws nothing, so what the preview would draw (a diagram) is
+ * drawn here first, in a frame of its own out of sight, and sent with the
+ * request for the server to set into the page.
+ */
+
+import { api, exportUrl } from './api.js';
+import { whenReady, baseFor } from './render.js';
+
+const DRAW_TIMEOUT = 30000;
+
+/** Saves the document at `p`, as it is on disk, as an HTML file. */
+export async function exportDocument(p) {
+  const { text } = await api('GET', `/api/file?path=${encodeURIComponent(p)}`);
+  const out = await api('POST', '/api/render', { text, path: p });
+  const drawn = await draw(out, p);
+  const res = await fetch(exportUrl(p), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: p, drawn }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `${res.status} ${res.statusText}`);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(await res.blob());
+  a.download = `${p.slice(p.lastIndexOf('/') + 1).replace(/\.[^.]*$/, '')}.html`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
+/** What the preview frame draws of a rendered page, by feature. */
+async function draw({ css, body }, p) {
+  const frame = document.createElement('iframe');
+  // Laid out, as the slide-measuring frame is: a diagram's text is measured as it's drawn.
+  frame.className = 'measure';
+  frame.sandbox = 'allow-scripts';
+  frame.tabIndex = -1;
+  frame.setAttribute('aria-hidden', 'true');
+  frame.src = '/preview.html';
+  let heard;
+  try {
+    return await new Promise((resolve, reject) => {
+      heard = (e) => {
+        if (e.source === frame.contentWindow && e.data?.type === 'drawn') resolve(e.data.drawn);
+      };
+      window.addEventListener('message', heard);
+      setTimeout(() => reject(new Error('its diagrams took too long to draw')), DRAW_TIMEOUT);
+      document.body.append(frame);
+      whenReady(frame).then(() => {
+        frame.contentWindow.postMessage({ type: 'render', css, body, base: baseFor(p), resetScroll: true }, '*');
+        frame.contentWindow.postMessage({ type: 'drawn' }, '*');
+      });
+    });
+  } finally {
+    window.removeEventListener('message', heard);
+    frame.remove();
+  }
+}

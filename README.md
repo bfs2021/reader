@@ -690,6 +690,12 @@ it's opened instead. PDFs open read-only in the left pane.
 Images and links in a note resolve relative to that note, so
 `![](photo.jpg)` next to the file works.
 
+The `↓` at the end of a document's row, shown when the row is hovered or
+open, saves it as one HTML file: the rendered page, with its stylesheet and
+the images it takes from the directory inside it. Nothing in that file draws:
+a diagram is in it as the preview drew it, and a puzzle is left as the text
+it was written as.
+
 ## Keys
 
 | | |

@@ -10,10 +10,12 @@
  *     the edit to go on the editor's undo stack; `drawn` says the page
  *     already shows it, so it needn't be rendered again.
  *
- *   Preview.register({ keep, restore })
+ *   Preview.register({ keep, restore, drawn })
  *     Each render replaces the page. `keep()` is called just before, to say
  *     what to carry over (a field being typed in, a puzzle being played);
- *     `restore(root, kept)` just after, with what it said.
+ *     `restore(root, kept)` just after, with what it said. `drawn()` says
+ *     what the feature drew on the page, under its name, for a page that
+ *     will have nothing to draw it (an export): `{ mermaid: { text: svg } }`.
  *
  *   Preview.wait(promise)
  *     For what's drawn after a render, settling once it's in place (a
@@ -43,6 +45,8 @@
     },
     /** For preview.js: what's still being drawn. */
     pending: () => [...pending],
+    /** For preview.js: what every feature drew on the page. */
+    drawn: () => Object.assign({}, ...hooks.map((h) => h.drawn?.())),
     /** For preview.js: runs `render` between the hooks' keep and restore. */
     replace(root, render) {
       const kept = hooks.map((h) => h.keep?.());

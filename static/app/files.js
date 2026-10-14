@@ -3,8 +3,9 @@
  */
 
 import { el, state, dirty } from './state.js';
-import { api } from './api.js';
+import { api, exportUrl } from './api.js';
 import { save, setConflict } from './saving.js';
+import { exportDocument } from './exporting.js';
 import { showPdf } from './pdf.js';
 import { renderNow, showPreview } from './render.js';
 import { setSaveState, updateCounts, toast } from './status.js';
@@ -40,8 +41,36 @@ export function drawTree() {
     }
     b.addEventListener('click', () => open(f.path));
     li.append(b);
+    if (f.type === 'md') li.append(exportLink(f.path));
     el.files.append(li);
   }
+}
+
+/**
+ * Saves the document as an HTML file, as it is on disk: what's unsaved is
+ * saved first. The link itself leads to the file with nothing drawn in it.
+ */
+function exportLink(p) {
+  const a = document.createElement('a');
+  a.className = 'export';
+  a.href = exportUrl(p);
+  a.download = '';
+  a.title = 'Export as HTML';
+  a.setAttribute('aria-label', `Export ${p} as HTML`);
+  a.textContent = '↓';
+  a.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (state.current?.path === p && dirty()) {
+      await save();
+      if (dirty()) return toast('not saved, so not exported', true);
+    }
+    try {
+      await exportDocument(p);
+    } catch (err) {
+      toast(`export: ${err.message}`, true);
+    }
+  });
+  return a;
 }
 
 export function visiblePaths() {

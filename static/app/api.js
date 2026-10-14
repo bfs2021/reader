@@ -20,4 +20,6 @@ export async function api(method, url, body) {
   return data;
 }
 
+export const exportUrl = (p) => `/api/export?path=${encodeURIComponent(p)}`;
+
 export const contentUrl = (p) => `/content/${p.split('/').map(encodeURIComponent).join('/')}`;
