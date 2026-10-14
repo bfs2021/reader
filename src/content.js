@@ -10,6 +10,8 @@
  *   promote(rel, base)         make a version the main one, `base.ext`
  *   rename(moves)              [{ from, to }], all or none, backups and all
  *   trash(rel) / restore(id)   into `.reader/trash/`, and back out
+ *   extract(rel, opts)         new files from parts of one, written with what's left
+ *   unextract(rel, opts)       and put back, if neither has changed since
  *   resolve(rel)               absolute path, or a PathError
  *
  * Paths crossing this boundary are always root-relative with `/` separators.
@@ -304,6 +306,57 @@ export function createContent(rootDir) {
     return { path: rel };
   }
 
+  /**
+   * Write `files` ([{ path, text }]), parts taken out of `rel`, and then
+   * `text`, what `rel` is without them. None of the new files may be there
+   * already, and `rel` must still be as it was at `baseMtime`; if anything
+   * can't be written, nothing is.
+   */
+  function extract(rel, { text, baseMtime, files } = {}) {
+    statFile(rel);
+    if (!Array.isArray(files) || !files.length) throw new PathError('nothing to extract');
+    const planned = new Set();
+    const targets = files.map((f) => {
+      const abs = resolve(f.path);
+      if (!DOC_EXTS.has(path.extname(abs).toLowerCase())) throw new PathError(`new files must be markdown: ${f.path}`);
+      if (typeof f.text !== 'string') throw new PathError('text must be a string');
+      if (fs.existsSync(abs) || planned.has(abs)) throw new ConflictError(`${toRel(abs)} already exists`);
+      planned.add(abs);
+      return { abs, text: f.text };
+    });
+    const current = fs.statSync(resolve(rel)).mtimeMs;
+    if (baseMtime != null && current !== baseMtime) throw new ConflictError(`${rel} changed on disk`, current);
+    const made = [];
+    try {
+      for (const t of targets) {
+        fs.mkdirSync(path.dirname(t.abs), { recursive: true });
+        fs.writeFileSync(t.abs, t.text, { encoding: 'utf8', flag: 'wx' });
+        made.push(t.abs);
+      }
+      const out = write(rel, text, { baseMtime, explicit: true });
+      return { path: rel, mtime: out.mtime, files: made.map((abs) => ({ path: toRel(abs), mtime: fs.statSync(abs).mtimeMs })) };
+    } catch (err) {
+      for (const abs of made) fs.rmSync(abs, { force: true });
+      throw err;
+    }
+  }
+
+  /**
+   * Undo an extract: `rel` back to `text`, and the files it made set aside
+   * in the trash. Only while `rel` and each file are as the extract left
+   * them (`mtime`, and each file's); after that, it would be a merge.
+   */
+  function unextract(rel, { text, mtime, files } = {}) {
+    const changed = (p, at) => statFile(p).stat.mtimeMs !== at;
+    if (changed(rel, mtime)) throw new ConflictError(`${rel} has changed since, so it's left as it is`);
+    for (const f of files || []) {
+      if (changed(f.path, f.mtime)) throw new ConflictError(`${f.path} has changed since, so it's left as it is`);
+    }
+    const out = write(rel, text, { baseMtime: mtime, explicit: true });
+    for (const f of files || []) trash(f.path);
+    return { path: rel, mtime: out.mtime };
+  }
+
   /** Rename a file, and its backups with it, never over another file. */
   function move(fromAbs, toAbs) {
     const from = toRel(fromAbs);
@@ -329,7 +382,7 @@ export function createContent(rootDir) {
     return { from, to };
   }
 
-  return { root, resolve, list, read, write, create, branch, promote, rename, trash, restore, statFile, backupRoot, trashRoot };
+  return { root, resolve, list, read, write, create, branch, promote, rename, trash, restore, extract, unextract, statFile, backupRoot, trashRoot };
 }
 
 function pad(n, w = 2) {

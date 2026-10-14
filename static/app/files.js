@@ -16,16 +16,17 @@ import { setSaveState, updateCounts, toast } from './status.js';
 import { updatePresentable } from './deck.js';
 import { folderView, filtered, findGroup, groupOf, hasFolder, dirOf, splitPath } from './versions.js';
 import { branch, rename, trash, promote } from './manage.js';
-import { drawOutline, entryKey } from './outline.js';
+import { drawOutline, entryKey, pickKey } from './outline.js';
 
 // Drawn with the text's own colour; the trash's is set red in the stylesheet.
 const ICONS = {
   branch: '<circle cx="4.5" cy="3.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="4.5" r="1.5"/><path d="M4.5 5v6M11.5 6c0 3.5-7 2.5-7 5"/>',
   export: '<path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/>',
   trash: '<path d="M2.5 4.5h11M6 4.5V2.8h4v1.7M4 4.5l.8 9h6.4l.8-9M6.8 7v4.5M9.2 7v4.5"/>',
+  extract: '<path d="M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v3.2a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8V5.3a.8.8 0 0 1 .8-.8h3.2"/>',
   promote: '<path d="M8 2.2l1.8 3.7 4 .6-2.9 2.8.7 4L8 11.4l-3.6 1.9.7-4L2.2 6.5l4-.6z"/>',
 };
-const icon = (name) => `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+export const icon = (name) => `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
 
 export async function loadTree() {
   const { files } = await api('GET', '/api/tree');
@@ -257,6 +258,7 @@ const rows = () => [...el.files.querySelectorAll('.file, .folder, .entry')];
 /** Arrows move down the list; → goes into a folder, a file's versions or the open file's outline, ← back out. */
 export function onListKey(e) {
   if (e.target.matches('input')) return;
+  if (state.outline && pickKey(e)) return e.preventDefault();
   const at = document.activeElement;
   if (at?.matches('.entry') && entryKey(e, at)) return e.preventDefault();
   const list = rows();

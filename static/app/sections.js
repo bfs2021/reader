@@ -1,5 +1,5 @@
 /**
- * A file's outline.
+ * A file's outline, and taking a part of it out into a file of its own.
  *
  * What the outline lists:
  *
@@ -107,6 +107,52 @@ export function find(entries, query) {
     scored.push({ e, score });
   }
   return scored.sort((a, b) => b.score - a.score).map((s) => s.e);
+}
+
+/** A file name from a title: `Spring Security 7!` is `spring-security-7`. */
+export function slug(title) {
+  const words = String(title).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+  let out = '';
+  for (const w of words) {
+    if (out && out.length + w.length + 1 > 48) break;
+    out = out ? `${out}-${w}` : w.slice(0, 48);
+  }
+  return out || 'section';
+}
+
+/**
+ * Takes `entries` (from outline(src), not overlapping) out of `src`, each
+ * to the file named in `names` beside it. Each leaves a link to its file
+ * where it was, and its file starts with the front matter, its `title:`
+ * telling where it came from. Returns `{ text, files: [{ name, text }] }`.
+ */
+export function extract(src, entries, names) {
+  const lines = String(src ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const { matter } = outline(src);
+  const order = entries.map((e, i) => ({ e, name: names[i] })).sort((a, b) => b.e.line - a.e.line);
+  const files = [];
+  for (const { e, name } of order) {
+    let a = e.line;
+    let b = e.end;
+    while (a < b && !lines[a].trim()) a++;
+    while (b > a && !lines[b - 1].trim()) b--;
+    if (a === b) continue;
+    const body = lines.slice(a, b).join('\n');
+    const head = matter ? `${retitle(lines.slice(matter.start, matter.end), matter.meta.title, e.title).join('\n')}\n\n` : '';
+    files.unshift({ name, text: `${head}${body}\n` });
+    lines.splice(a, b - a, `→ [${e.title.replace(/[[\]]/g, '\\$&')}](${encodeURI(name)})`);
+  }
+  return { text: lines.join('\n'), files };
+}
+
+/** The front matter's lines, with a `title:` that says which part this is. */
+function retitle(block, title, heading) {
+  if (!title) return block;
+  return block.map((l) => {
+    const m = /^([ \t]*title[ \t]*:)[ \t]*(["']?)(.*?)\2[ \t]*$/i.exec(l);
+    return m ? `${m[1]} ${m[2]}${m[3]} - ${heading}${m[2]}` : l;
+  });
 }
 
 /**

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { outline, flatten, find } from '../static/app/sections.js';
+import { outline, flatten, find, slug, extract } from '../static/app/sections.js';
 
 const shape = (entries) => entries.map((e) => (e.children.length ? [e.title, shape(e.children)] : e.title));
 
@@ -81,4 +81,43 @@ test('find puts the start of a title first, then a word in it, then letters in o
   const { entries } = outline('# Authorization\n# Spring Security\n# Security\n# Something Else Close\n');
   assert.deepEqual(find(entries, 'sec').map((e) => e.title), ['Security', 'Spring Security', 'Something Else Close']);
   assert.equal(flatten(entries).length, 4);
+});
+
+test('slug makes a file name of a title', () => {
+  assert.equal(slug('Spring Security 7!'), 'spring-security-7');
+  assert.equal(slug('Café: résumé'), 'cafe-resume');
+  assert.equal(slug('***'), 'section');
+});
+
+test('extract takes a part out, leaving a link, and copies the front matter retitled', () => {
+  const { entries } = outline(day);
+  const { text, files } = extract(day, [entries[1]], ['spring-security-7.md']);
+  assert.deepEqual(files.map((f) => f.name), ['spring-security-7.md']);
+  assert.equal(files[0].text, `---
+title: DevNexus day 1 - Spring Security 7
+---
+
+# Spring Security 7
+
+## Passkeys
+
+They're in.
+
+## Authorization changes
+
+\`\`\`
+# not a heading
+---
+\`\`\`
+`);
+  assert.match(text, /\n---\n\n→ \[Spring Security 7\]\(spring-security-7\.md\)\n\n---\n\nLunch ideas/);
+  assert.deepEqual(shape(outline(text).entries).length, 3);
+});
+
+test('extract takes several at once, each leaving its link', () => {
+  const src = '# Ideas\n\n## One\n\nfirst\n\n## Two\n\nsecond\n';
+  const [ideas] = outline(src).entries;
+  const { text, files } = extract(src, ideas.children, ['one.md', 'two.md']);
+  assert.equal(text, '# Ideas\n\n→ [One](one.md)\n\n→ [Two](two.md)\n');
+  assert.deepEqual(files, [{ name: 'one.md', text: '## One\n\nfirst\n' }, { name: 'two.md', text: '## Two\n\nsecond\n' }]);
 });

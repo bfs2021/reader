@@ -833,6 +833,29 @@ in is marked, and its part opens. Parts are folded otherwise; `▸` and `▾`,
 or `→` and `←`, open and fold one. The outline follows the open file, so
 `⌥↑` and `⌥↓` still step through the folder's files.
 
+#### Taking a part out into a file of its own
+
+The arrow-out-of-a-box icon at the end of an entry takes that part out into a file
+of its own, beside this one: a talk from a day of them, an idea from a week
+of them. The name is made from its title (`spring-security-7.md`) and can be
+changed first; `Enter` makes it, and `Esc` doesn't. In its place, the file
+keeps a link to it:
+
+```markdown
+→ [Spring Security 7](spring-security-7.md)
+```
+
+The new file starts with this one's front matter, and a `title:` there says
+where it came from: `DevNexus day 1 - Spring Security 7`.
+
+To take out several at once, `⌘`-click the entries, `⇧`-click for a run of
+them, or press `⌘A` in the outline for every part; then the icon on any of
+them takes each into its own file. `Esc` lets them go.
+
+The toast that says where it went has **Undo**, which puts the part back and
+the new file in the trash. It's only offered while the toast is up, and not
+once either file has changed.
+
 **`⌃G`** (Control, not `⌘`, which is the browser's find again) asks where to go:
 
 - `12` is page 12, the twelfth part, or slide 12 of a talk.
@@ -985,6 +1008,7 @@ images have to be committed for the runner to put them inside the page.
 | `⌥↑` / `⌥↓` | previous / next file |
 | `↑` `↓` `→` `←` | in the file list: move, go into a folder, a file's versions or the open file's outline, go back out (`⌫` too) |
 | `→` `←` | in the outline: open or fold an entry, or go back out |
+| `⌘`-click / `⇧`-click / `⌘A` | in the outline: choose entries to take out together |
 | `F2` / `⌘⌫` | in the file list: rename, or move to the trash |
 | `⌘\` | show / hide the file list |
 | `⌘.` | work mode on / off |
@@ -1046,7 +1070,7 @@ $ npm run lint
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `src/transition.js` | how one slide gives way to the next: `transition:` in the front matter, or in a slide's notes |
-| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `outline.js` and `sections.js` (the open file's outline), `goto.js` (going to a place, `⌃G`), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `lines.js` (line numbers, copying where you are), `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
+| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `outline.js` and `sections.js` (the open file's outline), `goto.js` (going to a place, `⌃G`), `extracting.js` (taking a part out into a file), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `lines.js` (line numbers, copying where you are), `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |

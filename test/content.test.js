@@ -179,3 +179,31 @@ test('trash sets a file aside, and restore brings it back, but not over another'
   assert.throws(() => content.restore('20260101-000000-000/../../secret.md'), PathError);
   assert.throws(() => content.restore('nope'), PathError);
 });
+
+test('extract writes the new files and what is left, or none of it', () => {
+  const { root, content } = fixture();
+  fs.writeFileSync(path.join(root, 'sub', 'taken.md'), 'here already\n');
+  const { mtime } = content.read('a.md');
+  const taken = { text: '→ [x](x.md)\n', baseMtime: mtime, files: [{ path: 'sub/one.md', text: '# one\n' }, { path: 'sub/taken.md', text: '# two\n' }] };
+  assert.throws(() => content.extract('a.md', taken), ConflictError);
+  assert.equal(fs.existsSync(path.join(root, 'sub', 'one.md')), false);
+  assert.throws(() => content.extract('a.md', { text: '', baseMtime: mtime, files: [{ path: 'sub/one.txt', text: '' }] }), PathError);
+  assert.throws(() => content.extract('a.md', { text: '', baseMtime: mtime - 1, files: [{ path: 'sub/one.md', text: '' }] }), ConflictError);
+
+  const out = content.extract('a.md', { text: '→ [one](sub/one.md)\n', baseMtime: mtime, files: [{ path: 'sub/one.md', text: '# one\n' }] });
+  assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), '→ [one](sub/one.md)\n');
+  assert.equal(fs.readFileSync(path.join(root, 'sub', 'one.md'), 'utf8'), '# one\n');
+  assert.deepEqual(out.files.map((f) => f.path), ['sub/one.md']);
+});
+
+test('unextract puts it back while neither file has changed, the new one in the trash', () => {
+  const { root, content } = fixture();
+  const { mtime } = content.read('a.md');
+  const out = content.extract('a.md', { text: 'left\n', baseMtime: mtime, files: [{ path: 'one.md', text: 'one\n' }] });
+  const stale = { text: '# a\n', mtime: out.mtime, files: [{ ...out.files[0], mtime: out.files[0].mtime - 1 }] };
+  assert.throws(() => content.unextract('a.md', stale), ConflictError);
+  content.unextract('a.md', { text: '# a\n', mtime: out.mtime, files: out.files });
+  assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), '# a\n');
+  assert.equal(fs.existsSync(path.join(root, 'one.md')), false);
+  assert.equal(fs.readdirSync(content.trashRoot).length, 1);
+});

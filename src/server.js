@@ -209,6 +209,8 @@ export function createServer({ root, allowHosts = [] }) {
     if (route === '/api/rename' && req.method === 'POST') return sendJson(res, content.rename(body.moves));
     if (route === '/api/trash' && req.method === 'POST') return sendJson(res, content.trash(body.path));
     if (route === '/api/restore' && req.method === 'POST') return sendJson(res, content.restore(body.trash));
+    if (route === '/api/extract' && req.method === 'POST') return sendJson(res, content.extract(body.path, body));
+    if (route === '/api/unextract' && req.method === 'POST') return sendJson(res, content.unextract(body.path, body));
     return send(res, 404, 'not found', 'text/plain');
   }
 

@@ -7,18 +7,26 @@
  * Parts (and a talk's sections) are folded but for the one being read;
  * headings are open. ▸ and ▾, or → and ←, fold and open one, and that's
  * kept while the file is open.
+ *
+ * Any entry can be taken out into a file of its own (extracting.js), or
+ * several at once: ⌘-click chooses more than one, ⇧-click a run of them,
+ * and ⌘A every part.
  */
 
 import { el, state } from './state.js';
 import { outline } from './sections.js';
 import { goToLine } from './goto.js';
 import { topLine } from './sync.js';
-import { drawTree } from './files.js';
+import { drawTree, icon } from './files.js';
+import { extractEntries, namesFor } from './extracting.js';
 
 let cache = { text: null, data: null };
 let at = 0;                 // the line being read
 let toggled = new Map();    // entry key -> open or not, as set by hand
-let toggledFor = null;      // the file `toggled` is for
+let toggledFor = null;      // the file `toggled` and `picked` are for
+let picked = new Set();     // entry keys chosen to extract together
+let anchor = null;          // where a ⇧-click's run starts
+let byKey = new Map();      // the entries drawn, by key
 
 /** The open file's outline, worked out again only when its text has changed. */
 export function current() {
@@ -48,8 +56,10 @@ function isOpen(e, key) {
 export function drawOutline() {
   if (toggledFor !== state.current?.path) {
     toggled = new Map();
+    picked = new Set();
     toggledFor = state.current?.path;
   }
+  byKey = new Map();
   const { entries, parts } = current();
   if (!entries.length) {
     const li = document.createElement('li');
@@ -61,7 +71,10 @@ export function drawOutline() {
   const here = trail(entries, at).at(-1);
   const add = (list, depth, parent) => {
     for (const e of list) {
-      const key = keyOf(e, parent);
+      let key = keyOf(e, parent);
+      // Two entries by one title, side by side, are told apart by their order.
+      for (let n = 2; byKey.has(key); n++) key = `${keyOf(e, parent)}#${n}`;
+      byKey.set(key, e);
       const open = isOpen(e, key);
       el.files.append(entryItem(e, { depth, key, open, here: e === here, number: parts.findIndex((p) => p.line === e.line) + 1 }));
       if (open) add(e.children, depth + 1, key);
@@ -100,9 +113,98 @@ function entryItem(e, { depth, key, open, here, number }) {
     n.textContent = number;
     b.append(n);
   }
-  b.addEventListener('click', () => goToLine(e.head, { focus: false }));
-  li.append(fold, b);
+  b.addEventListener('click', (ev) => {
+    if (ev.metaKey || ev.ctrlKey) pick(picked.has(key) ? [...picked].filter((k) => k !== key) : [...picked, key], key);
+    else if (ev.shiftKey && anchor) pick(run(anchor, key), anchor);
+    else {
+      pick([], key);
+      goToLine(e.head, { focus: false });
+    }
+  });
+  if (picked.has(key)) li.classList.add('picked');
+
+  const out = document.createElement('button');
+  out.className = 'row-action extract';
+  out.innerHTML = icon('extract');
+  out.tabIndex = -1;
+  out.title = picked.size > 1 && picked.has(key) ? `Extract these ${picked.size} into files of their own` : 'Extract into a file of its own';
+  out.setAttribute('aria-label', out.title);
+  out.addEventListener('click', () => (picked.size > 1 && picked.has(key) ? extractPicked() : askName(li, e)));
+  const actions = document.createElement('span');
+  actions.className = 'actions';
+  actions.append(out);
+  li.append(fold, b, actions);
   return li;
+}
+
+/** Chooses the entries `keys`, and marks them. */
+function pick(keys, from) {
+  picked = new Set(keys);
+  anchor = from;
+  for (const b of el.files.querySelectorAll('.entry')) b.closest('li').classList.toggle('picked', picked.has(b.dataset.entry));
+  for (const a of el.files.querySelectorAll('.row-action.extract')) {
+    const many = picked.size > 1 && picked.has(a.closest('li').querySelector('.entry').dataset.entry);
+    a.title = many ? `Extract these ${picked.size} into files of their own` : 'Extract into a file of its own';
+    a.setAttribute('aria-label', a.title);
+  }
+}
+
+/** The entries shown from one to the other, either way round. */
+function run(from, to) {
+  const keys = [...el.files.querySelectorAll('.entry')].map((b) => b.dataset.entry);
+  const [a, b] = [keys.indexOf(from), keys.indexOf(to)].sort((x, y) => x - y);
+  return a < 0 ? [to] : keys.slice(a, b + 1);
+}
+
+/** The chosen entries, each once: one inside another goes with it. */
+function extractPicked() {
+  const keys = [...picked].filter((k) => ![...picked].some((o) => o !== k && k.startsWith(`${o}/`)));
+  const entries = keys.map((k) => byKey.get(k)).filter(Boolean);
+  picked = new Set();
+  extractEntries(entries, namesFor(entries));
+}
+
+/** Asks what to call the file, in the entry's row, as New does. */
+function askName(li, e) {
+  const [name] = namesFor([e]);
+  const input = document.createElement('input');
+  input.className = 'name-edit';
+  input.value = name;
+  input.spellcheck = false;
+  input.setAttribute('aria-label', 'The new file\'s name');
+  li.classList.add('renaming');
+  li.querySelector('.entry').replaceWith(input);
+  input.focus();
+  input.setSelectionRange(0, name.length - 3);
+  let done = false;
+  const finish = (keep) => {
+    if (done) return;
+    done = true;
+    li.classList.remove('renaming');
+    const typed = input.value.trim();
+    if (keep && typed) extractEntries([e], [typed]).then(drawTree);
+    else drawTree();
+  };
+  input.addEventListener('keydown', (ev) => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+  });
+  // Clicking away leaves it as it was: nothing is made without Enter.
+  input.addEventListener('blur', () => finish(false));
+}
+
+/** ⌘A chooses every part, and Esc none. */
+export function pickKey(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+    pick(current().entries.map((x) => [...byKey].find(([, v]) => v === x)?.[0]).filter(Boolean), null);
+    return true;
+  }
+  if (e.key === 'Escape' && picked.size) {
+    pick([], null);
+    return true;
+  }
+  return false;
 }
 
 function toggle(key, open) {
