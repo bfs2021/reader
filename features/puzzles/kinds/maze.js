@@ -483,14 +483,18 @@
       return true;
     },
   }, `
+/* no wider than the text, and no taller than --mz-tall: about a sudoku's
+   size, so a tall maze doesn't fill the page */
 .mz-grid {
-  --cell: min(1.4rem, calc(92vw / var(--cols)));
-  display: block; width: calc(var(--cell) * var(--cols)); height: auto;
+  --cell: 1.4rem;
+  --mz-tall: 26rem;
+  display: block; height: auto;
+  width: min(100%, calc(var(--cell) * var(--cols)), calc(var(--mz-tall) * var(--cols) / var(--rows)));
   user-select: none; touch-action: none; cursor: crosshair;
   font-family: var(--gm-sans);
 }
 /* on a slide, leave room for the scripture above and the question below */
-.deck .mz-grid { width: min(calc(var(--cell) * var(--cols)), calc(42vh * var(--cols) / var(--rows))); }
+.deck .mz-grid { --mz-tall: 42vh; }
 .mz-grid .paper { fill: var(--gm-paper, #fff); }
 .mz-grid .wall { fill: none; stroke: var(--gm-ink, #222); stroke-width: 0.12; stroke-linecap: square; }
 .mz-grid .way {
