@@ -18,7 +18,7 @@
 - [ ] #14 Quote and statement layouts. For consideration, decided together with #4.
 - [x] #51 Slide transitions: `transition:` in the front matter, or in a slide's notes just above its `---`.
 - [x] #56 Madlib blanks: `[@ what goes here]` inside a sentence, its answer after a colon.
-- [ ] #60 Home and End (fn + ← and →) to the start and end of the line, not the document. Small on the text area, and free if #15 picks CodeMirror.
+- [x] #60 Home and End (fn + ← and →) to the start and end of the line, not the document. Small on the text area, and free if #15 picks CodeMirror.
 
 ## P2
 - [x] #1 scroll sync. Built on the textarea; it didn't need #15.

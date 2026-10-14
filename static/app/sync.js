@@ -26,7 +26,7 @@ let waiting = null;   // a line from the page, for when the editor is back in vi
 const synced = () => state.current?.type === 'md' && !el.preview.hidden && !deck.open;
 const shown = () => !state.working && el.editor.clientWidth > 0;
 
-const COPIED = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'tabSize',
+export const COPIED = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'tabSize',
   'whiteSpace', 'overflowWrap', 'wordBreak', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'];
 
 /** Each line's top in the editor, measured from the mirror, which only redraws the lines that changed. */

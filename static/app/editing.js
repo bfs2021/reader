@@ -8,6 +8,7 @@ import { renderNow, scheduleRender } from './render.js';
 import { scheduleSave } from './saving.js';
 import { loadDeck, showSlide, scheduleDeckReload } from './deck.js';
 import { updateDirty, updateCounts } from './status.js';
+import { COPIED } from './sync.js';
 
 /** Insert via execCommand so the browser's undo stack still works. */
 export function replaceSelection(text, selectFrom, selectTo) {
@@ -32,6 +33,79 @@ export function insertLink() {
   const sel = t.value.slice(t.selectionStart, t.selectionEnd) || 'text';
   const text = `[${sel}](https://)`;
   replaceSelection(text, sel.length + 3, text.length - 1);
+}
+
+let row = null;
+
+/**
+ * Home and End: the caret to the start or end of the line as it wraps on
+ * screen, as ⌘← and ⌘→ take it, with `extend` (⇧) selecting to there. A text
+ * area on macOS would go to the start or end of all its text, which ⌘↑ and ⌘↓
+ * still do.
+ *
+ * The line the caret is on is laid out again, wrapped as the editor wraps it,
+ * to find where each character sits. The end of a row that wraps is before
+ * its last character, which is usually the space it wrapped at: just after
+ * it, the caret would show at the start of the next row.
+ */
+export function toLineEdge(end, extend) {
+  const t = el.editor;
+  const backward = t.selectionDirection === 'backward';
+  const anchor = backward ? t.selectionEnd : t.selectionStart;
+  const head = extend ? (backward ? t.selectionStart : t.selectionEnd) : (end ? t.selectionEnd : t.selectionStart);
+  const from = t.value.lastIndexOf('\n', head - 1) + 1;
+  let to = t.value.indexOf('\n', head);
+  if (to < 0) to = t.value.length;
+
+  if (!row) {
+    row = document.createElement('div');
+    row.className = 'editor-mirror';
+    row.setAttribute('aria-hidden', 'true');
+    document.body.append(row);
+  }
+  const style = getComputedStyle(t);
+  for (const p of COPIED) row.style[p] = style[p];
+  row.style.width = `${t.clientWidth}px`;
+  row.textContent = t.value.slice(from, to);
+  const text = row.firstChild;
+  const len = to - from;
+  const range = document.createRange();
+  const top = (i) => {
+    range.setStart(text, i);
+    range.setEnd(text, i + 1);
+    return range.getBoundingClientRect().top;
+  };
+
+  let at = head - from;
+  if (len) {
+    const k = Math.min(at, len - 1);
+    const y = top(k);
+    if (end) {
+      let lo = k;
+      let hi = len - 1;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        if (top(mid) > y) hi = mid - 1;
+        else lo = mid;
+      }
+      at = lo === len - 1 ? len : lo;
+    } else {
+      let lo = 0;
+      let hi = k;
+      while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (top(mid) < y) lo = mid + 1;
+        else hi = mid;
+      }
+      at = lo;
+    }
+  }
+  row.textContent = '';
+
+  const caret = from + at;
+  if (!extend) t.setSelectionRange(caret, caret);
+  else if (caret < anchor) t.setSelectionRange(caret, anchor, 'backward');
+  else t.setSelectionRange(anchor, caret, 'forward');
 }
 
 /**

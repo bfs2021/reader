@@ -11,7 +11,7 @@ import { loadTree, drawTree, visiblePaths, step, open, createFile, showNewForm, 
 import { whenReady, showEmpty } from './render.js';
 import { save, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
-import { replaceSelection, wrap, insertLink, applyEdit, onEditorInput } from './editing.js';
+import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
 import { toggleSidebar, restoreLayout, setWorking } from './modes.js';
 import { wirePages, paged, turn } from './pages.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
@@ -178,6 +178,11 @@ function onKey(e) {
   if (meta && !e.shiftKey && key === 'b') { e.preventDefault(); wrap('**', '**'); return; }
   if (meta && !e.shiftKey && key === 'i') { e.preventDefault(); wrap('*', '*'); return; }
   if (meta && !e.shiftKey && key === 'k') { e.preventDefault(); insertLink(); return; }
+  if ((e.key === 'Home' || e.key === 'End') && !meta && !e.altKey) {
+    e.preventDefault();
+    toLineEdge(e.key === 'End', e.shiftKey);
+    return;
+  }
   if (e.key === 'Tab' && !meta && !e.altKey && el.editor.selectionStart === el.editor.selectionEnd && !e.shiftKey) {
     e.preventDefault();
     replaceSelection('  ');

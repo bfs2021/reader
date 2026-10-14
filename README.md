@@ -931,6 +931,7 @@ images have to be committed for the runner to put them inside the page.
 | `⌘P` | print the document, a deck a page to a sheet |
 | `⌘B` `⌘I` `⌘K` | bold, italic, link |
 | `Tab` | indent two spaces |
+| `Home` / `End` (`fn←` / `fn→`) | in the editor, the start / end of the line, as it wraps (`⇧` to select) |
 | `⌥↑` / `⌥↓` | previous / next file |
 | `↑` `↓` `→` `←` | in the file list: move, go into a folder or a file's versions, go back out (`⌫` too) |
 | `F2` / `⌘⌫` | in the file list: rename, or move to the trash |
