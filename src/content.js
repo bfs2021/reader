@@ -8,6 +8,8 @@
  *   create(name?)              a new file, today's date by default
  *   branch(from, to)           a copy of a document, as another version of it
  *   promote(rel, base)         make a version the main one, `base.ext`
+ *   rename(moves)              [{ from, to }], all or none, backups and all
+ *   trash(rel) / restore(id)   into `.reader/trash/`, and back out
  *   resolve(rel)               absolute path, or a PathError
  *
  * Paths crossing this boundary are always root-relative with `/` separators.
@@ -40,6 +42,7 @@ export class ConflictError extends Error {
 export function createContent(rootDir) {
   const root = fs.realpathSync(rootDir);
   const backupRoot = path.join(root, STATE_DIR, 'backups');
+  const trashRoot = path.join(root, STATE_DIR, 'trash');
 
   const inside = (abs) => abs === root || abs.startsWith(root + path.sep);
   const toRel = (abs) => path.relative(root, abs).split(path.sep).join('/');
@@ -249,6 +252,58 @@ export function createContent(rootDir) {
     return { path: toRel(mainAbs), moved };
   }
 
+  /**
+   * Rename files: one, or every version of a file together. Each keeps its
+   * kind (a document stays a document), and nothing is moved unless all of
+   * them can be.
+   */
+  function rename(moves) {
+    if (!Array.isArray(moves) || !moves.length) throw new PathError('nothing to rename');
+    const kind = (p) => (DOC_EXTS.has(path.extname(p).toLowerCase()) ? 'md' : path.extname(p).toLowerCase());
+    const targets = new Set();
+    const planned = moves.map(({ from, to }) => {
+      const { abs: fromAbs } = statFile(from);
+      const toAbs = resolve(to);
+      if (!LISTED_EXTS.has(path.extname(toAbs).toLowerCase()) || kind(fromAbs) !== kind(toAbs)) {
+        throw new PathError(`${to} would be a different kind of file than ${from}`);
+      }
+      if (fs.existsSync(toAbs) || targets.has(toAbs)) throw new ConflictError(`${to} already exists`);
+      targets.add(toAbs);
+      return [fromAbs, toAbs];
+    });
+    return {
+      moved: planned.map(([fromAbs, toAbs]) => {
+        fs.mkdirSync(path.dirname(toAbs), { recursive: true });
+        return move(fromAbs, toAbs);
+      }),
+    };
+  }
+
+  /** Set a file aside in `.reader/trash/`, where `restore` can find it. Its backups stay. */
+  function trash(rel) {
+    const { abs } = statFile(rel);
+    const id = `${stamp()}/${toRel(abs)}`;
+    const dest = path.join(trashRoot, id);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.renameSync(abs, dest);
+    return { path: toRel(abs), trash: id };
+  }
+
+  function restore(id) {
+    const m = typeof id === 'string' && /^(\d{8}-\d{6}-\d{3})\/(.+)$/.exec(id);
+    if (!m) throw new PathError('not something in the trash');
+    const rel = m[2];
+    const toAbs = resolve(rel);
+    const fromAbs = path.join(trashRoot, m[1], ...rel.split('/'));
+    if (!fs.existsSync(fromAbs)) throw new NotFoundError(`${rel} isn't in the trash`);
+    if (fs.existsSync(toAbs)) throw new ConflictError(`${rel} already exists`);
+    fs.mkdirSync(path.dirname(toAbs), { recursive: true });
+    fs.renameSync(fromAbs, toAbs);
+    // And the folders it was set aside in, now they're empty.
+    for (let dir = path.dirname(fromAbs); dir !== trashRoot && !fs.readdirSync(dir).length; dir = path.dirname(dir)) fs.rmdirSync(dir);
+    return { path: rel };
+  }
+
   /** Rename a file, and its backups with it, never over another file. */
   function move(fromAbs, toAbs) {
     const from = toRel(fromAbs);
@@ -274,7 +329,7 @@ export function createContent(rootDir) {
     return { from, to };
   }
 
-  return { root, resolve, list, read, write, create, branch, promote, statFile, backupRoot };
+  return { root, resolve, list, read, write, create, branch, promote, rename, trash, restore, statFile, backupRoot, trashRoot };
 }
 
 function pad(n, w = 2) {

@@ -10,7 +10,7 @@ export const el = {
   rootName: $('rootName'), crumb: $('crumb'), saveState: $('saveState'),
   sidebarToggle: $('sidebarToggle'), helpToggle: $('helpToggle'), help: $('help'),
   split: $('split'), filter: $('filter'), files: $('files'),
-  newBtn: $('newBtn'), branchBtn: $('branchBtn'), crumbs: $('crumbs'), newForm: $('newForm'), newName: $('newName'),
+  newBtn: $('newBtn'), crumbs: $('crumbs'), newForm: $('newForm'), newName: $('newName'),
   preview: $('preview'), pdfView: $('pdfView'), empty: $('empty'),
   writePane: $('writePane'), editor: $('editor'),
   conflict: $('conflict'), reloadBtn: $('reloadBtn'), overwriteBtn: $('overwriteBtn'),

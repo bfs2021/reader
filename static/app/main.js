@@ -7,7 +7,7 @@
 import { el, state, deck, dirty } from './state.js';
 import { api } from './api.js';
 import { dirOf } from './versions.js';
-import { loadTree, drawTree, visiblePaths, step, open, createFile, showNewForm, go, reveal, rememberedDir, onListKey } from './files.js';
+import { loadTree, drawTree, visiblePaths, step, open, createFile, showNewForm, go, reveal, rememberedDir, onListKey, onListDoubleClick } from './files.js';
 import { whenReady, showEmpty } from './render.js';
 import { save, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
@@ -80,6 +80,7 @@ function wire() {
 
   el.filter.addEventListener('input', drawTree);
   el.files.addEventListener('keydown', onListKey);
+  el.files.addEventListener('dblclick', onListDoubleClick);
   el.filter.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -93,12 +94,10 @@ function wire() {
     }
   });
 
-  for (const [btn, branching] of [[el.newBtn, false], [el.branchBtn, true]]) {
-    btn.addEventListener('click', () => {
-      if (!el.newForm.hidden && Boolean(el.newForm.dataset.from) === branching) el.newForm.hidden = true;
-      else showNewForm(branching);
-    });
-  }
+  el.newBtn.addEventListener('click', () => {
+    if (el.newForm.hidden) showNewForm();
+    else el.newForm.hidden = true;
+  });
   el.newForm.addEventListener('submit', (e) => {
     e.preventDefault();
     createFile(el.newName.value.trim());

@@ -141,3 +141,41 @@ test('promote finds a free name for the old main version, and refuses what is no
   assert.throws(() => content.promote('a.md', 'b'), PathError);
   assert.throws(() => content.promote('a.oct2.md', '../a'), PathError);
 });
+
+test('rename moves every file named, with its backups, or none of them', () => {
+  const { root, content } = fixture();
+  content.branch('a.md', 'a.arc1.md');
+  content.write('a.md', '# a, changed\n', { explicit: true });
+  const out = content.rename([{ from: 'a.md', to: 'talk.md' }, { from: 'a.arc1.md', to: 'talk.arc1.md' }]);
+  assert.deepEqual(out.moved, [{ from: 'a.md', to: 'talk.md' }, { from: 'a.arc1.md', to: 'talk.arc1.md' }]);
+  assert.equal(fs.readFileSync(path.join(root, 'talk.md'), 'utf8'), '# a, changed\n');
+  assert.ok(fs.existsSync(path.join(content.backupRoot, 'talk.md')));
+
+  // One that can't move stops them all.
+  assert.throws(() => content.rename([{ from: 'talk.md', to: 'b.md' }, { from: 'talk.arc1.md', to: 'sub/b.markdown' }]), ConflictError);
+  assert.ok(fs.existsSync(path.join(root, 'talk.md')));
+  assert.throws(() => content.rename([{ from: 'talk.md', to: 'talk.pdf' }]), PathError);
+  assert.throws(() => content.rename([{ from: 'talk.md', to: 'talk.txt' }]), PathError);
+  assert.throws(() => content.rename([{ from: 'talk.md', to: '../talk.md' }]), PathError);
+
+  // Into a folder that isn't there yet.
+  content.rename([{ from: 'talk.md', to: 'archive/talk.md' }]);
+  assert.ok(fs.existsSync(path.join(root, 'archive', 'talk.md')));
+});
+
+test('trash sets a file aside, and restore brings it back, but not over another', () => {
+  const { root, content } = fixture();
+  const { trash } = content.trash('sub/b.markdown');
+  assert.equal(fs.existsSync(path.join(root, 'sub', 'b.markdown')), false);
+  assert.ok(fs.existsSync(path.join(content.trashRoot, trash)));
+  assert.ok(!content.list().some((f) => f.path === 'sub/b.markdown'));
+
+  fs.writeFileSync(path.join(root, 'sub', 'b.markdown'), 'another\n');
+  assert.throws(() => content.restore(trash), ConflictError);
+  fs.rmSync(path.join(root, 'sub', 'b.markdown'));
+  assert.deepEqual(content.restore(trash), { path: 'sub/b.markdown' });
+  assert.equal(fs.readFileSync(path.join(root, 'sub', 'b.markdown'), 'utf8'), 'b\n');
+  assert.deepEqual(fs.readdirSync(content.trashRoot), []);
+  assert.throws(() => content.restore('20260101-000000-000/../../secret.md'), PathError);
+  assert.throws(() => content.restore('nope'), PathError);
+});

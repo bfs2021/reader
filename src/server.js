@@ -8,6 +8,9 @@
  *   POST /api/new              { name? }
  *   POST /api/branch           { from, to } -> a copy of a document, as another version
  *   POST /api/promote          { path, base } -> { path, moved: [{ from, to }] }
+ *   POST /api/rename           { moves: [{ from, to }] } -> { moved }
+ *   POST /api/trash            { path } -> { path, trash }: set aside in .reader/trash/
+ *   POST /api/restore          { trash } -> { path }: and back
  *   GET  /api/export?path=     the document as one HTML file, to save
  *   POST /api/export           { path, drawn? } -> the same, with what the preview frame drew set into it
  *   POST /api/render           { text, path? } -> { css, body, deck }
@@ -194,6 +197,9 @@ export function createServer({ root, allowHosts = [] }) {
     }
     if (route === '/api/branch' && req.method === 'POST') return sendJson(res, content.branch(body.from, body.to));
     if (route === '/api/promote' && req.method === 'POST') return sendJson(res, content.promote(body.path, body.base));
+    if (route === '/api/rename' && req.method === 'POST') return sendJson(res, content.rename(body.moves));
+    if (route === '/api/trash' && req.method === 'POST') return sendJson(res, content.trash(body.path));
+    if (route === '/api/restore' && req.method === 'POST') return sendJson(res, content.restore(body.trash));
     return send(res, 404, 'not found', 'text/plain');
   }
 

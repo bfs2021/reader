@@ -1,6 +1,7 @@
 /**
- * The file list, a folder at a time, and opening, creating and branching
- * files. versions.js works out which files are versions of which.
+ * The file list, a folder at a time, and opening and creating files.
+ * versions.js works out which files are versions of which, and manage.js
+ * branches, renames and deletes them.
  */
 
 import { el, state, dirty } from './state.js';
@@ -11,7 +12,17 @@ import { showPdf } from './pdf.js';
 import { renderNow, showPreview } from './render.js';
 import { setSaveState, updateCounts, toast } from './status.js';
 import { updatePresentable } from './deck.js';
-import { folderView, filtered, findGroup, groupOf, hasFolder, dirOf, splitPath } from './versions.js';
+import { folderView, filtered, findGroup, groupOf, hasFolder, dirOf } from './versions.js';
+import { branch, rename, trash, promote } from './manage.js';
+
+// Drawn with the text's own colour; the trash's is set red in the stylesheet.
+const ICONS = {
+  branch: '<circle cx="4.5" cy="3.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="4.5" r="1.5"/><path d="M4.5 5v6M11.5 6c0 3.5-7 2.5-7 5"/>',
+  export: '<path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/>',
+  trash: '<path d="M2.5 4.5h11M6 4.5V2.8h4v1.7M4 4.5l.8 9h6.4l.8-9M6.8 7v4.5M9.2 7v4.5"/>',
+  promote: '<path d="M8 2.2l1.8 3.7 4 .6-2.9 2.8.7 4L8 11.4l-3.6 1.9.7-4L2.2 6.5l4-.6z"/>',
+};
+const icon = (name) => `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
 
 export async function loadTree() {
   const { files } = await api('GET', '/api/tree');
@@ -24,6 +35,8 @@ export async function loadTree() {
  * or one file's versions; or, while filtering, every match in one flat list.
  */
 export function drawTree() {
+  // A name being edited stays put; the list is drawn again when it's done.
+  if (el.files.querySelector('.renaming')) return;
   // Redrawn under the keyboard (the list reloads when the window gets focus),
   // the row that had focus keeps it.
   const had = el.files.contains(document.activeElement) ? document.activeElement : null;
@@ -96,8 +109,11 @@ function rowItem(row, { dir = '' } = {}) {
     const f = row.file;
     const b = button('file', row.name, [dir, f.type === 'pdf' ? 'pdf' : ''].filter(Boolean).join(' · '));
     fileButton(b, f.path);
-    li.append(b);
-    if (f.type === 'md') li.append(exportLink(f.path));
+    li.append(b, actions([
+      f.type === 'md' && action('branch', 'Branch: copy as another version', () => branch(f.path)),
+      f.type === 'md' && exportLink(f.path),
+      action('trash', 'Move to the trash', () => trash(f.path)),
+    ]));
     return li;
   }
   const b = button('file group', row.name, [dir, `${row.versions.length} versions`].filter(Boolean).join(' · '));
@@ -105,7 +121,11 @@ function rowItem(row, { dir = '' } = {}) {
   b.dataset.group = row.name;
   b.dataset.dir = row.dir;
   if (row.versions.some((v) => v.file.path === state.current?.path)) b.classList.add('now');
-  li.append(b, action('into', '›', `Versions of ${row.name}`, () => go(row.dir, row.name)));
+  const into = action('into', `Versions of ${row.name}`, () => go(row.dir, row.name));
+  into.textContent = '›';
+  li.append(b, actions([
+    row.opens.type === 'md' && action('branch', 'Branch: copy as another version', () => branch(row.opens.path)),
+  ]), into);
   return li;
 }
 
@@ -114,12 +134,22 @@ function versionItem(group, v) {
   const when = new Date(v.file.mtime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const b = button('file', v.variant || 'main', [when, v.file.type === 'pdf' ? 'pdf' : ''].filter(Boolean).join(' · '));
   fileButton(b, v.file.path);
-  li.append(b);
-  if (v.file.type === 'md') {
-    if (v.variant) li.append(action('promote', '★', `Make ${v.variant} the main version`, () => promote(v.file.path, group.name)));
-    li.append(exportLink(v.file.path));
-  }
+  const md = v.file.type === 'md';
+  li.append(b, actions([
+    md && v.variant && action('promote', `Make ${v.variant} the main version`, () => promote(v.file.path, group.name)),
+    md && action('branch', 'Branch: copy as another version', () => branch(v.file.path)),
+    md && exportLink(v.file.path),
+    action('trash', 'Move to the trash', () => trash(v.file.path)),
+  ]));
   return li;
+}
+
+/** What can be done to a row, shown when it's hovered, focused or open. */
+function actions(list) {
+  const span = document.createElement('span');
+  span.className = 'actions';
+  span.append(...list.filter(Boolean));
+  return span;
 }
 
 function folderItem(name) {
@@ -134,15 +164,25 @@ function folderItem(name) {
 
 function fileButton(b, p) {
   b.dataset.path = p;
-  b.title = p;
+  b.title = `${p} (double-click to rename)`;
   if (state.current?.path === p) b.classList.add('now');
-  b.addEventListener('click', () => open(p));
+  b.addEventListener('click', () => {
+    if (state.current?.path !== p) open(p);
+  });
 }
 
-function action(cls, text, title, onClick) {
+/** Double-clicking a row's name edits it. */
+export function onListDoubleClick(e) {
+  const b = e.target.closest('.file');
+  if (!b) return;
+  e.preventDefault();
+  rename(b.dataset.path, { group: b.dataset.group || null });
+}
+
+function action(cls, title, onClick) {
   const b = document.createElement('button');
   b.className = `row-action ${cls}`;
-  b.textContent = text;
+  if (ICONS[cls]) b.innerHTML = icon(cls);
   b.title = title;
   b.setAttribute('aria-label', title);
   b.tabIndex = -1;
@@ -191,6 +231,7 @@ const rows = () => [...el.files.querySelectorAll('.file, .folder')];
 
 /** Arrows move down the list; → goes into a folder or a file's versions, ← back out. */
 export function onListKey(e) {
+  if (e.target.matches('input')) return;
   const at = document.activeElement;
   const list = rows();
   const i = list.indexOf(at);
@@ -200,24 +241,15 @@ export function onListKey(e) {
   } else if (e.key === 'ArrowRight' && at?.matches('.folder, .group')) {
     e.preventDefault();
     go(at.dataset.dir, at.dataset.group || null);
-  } else if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && !el.filter.value.trim()) {
+  } else if (e.key === 'F2' && at?.matches('.file')) {
+    e.preventDefault();
+    rename(at.dataset.path, { group: at.dataset.group || null });
+  } else if (e.key === 'Backspace' && e.metaKey && at?.matches('.file:not(.group)')) {
+    e.preventDefault();
+    trash(at.dataset.path);
+  } else if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && !e.metaKey && !el.filter.value.trim()) {
     e.preventDefault();
     up();
-  }
-}
-
-async function promote(p, base) {
-  try {
-    if (dirty()) await save();
-    const out = await api('POST', '/api/promote', { path: p, base });
-    await loadTree();
-    const moved = out.moved.find((m) => m.from === state.current?.path);
-    if (moved) await open(moved.to);
-    go(state.dir, state.group);
-    const aside = out.moved.length > 1 ? `; the old one is now ${splitPath(out.moved[0].to).stem.slice(base.length + 1)}` : '';
-    toast(`${splitPath(p).stem.slice(base.length + 1)} is the main version${aside}`);
-  } catch (err) {
-    toast(err.message, true);
   }
 }
 
@@ -227,12 +259,12 @@ async function promote(p, base) {
  */
 function exportLink(p) {
   const a = document.createElement('a');
-  a.className = 'export';
+  a.className = 'row-action export';
   a.href = exportUrl(p);
   a.download = '';
   a.title = 'Export as HTML';
   a.setAttribute('aria-label', `Export ${p} as HTML`);
-  a.textContent = '↓';
+  a.innerHTML = icon('export');
   a.addEventListener('click', async (e) => {
     e.preventDefault();
     if (state.current?.path === p && dirty()) {
@@ -300,7 +332,6 @@ export async function open(p) {
   setSaveState('');
   updateCounts();
   updatePresentable();
-  el.branchBtn.disabled = type !== 'md';
   drawTree();
   el.files.querySelector('.file.now')?.scrollIntoView({ block: 'nearest' });
 }
@@ -311,36 +342,23 @@ export function today() {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.md`;
 }
 
-/** The New form, filled in for a new file in this folder, or a version of the open one. */
-export function showNewForm(branching) {
+/** The New form, filled in for a new file in the folder being shown. */
+export function showNewForm() {
   const prefix = state.dir ? `${state.dir}/` : '';
-  let name = `${prefix}${today()}`;
-  let pick = [prefix.length, name.length - 3];
-  if (branching) {
-    const p = state.current.path;
-    const { dir, stem, ext } = splitPath(p);
-    const base = groupOf(state.files, p)?.name || stem;
-    name = `${dir ? dir + '/' : ''}${base}.draft${ext}`;
-    pick = [name.length - ext.length - 'draft'.length, name.length - ext.length];
-  }
-  el.newForm.dataset.from = branching ? state.current.path : '';
-  el.newForm.querySelector('button').textContent = branching ? 'Branch' : 'Create';
   el.newForm.hidden = false;
-  el.newName.value = name;
+  el.newName.value = `${prefix}${today()}`;
   el.newName.focus();
-  el.newName.setSelectionRange(...pick);
+  el.newName.setSelectionRange(prefix.length, el.newName.value.length - 3);
 }
 
 export async function createFile(name) {
-  const from = el.newForm.dataset.from;
   try {
-    if (from && dirty()) await save();
-    const out = from ? await api('POST', '/api/branch', { from, to: name }) : await api('POST', '/api/new', { name });
+    const out = await api('POST', '/api/new', { name });
     el.newForm.hidden = true;
     await loadTree();
     reveal(out.path);
     await open(out.path);
-    if (!from && !out.created) toast(`${out.path} already exists — opened it`);
+    if (!out.created) toast(`${out.path} already exists — opened it`);
     el.editor.focus();
   } catch (err) {
     toast(err.message, true);

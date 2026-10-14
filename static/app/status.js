@@ -41,10 +41,19 @@ export function updateCursor() {
 }
 
 let toastTimer = 0;
-export function toast(msg, isError = false) {
+export function toast(msg, isError = false, action = null) {
   el.toast.textContent = msg;
+  if (action) {
+    const b = document.createElement('button');
+    b.textContent = action.label;
+    b.addEventListener('click', () => {
+      el.toast.hidden = true;
+      action.run();
+    });
+    el.toast.append(' ', b);
+  }
   el.toast.className = `toast${isError ? ' err' : ''}`;
   el.toast.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.toast.hidden = true; }, isError ? 6000 : 2800);
+  toastTimer = setTimeout(() => { el.toast.hidden = true; }, isError || action ? 6000 : 2800);
 }

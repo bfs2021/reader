@@ -753,16 +753,34 @@ a version of `a` when `a.md` is in the same folder, or another `a.*` file is:
 `v1.2-notes.md` on its own is just a file. With no `slides.md`, the row opens
 the version changed last.
 
-**Branch** copies the open file as another version, `slides.draft.md` unless
-you name it. The `★` beside a version makes it the main one: `slides.arc1.md`
-becomes `slides.md`, and the old `slides.md` becomes a version named after
-the day it was last changed, `slides.oct13.md`. Backups move with each file.
+The branch icon at the end of a row copies the file as another version,
+`slides.draft.md`, opens it, and asks what to call it. The star beside a
+version makes it the main one: `slides.arc1.md` becomes `slides.md`, and the
+old `slides.md` becomes a version named after the day it was last changed,
+`slides.oct13.md`.
+
+### Renaming and deleting
+
+Double-click a row, or press `F2`, to rename it where it is: `Enter` keeps
+the new name and `Esc` doesn't. A document's `.md` stays on unless you type
+another. Renaming a file's row renames all its versions with it (`slides` to
+`talk` makes `slides.arc1.md` `talk.arc1.md`), and a version's row, in its
+list, takes just the version's name. Typing a folder, `archive/slides`,
+moves it there.
+
+The red trash can, or `⌘⌫`, moves a file into `.reader/trash/`, and the
+message that says so has an **Undo**. Nothing there is deleted for good
+until you empty that folder yourself. A file's row with versions has no
+trash can, so one click can't take them all.
+
+Backups move with a file when it's renamed, branched from or made the main
+version, and stay where they are when it's in the trash.
 
 Images and links in a note resolve relative to that note, so
 `![](photo.jpg)` next to the file works.
 
-The `↓` at the end of a document's row, shown when the row is hovered or
-open, saves it as one HTML file: the rendered page, with its stylesheet and
+The export icon at the end of a document's row, shown when the row is
+hovered or open, saves it as one HTML file: the rendered page, with its stylesheet and
 the images it takes from the directory inside it. Nothing in that file draws:
 a diagram is in it as the preview drew it, and a puzzle is left as the text
 it was written as.
@@ -823,6 +841,7 @@ images have to be committed for the runner to put them inside the page.
 | `Tab` | indent two spaces |
 | `⌥↑` / `⌥↓` | previous / next file |
 | `↑` `↓` `→` `←` | in the file list: move, go into a folder or a file's versions, go back out (`⌫` too) |
+| `F2` / `⌘⌫` | in the file list: rename, or move to the trash |
 | `⌘\` | show / hide the file list |
 | `⌘.` | work mode on / off |
 | `⌥←` / `⌥→` | in work mode, a deck's page before / next page |
@@ -874,7 +893,7 @@ $ npm run lint
 | `src/export-cli.js`, `src/browser.js` | `reader export`, and the headless browser it draws with |
 | `action.yml` | the GitHub Action |
 | `src/server.js` | HTTP API and static files |
-| `src/content.js` | the content directory: listing, safe paths, saves, backups, branching and promoting versions |
+| `src/content.js` | the content directory: listing, safe paths, saves, backups, the trash, branching, renaming and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
 | `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
@@ -883,7 +902,7 @@ $ npm run lint
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |
 | `src/background.js` | what's behind a page or a slide: `background:` in the front matter, or in a slide's notes |
 | `src/transition.js` | how one slide gives way to the next: `transition:` in the front matter, or in a slide's notes |
-| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `versions.js` (folders, and which files are versions of which), `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
+| `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `modes.js` (layout, work mode), `pages.js` (a deck worked through a page at a time), `deck.js` (presenting), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait` |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |
