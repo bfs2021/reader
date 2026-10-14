@@ -61,9 +61,21 @@ export function measure() {
   for (const d of stale.slice(1)) d.remove();
   mirrored = lines;
 
-  tops = [...mirror.children].map((d) => d.offsetTop);
-  const last = mirror.lastElementChild;
-  tops.push(last.offsetTop + last.offsetHeight);
+  // Each div's height is rounded to the layout's unit, up, where the editor's rows round down;
+  // over thousands of rows that's a row off. So count rows, and space them as the editor does.
+  const line = parseFloat(style.lineHeight);
+  const counts = [...mirror.children].map((d) => Math.max(1, Math.round(d.offsetHeight / line)));
+  const rows = counts.reduce((a, b) => a + b, 0);
+  const top = parseFloat(style.paddingTop);
+  const inside = t.scrollHeight - top - parseFloat(style.paddingBottom);
+  const row = t.scrollHeight > t.clientHeight ? inside / rows : line;
+  tops = [];
+  let above = 0;
+  for (const c of counts) {
+    tops.push(top + above * row);
+    above += c;
+  }
+  tops.push(top + above * row);
   return tops;
 }
 
