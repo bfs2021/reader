@@ -66,11 +66,15 @@ export async function openBrowser(browser, url) {
   ];
   const child = spawn(browser, args, { stdio: ['ignore', 'ignore', 'pipe'] });
   const exited = new Promise((r) => child.on('exit', r));
-  // The profile is written to until the browser has gone.
+  // The profile is written to until the browser has gone, and its helper
+  // processes can outlive it for a moment; a profile left in the temp
+  // directory is no reason to fail what was drawn.
   const close = async () => {
     child.kill();
     await exited;
-    fs.rmSync(profile, { recursive: true, force: true });
+    try {
+      fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    } catch {}
   };
   try {
     const cdp = await connect(await devtoolsUrl(child));
