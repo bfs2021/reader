@@ -74,7 +74,9 @@ export async function openBrowser(browser, url) {
     await exited;
     try {
       fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-    } catch {}
+    } catch {
+      /* left in the temp directory, for the system to clear */
+    }
   };
   try {
     const cdp = await connect(await devtoolsUrl(child));
