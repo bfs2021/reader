@@ -330,7 +330,6 @@ export async function open(p) {
   document.title = `${p} — ${state.rootName}`;
   el.crumb.textContent = p;
   el.copyPath.hidden = false;
-  el.footPath.textContent = p;
   setSaveState('');
   updateCounts();
   scheduleGutter();

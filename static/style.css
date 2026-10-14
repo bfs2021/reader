@@ -298,7 +298,6 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .foot-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .foot-right .ghost { padding: 1px 6px; font-family: var(--mono); font-size: 11px; }
 .foot-right .ghost[aria-pressed="false"] { color: var(--ink-faint); }
-.foot-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* off screen, at the speaker view's size */
 .measure { position: fixed; left: -20000px; top: 0; width: 1280px; height: 720px; border: 0; visibility: hidden; }
 /* off screen, a letter page wide, to print from */
