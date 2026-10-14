@@ -12,8 +12,9 @@
 - [x] When slides advance with n and when the slides start, the remaining parts briefly flash on-screen before disappearing
 - [x] #12 Two-screen presenting, pacing, and notes shown as markdown. The notes part is quick. Two screens and pacing are the larger part.
 - [x] #2 Attributed asides. Ready to start: it needs front-matter parsing and its own design work, but nothing from another issue.
-- [ ] #15 Choose the editor. Not one you named, but I included it because #11 depends on it: a plain textarea can't colour text. Deciding it early also settles how #1 and #9 get built.
-- [ ] #11 Editor highlighting.
+- [ ] #58 line numbers in the editor, and copying the file and line (`/path/madlib.md:13`) at the caret; its URL when served to others.
+- [ ] #7 outline: slides, and conference notes split by `---`. Then go-to.
+- [ ] #61 extract a section from the outline into a sibling file: a day of talks, a week of ideas.
 - [ ] #8 Slide overview grid.
 - [ ] #14 Quote and statement layouts. For consideration, decided together with #4.
 - [x] #51 Slide transitions: `transition:` in the front matter, or in a slide's notes just above its `---`.
@@ -22,9 +23,8 @@
 
 ## P2
 - [x] #1 scroll sync. Built on the textarea; it didn't need #15.
-- [ ] #9 folding: comes after #15.
+- [ ] #9 folding: comes after #15 (now P3).
 - [x] #3 directories: a folder at a time, with a file's versions (`slides.arc1.md`) as one row.
-- [ ] #7 navigation: a file's outline can be the level after a file in #3's folder view.
 - [ ] #17 search.
 - [x] #6 print a deck one page per sheet, numbered.
 - [ ] #16 problems panel: this would also be the natural home for #4's overflow warnings.
@@ -32,11 +32,12 @@
 - [ ] #18 templates.
 - [x] #25 `gh:owner/repo#n[]` and `gh:owner/repo@sha[]`, linking an issue or a commit. Titles split off to #53.
 - [x] #26 tabs for more than one version of a passage (Java/Kotlin, NIV/KJV), then inlining text from a reference. For discussion; tabs first.
-- [ ] #58 a button by the file name that copies a reference to it: the path when served locally, the URL when served to others.
 - [ ] #57 `type: slides` or `type: workbook`, to stop guessing which mode to open in and how to print. Before #36 and #37, which take their defaults from it.
 - [ ] #54 inlining a passage's text from a reference (`scripture` fence, includes), split from #26.
 
 ## P3
+- [ ] #15 Choose the editor. #11 and #9 wait on it; #1 and #60 were built on the textarea.
+- [ ] #11 Editor highlighting.
 - [ ] #13 answer keys.
 - [ ] #20 using documents without installing reader.
 - [ ] #53 `gh:` issue links titled with the issue. Waits: no other link fetches its own label.
