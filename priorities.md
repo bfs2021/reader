@@ -17,6 +17,8 @@
 - [ ] #8 Slide overview grid.
 - [ ] #14 Quote and statement layouts. For consideration, decided together with #4.
 - [x] #51 Slide transitions: `transition:` in the front matter, or in a slide's notes just above its `---`.
+- [x] #56 Madlib blanks: `[@ what goes here]` inside a sentence, its answer after a colon.
+- [ ] #60 Home and End (fn + ← and →) to the start and end of the line, not the document. Small on the text area, and free if #15 picks CodeMirror.
 
 ## P2
 - [x] #1 scroll sync. Built on the textarea; it didn't need #15.
@@ -30,6 +32,8 @@
 - [ ] #18 templates.
 - [x] #25 `gh:owner/repo#n[]` and `gh:owner/repo@sha[]`, linking an issue or a commit. Titles split off to #53.
 - [x] #26 tabs for more than one version of a passage (Java/Kotlin, NIV/KJV), then inlining text from a reference. For discussion; tabs first.
+- [ ] #58 a button by the file name that copies a reference to it: the path when served locally, the URL when served to others.
+- [ ] #57 `type: slides` or `type: workbook`, to stop guessing which mode to open in and how to print. Before #36 and #37, which take their defaults from it.
 - [ ] #54 inlining a passage's text from a reference (`scripture` fence, includes), split from #26.
 
 ## P3
@@ -38,6 +42,7 @@
 - [ ] #53 `gh:` issue links titled with the issue. Waits: no other link fetches its own label.
 - [ ] #27 bringing a review back into a changed document, or sharing it live instead. For discussion; overlaps #20.
 - [ ] #55 handouts: a talk's slides as presented, several to a sheet. After #6.
+- [ ] #59 an MCP server, so Claude can read and edit documents reader serves. With #20 and #27.
 
 
 ## Daily dashboard
