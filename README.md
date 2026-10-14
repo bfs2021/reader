@@ -187,7 +187,7 @@ shows as
 > **My Name:** Josh<br>
 > **Date:** \_\_\_\_\_\_\_\_
 
-with the value on a shaded blank. Each colon is a line of blank, so a longer
+with the value on a ruled blank. Each colon is a line of blank, so a longer
 answer gets more room, running to the end of the line:
 
 ```markdown
