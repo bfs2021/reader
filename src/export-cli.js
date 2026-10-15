@@ -72,11 +72,28 @@ export async function main(argv) {
       const { name, html, missing } = exportHtml(content, rel, drawn);
       for (const image of missing) warn(`${rel}: no ${image}, so it's left as a link`);
       const out = opts.out ?? path.join(root, path.dirname(rel), name);
-      fs.writeFileSync(out, html);
+      save(out, html);
       console.log(`${rel} -> ${path.relative(root, path.resolve(out))}`);
     }
   } finally {
     await stop();
+  }
+}
+
+/**
+ * Writes `out` whole, by way of a new file beside it that takes its place:
+ * a link already at `out` is replaced, not followed, so an export can't
+ * write over a file outside the folder it was asked to export into.
+ */
+function save(out, html) {
+  const tmp = path.join(path.dirname(out), `.${path.basename(out)}.${process.pid}.tmp`);
+  // `wx` won't open a file, or a link, that's already there.
+  fs.writeFileSync(tmp, html, { flag: 'wx' });
+  try {
+    fs.renameSync(tmp, out);
+  } catch (err) {
+    fs.rmSync(tmp, { force: true });
+    throw err;
   }
 }
 

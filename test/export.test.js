@@ -49,6 +49,16 @@ test('export refuses what it cannot save', async () => {
   await assert.rejects(reader(root), /which document/);
 });
 
+test('export replaces a link where its page goes, and leaves what it pointed at alone', async () => {
+  const root = dir({ 'repo/deck.md': '# Deck\n', 'victim/important.txt': 'keep me' });
+  fs.symlinkSync(path.join('..', 'victim', 'important.txt'), path.join(root, 'repo', 'deck.html'));
+  await reader(path.join(root, 'repo'), 'deck.md', '--no-draw');
+  assert.equal(fs.readFileSync(path.join(root, 'victim', 'important.txt'), 'utf8'), 'keep me');
+  assert.ok(fs.lstatSync(path.join(root, 'repo', 'deck.html')).isFile());
+  assert.match(fs.readFileSync(path.join(root, 'repo', 'deck.html'), 'utf8'), /<title>deck<\/title>/);
+  assert.deepEqual(fs.readdirSync(path.join(root, 'repo')).sort(), ['deck.html', 'deck.md']);
+});
+
 test('a deck is saved as its pages, without its notes, each a numbered sheet on paper', async () => {
   const root = dir({ 'deck.md': '---\ntitle: Packet\nbackground: navy\n---\n\n# One\n\n<!-- a note -->\n\ntext\n*Page 1*\n---\n\n# Two\n\n<!-- background: none -->\n' });
   await reader(root, 'deck.md', '--no-draw');
