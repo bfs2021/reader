@@ -77,15 +77,15 @@ test('a quote opening the line curls like any other', () => {
 test('Good:, Bad: and Try: lines are cards, each one its own', () => {
   const { body } = render('Good (Josh): one\nGood (Josh): two\nA (Rob): agreed\nBad: three\n\nTry (Josh): four\n\n\\Good: plain\n');
   assert.equal(body.match(/class="qa qa-card qa-good"/g).length, 2);
-  assert.match(body, /<li class="qa qa-card qa-good">\n<p><span class="qa-label">G<\/span><span class="qa-name">Josh<\/span>two<\/p>\n<\/li>\n<li class="qa qa-a">\n<p><span class="qa-label">A<\/span><span class="qa-name">Rob<\/span>agreed/);
-  assert.match(body, /<li class="qa qa-card qa-bad">\n<p><span class="qa-label">B<\/span>three<\/p>/);
-  assert.match(body, /<span class="qa-label">T<\/span><span class="qa-name">Josh<\/span>four/);
+  assert.match(body, /<li class="qa qa-card qa-good">\n<p><span class="qa-label qa-toggle"[^>]*>G<\/span><span class="qa-name">Josh<\/span>two<\/p>\n<\/li>\n<li class="qa qa-a">\n<p><span class="qa-label">A<\/span><span class="qa-name">Rob<\/span>agreed/);
+  assert.match(body, /<li class="qa qa-card qa-bad">\n<p><span class="qa-label qa-toggle"[^>]*>B<\/span>three<\/p>/);
+  assert.match(body, /<span class="qa-label qa-toggle"[^>]*>T<\/span><span class="qa-name">Josh<\/span>four/);
   assert.match(body, /<p>Good: plain<\/p>/);
 });
 
 test('+1 under a card or a question is a vote, counted on it', () => {
   const { body } = render('Bad (Josh): late\n+1 (Rob)\n+1 (Joe): same, *again*\n+1\nA: so\n+1:\n\nQ: why?\n+1: me too\n');
-  assert.match(body, /<span class="qa-label">B<\/span><span class="qa-tally">\+4<\/span><span class="qa-name">Josh<\/span>late/);
+  assert.match(body, /<span class="qa-label qa-toggle"[^>]*>B<\/span><span class="qa-tally">\+4<\/span><span class="qa-name">Josh<\/span>late/);
   assert.match(body, /<li class="qa qa-vote qa-bare">\n<p><span class="qa-label">\+1<\/span><span class="qa-name">Rob<\/span><\/p>/);
   assert.match(body, /<li class="qa qa-vote">\n<p><span class="qa-label">\+1<\/span><span class="qa-name">Joe<\/span>same, <em>again<\/em><\/p>/);
   assert.match(body, /<li class="qa qa-vote qa-bare">\n<p><span class="qa-label">\+1<\/span><\/p>\n<\/li>\n<li class="qa qa-a">/);
@@ -98,4 +98,25 @@ test('+1 with nothing to vote for stays as typed', () => {
   assert.match(body, /<p>\+1 \(Rob\)<\/p>/);
   assert.match(body, /one\ntext\n\+1/);
   assert.doesNotMatch(body, /qa-vote|qa-tally/);
+});
+
+test('a card with [x] is done: it and what is said under it are faded', () => {
+  const { body } = render('Good [x] (Josh): one\n+1 (Rob)\nA: yes\nQ: next\n\nBad [ ]: two\n\nQ [x]: plain\n');
+  assert.match(body, /<li class="qa qa-card qa-good qa-done">/);
+  assert.match(body, /<li class="qa qa-vote qa-bare qa-done">/);
+  assert.match(body, /<li class="qa qa-a qa-done">/);
+  assert.match(body, /<li class="qa qa-q">/);
+  assert.match(body, /<li class="qa qa-card qa-bad">/);
+  assert.match(body, /<p>Q \[x\]: plain<\/p>/);
+});
+
+test('a card\'s label writes its line done, or not, as written', () => {
+  const src = '---\ntitle: x\n---\nGood [x] (Josh): one rfc:9110[]\n\nBad [ ]: two\n\nTry: three\n';
+  const toggles = [...render(src, { line: 10 }).body.matchAll(/data-line="(\d+)" data-on="([^"]*)" data-off="([^"]*)"/g)].map((m) => m.slice(1));
+  assert.deepEqual(toggles, [
+    ['13', 'Good [x] (Josh): one rfc:9110[]', 'Good (Josh): one rfc:9110[]'],
+    ['15', 'Bad [x]: two', 'Bad [ ]: two'],
+    ['17', 'Try [x]: three', 'Try: three'],
+  ]);
+  assert.match(render('Q: x\nA: y\n').body, /^(?![\s\S]*qa-toggle)/);
 });

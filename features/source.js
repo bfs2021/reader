@@ -27,6 +27,18 @@ export function beforeAsides(md, name, rule) {
 }
 
 /**
+ * Keeps the source's lines as written in `env.written`, ahead of every
+ * feature that reads the lines and may change them, for a feature that
+ * writes one back.
+ */
+export function keepWritten(md) {
+  if (md.core.ruler.__find__('written') >= 0) return;
+  md.core.ruler.after('normalize', 'written', (state) => {
+    if (!state.inlineMode && !state.env.__aside) state.env.written = state.src.split('\n');
+  });
+}
+
+/**
  * Runs `fn(line, n, lines, i)` over each line of the source outside fenced
  * code, and puts back what it returns; `lines` are the source's lines as
  * they were, `i` this one's index among them. Skipped for an aside's own parse (its lines

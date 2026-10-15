@@ -41,6 +41,14 @@ li.qa-a > .qa-label, li.qa-a > p:first-child > .qa-label {
 /* A retro's cards: the label outlined in the card's colour, as a question's is. */
 li.qa-good > .qa-label, li.qa-good > p:first-child > .qa-label { border-color: #4f9a62; color: #4f9a62; }
 li.qa-bad > .qa-label, li.qa-bad > p:first-child > .qa-label { border-color: #c4574d; color: #c4574d; }
+li.qa-try > .qa-label, li.qa-try > p:first-child > .qa-label { border-color: #c9a227; color: #b08c1a; }
+/* Discussed: the card's label filled in, and the card and what's said under it faded. */
+.qa-toggle { cursor: pointer; }
+li.qa-done { opacity: 0.5; }
+li.qa-card.qa-done > .qa-label, li.qa-card.qa-done > p:first-child > .qa-label { color: var(--gm-paper); }
+li.qa-good.qa-done > .qa-label, li.qa-good.qa-done > p:first-child > .qa-label { background: #4f9a62; }
+li.qa-bad.qa-done > .qa-label, li.qa-bad.qa-done > p:first-child > .qa-label { background: #c4574d; }
+li.qa-try.qa-done > .qa-label, li.qa-try.qa-done > p:first-child > .qa-label { background: #c9a227; }
 .qa-tally {
   float: right;
   margin-left: 0.6em;

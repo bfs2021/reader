@@ -138,7 +138,7 @@ test('the preview loads a script for each kind of puzzle and each feature that h
   }
   // The core comes before the kinds that register with it.
   assert.ok(html.indexOf('/features/puzzles/preview.js') < html.indexOf('/features/puzzles/kinds/'));
-  for (const name of ['fields', 'tasks']) {
+  for (const name of ['fields', 'tasks', 'qa']) {
     assert.match(html, new RegExp(`<script src="/features/${name}/preview\\.js"></script>`));
     const res = await fetch(`${base}/features/${name}/preview.js`);
     assert.equal(res.status, 200);
@@ -146,7 +146,7 @@ test('the preview loads a script for each kind of puzzle and each feature that h
   }
   assert.doesNotMatch(html, /<!-- scripts -->/);
   // Only the scripts features name are served from there.
-  for (const other of ['/features/fields/index.js', '/features/qa/preview.js', '/features/index.js', '/features/puzzles/index.js', '/puzzles/sudoku.js']) {
+  for (const other of ['/features/fields/index.js', '/features/qa/index.js', '/features/index.js', '/features/puzzles/index.js', '/puzzles/sudoku.js']) {
     assert.equal((await fetch(base + other)).status, 404, other);
   }
 });

@@ -191,6 +191,10 @@ A (Rob): Would like to see those planned relative to the calendar.
 
 A `+1` with no card or question above it stays as typed.
 
+Clicking a card's G, B or T marks its discussion done: the line gets an
+`[x]` (`Good [x] (Josh):`), and the card, its votes and its answers fade.
+Click again to take it away. That's how a `Try` gets ticked off, too.
+
 A line starting `@ ` is a **form field**: a label, a colon, and whatever's
 filled in after it, which can be nothing yet.
 

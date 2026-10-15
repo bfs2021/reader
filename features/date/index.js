@@ -16,7 +16,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, placeholder, splitText, escapeHtml, escapeAttr } from '../source.js';
+import { beforeAsides, keepWritten, readLines, placeholder, splitText, escapeHtml, escapeAttr } from '../source.js';
 
 const DATE = /(?<![\w\\])date:(\d{4}-\d{2}-\d{2})?\[([^\]\n]*)\]/g;
 const OPEN = '\uE013';
@@ -42,10 +42,7 @@ export function readable(iso) {
 }
 
 export function dates(md) {
-  // Ahead of every feature that reads the lines, and may change them.
-  md.core.ruler.after('normalize', 'date_written', (state) => {
-    if (!state.inlineMode && !state.env.__aside) state.env.written = state.src.split('\n');
-  });
+  keepWritten(md);
 
   beforeAsides(md, 'date_lines', (state) => {
     const found = [];
