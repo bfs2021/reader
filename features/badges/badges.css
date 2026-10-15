@@ -1,0 +1,23 @@
+/* `1)` lists: each number a badge in the list's margin, drawn here so it
+ * doesn't copy; an item the asides carried on to the next row has its
+ * badge already */
+ol.badges { list-style: none; }
+ol.badges > li { position: relative; }
+ol.badges > li:not(.gm-cont)::before {
+  content: attr(data-n);
+  position: absolute;
+  right: calc(100% + .45em);
+  top: .2em;
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.45em;
+  height: 1.45em;
+  padding: 0 .3em;
+  box-sizing: border-box;
+  border-radius: 1em;
+  background: var(--gm-accent);
+  color: var(--gm-paper);
+  font: 600 .72em/1 var(--gm-sans);
+  font-style: normal;
+  user-select: none;
+}

@@ -41,6 +41,7 @@ import highlight from './highlight/index.js';
 import mermaid from './mermaid/index.js';
 import headline from './headline/index.js';
 import number from './number/index.js';
+import badges from './badges/index.js';
 import columns from './columns/index.js';
 import tabs from './tabs/index.js';
 
@@ -51,4 +52,4 @@ import tabs from './tabs/index.js';
 // styles, which leaves it the lines its blocks open and close on. date comes after fields and tasks, so the lines
 // they keep are as written, without its marks. tabs comes last, so the
 // words it compares are the ones the others leave as text.
-export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, social, math, arrows, emoji, highlight, mermaid, headline, number, puzzles, tabs];
+export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, social, math, arrows, emoji, highlight, mermaid, headline, number, badges, puzzles, tabs];

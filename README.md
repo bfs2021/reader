@@ -417,6 +417,15 @@ A few GitHub conventions show as they do there:
   takes a checkbox too, `## [ ] Stretch`, to mark what's under it done;
   `## \[ ] Stretch` keeps the brackets as typed.
 
+- **Number badges.** A numbered list written `1)` in place of `1.` has its
+  numbers drawn as badges, as a code fence's callouts are. It's still a
+  numbered list on GitHub.
+
+  ```markdown
+  1) Clone the repo
+  2) Run `npm install`
+  ```
+
 - **Tables.** Pipe tables, with `:---:` and `---:` for alignment.
 
 - **Figures.** An image alone in its paragraph gets a caption: its title if it
