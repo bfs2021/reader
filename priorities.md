@@ -4,6 +4,10 @@
 2. Please use "-s" when committing to that my signoff appears
 3. Please add 'Closes gh-xxx' to the end of the commit message where xxx is the ticket number
 
+- [ ] internal link format
+- [x] #62 code fence annotations: `<1>` at the end of a line in the fence, its note after the fence. A step each on slides.
+- [ ] #63 an `output` fence after a code fence, attached to it below. A step on slides.
+
 ## P1
 
 - [x] github:jzheaux/reader#5[] N/P advancement. A small bug fix, and you need to be able to trust the keys on stage.

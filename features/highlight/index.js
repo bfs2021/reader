@@ -17,11 +17,15 @@
  * many steps it takes (`data-focus-steps`), and each of its lines which of
  * them it stands out in (`data-focus`); the first shows from the start, and
  * when presenting, the deck moves through the rest.
+ *
+ * Callouts, `<1>` at the end of a line and its note after the fence, are
+ * in callouts.js; a fence with them is a fence with its lines picked out.
  */
 
 import fs from 'node:fs';
 import hljs from 'highlight.js';
 import { escapeHtml, escapeAttr } from '../source.js';
+import { callouts, renderNote, renderNoteClose, hoverCss } from './callouts.js';
 
 const INFO = /^([^\s{]*)\s*(?:\{([^}]*)\})?\s*$/;
 const RANGES = /^\d+(?:-\d+)?(?:[,|]\d+(?:-\d+)?)*$/;
@@ -84,10 +88,15 @@ export function splitLines(html) {
 }
 
 export function highlighting(md) {
+  md.core.ruler.before('inline', 'callouts', callouts);
+  md.renderer.rules.callout_note_open = renderNote;
+  md.renderer.rules.callout_note_close = renderNoteClose;
   md.renderer.rules.fence = (tokens, i, opts, env, self) => {
     const token = tokens[i];
     const info = token.info ? md.utils.unescapeAll(token.info) : '';
-    const { lang, numbers, groups } = parseInfo(info);
+    const { lang, numbers, groups: picked } = parseInfo(info);
+    const marks = token.meta?.callouts;
+    const groups = token.meta?.groups ?? picked;
     const known = Boolean(lang && hljs.getLanguage(lang));
     const code = known ? ` class="hljs language-${escapeAttr(lang)}"` : (lang ? ` class="language-${escapeAttr(lang)}"` : '');
     const html = highlight(token.content, lang);
@@ -107,8 +116,10 @@ export function highlighting(md) {
       const n = k + 1;
       const hl = groups[0]?.has(n) ? ' hl' : '';
       const focus = groups.length > 1 ? groups.flatMap((g, j) => (g.has(n) ? [j + 1] : [])) : [];
-      const data = focus.length ? ` data-focus="${focus.join(' ')}"` : '';
-      return `<span class="line${hl}"${data}>${row}</span>`;
+      const ns = marks?.get(n) || [];
+      const data = (focus.length ? ` data-focus="${focus.join(' ')}"` : '') + (ns.length ? ` data-callout="${ns.join(' ')}"` : '');
+      const badges = ns.map((c) => `<span class="callout" data-n="${c}"></span>`).join('');
+      return `<span class="line${hl}"${data}>${row}${badges}</span>`;
     }).join('\n');
     return `<pre${pre}><code${code}>${body}\n</code></pre>\n`;
   };
@@ -117,5 +128,5 @@ export function highlighting(md) {
 export default {
   name: 'highlight',
   plugin: highlighting,
-  css: fs.readFileSync(new URL('./highlight.css', import.meta.url), 'utf8'),
+  css: fs.readFileSync(new URL('./highlight.css', import.meta.url), 'utf8') + hoverCss(),
 };

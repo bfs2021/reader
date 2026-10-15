@@ -36,6 +36,14 @@
       for (const line of pre.querySelectorAll('.line')) {
         line.classList.toggle('hl', (line.dataset.focus || '').split(' ').includes(String(at)));
       }
+      // A callout's note shows from the first step its lines stand out in.
+      for (const note of pre.closest('.callouts')?.querySelectorAll('.callout-notes > li[data-focus]') || []) {
+        const steps = note.dataset.focus.split(' ').map(Number);
+        const later = steps[0] > at;
+        note.classList.toggle('step-hidden', later && !dim);
+        note.classList.toggle('step-dim', later && dim);
+        note.classList.toggle('hl', steps.includes(at));
+      }
     }
   }
 

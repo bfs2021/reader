@@ -509,6 +509,25 @@ int main(void) {
 ```
 ````
 
+A line can carry a note, as AsciiDoc's callouts do: `<1>` at the end of
+the line, after a space or in a comment of its own (`// <1>`), and the
+note right after the fence. The marker becomes a numbered badge, and the
+notes a list under the code; hovering a note marks its line, and the
+other way round. On a slide, the code appears with none of its lines
+picked out, and each `n` moves to the next callout, showing its note.
+Braces that pick out lines take over the steps, and each note shows when
+its line first stands out.
+
+````markdown
+```java
+numbers.stream()
+  .gather(Gatherers.scan(() -> 0, Integer::sum)) <1>
+  .forEach(System.out::println); // <2>
+```
+<1> `scan()` emits the running sum so far
+<2> one line per running sum
+````
+
 A `mermaid` fence is drawn as a [Mermaid](https://mermaid.js.org/) diagram:
 a flowchart, a sequence, a state machine, a timeline and so on. While you
 type, the diagram keeps its last good drawing until the text reads again,
