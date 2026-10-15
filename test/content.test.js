@@ -180,6 +180,15 @@ test('trash sets a file aside, and restore brings it back, but not over another'
   assert.throws(() => content.restore('nope'), PathError);
 });
 
+test('list walks a folder once, however many links lead back into it', () => {
+  const { root, content } = fixture();
+  fs.symlinkSync('..', path.join(root, 'sub', 'up'));
+  fs.symlinkSync('.', path.join(root, 'self1'));
+  fs.symlinkSync('.', path.join(root, 'self2'));
+  const paths = content.list().map((f) => f.path).sort();
+  assert.deepEqual(paths, ['a.md', 'doc.pdf', 'sub/b.markdown']);
+});
+
 test('backups and the trash refuse a link in .reader, and touch nothing it points at', () => {
   const { base, root, content } = fixture();
   const outside = path.join(base, 'outside');

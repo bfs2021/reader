@@ -90,7 +90,20 @@ export function createContent(rootDir) {
 
   function list() {
     const out = [];
+    // The real folders being walked into: a link back to one of them would
+    // walk it again, and again.
+    const within = new Set();
     const walk = (dir) => {
+      const real = fs.realpathSync(dir);
+      if (within.has(real)) return;
+      within.add(real);
+      try {
+        visit(dir);
+      } finally {
+        within.delete(real);
+      }
+    };
+    const visit = (dir) => {
       let entries;
       try {
         entries = fs.readdirSync(dir, { withFileTypes: true });
