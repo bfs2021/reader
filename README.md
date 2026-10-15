@@ -237,8 +237,8 @@ don't end it early. One followed by `(` is a link, as `[text](url)` is, and a ba
 (`\[@ `) keeps it as typed.
 
 A line starting `!` is a **definition**: a term, a colon, and what it
-means, set as a dictionary sets it, the term in bold small capitals. The
-meaning is markdown like any other line (links, bold, `[red]{red}`), and who
+means, set as a dictionary sets it: in a box, the term in bold small capitals
+on a tint. The meaning is markdown like any other line (links, bold, `[red]{red}`), and who
 used the term can follow it in parentheses, as in an exchange:
 
 ```markdown
@@ -250,16 +250,24 @@ used the term can follow it in parentheses, as in an exchange:
 
 Definitions on lines in a row make one glossary, and the same term again
 straight after is another sense of it, numbered. A term with nothing after
-its colon is one you heard but haven't looked up: a blank, filled in as a
-field is. A term in capitals whose meaning spells it out has those letters
+its colon is one you heard but haven't looked up: it reads *not yet
+defined*, and clicking it fills it in as a field is. A term in capitals whose meaning spells it out has those letters
 bolded: **s**imilar **l**ayers of **ab**straction.
 
-Wherever else the term appears in the document -- before its definition or
-after, in an aside, on a later slide of a deck -- it's underlined, and its
-meaning shows on hover. A term in capitals is matched as written; one in
-lower case, in any case. Code and links are left alone.
+Written with a `!` before it anywhere else in the document -- before its
+definition or after, in an aside, on a later slide of a deck -- the term is
+set as it is in its entry, and its meaning shows on hover:
 
-A backslash (`\!SLAB:`) keeps a line that happens to start that way as typed.
+```markdown
+Venkat keeps coming back to !SLAB.
+```
+
+A term in capitals is matched as written; one in lower case, in any case
+(`!Sealed interface` at the start of a sentence). A `!` before a word that
+isn't defined is left as typed, as are code and links.
+
+A backslash (`\!SLAB:`, `\!SLAB`) keeps a line or a word that happens to
+start that way as typed.
 
 A blockquote whose last line starts with `--` takes that line as its
 attribution, set right-aligned under the quote. Links, and `scripture:`, work

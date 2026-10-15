@@ -11,13 +11,16 @@
  * field is (the fields feature's preview does the filling).
  *
  * A term in capitals whose meaning spells it out has those letters bolded
- * (**S**imilar **L**ayers of **A**bstraction). And wherever else the term
- * appears in the document -- before its definition or after, in an aside,
- * or on a later slide of a deck -- it's underlined, its meaning shown on
- * hover.
+ * (**S**imilar **L**ayers of **AB**straction). And `!` before the term
+ * elsewhere in the text -- before its definition or after, in an aside, or
+ * on a later slide of a deck -- sets it as it's set in its entry, its
+ * meaning shown on hover:
  *
- * `\!` keeps a line as typed, as does one in fenced code or an aside's own
- * `~ !` (an aside can still use a term the document defines).
+ *   Venkat keeps coming back to !SLAB.
+ *
+ * `\!` keeps a line, or a term in the text, as typed, as does fenced code
+ * or an aside's own `~ !` (an aside can still use a term the document
+ * defines).
  */
 
 import fs from 'node:fs';
@@ -37,7 +40,12 @@ const WORD = /[\p{L}\p{N}][\p{L}\p{N}'’]*/gu;
 export function definitions(md) {
   beforeAsides(md, 'definition_lines', lines);
   md.block.ruler.before('paragraph', 'definition', block, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
-  md.core.ruler.push('definition_uses', uses);
+  md.core.ruler.push('definition_initials', (state) => {
+    for (const t of state.tokens) if (t.type === 'inline' && t.meta?.definition) initials(state, t, t.meta.definition.term);
+  });
+  // Before an escaped `\!` joins the text after it, so it can be told from
+  // one that isn't.
+  md.core.ruler.before('text_join', 'definition_uses', uses);
 
   md.renderer.rules.def_list_open = () => '<dl class="defs">\n';
   md.renderer.rules.def_list_close = () => '</dl>\n';
@@ -140,8 +148,8 @@ function block(state, startLine, endLine, silent) {
 }
 
 /**
- * Bolds the letters an acronym's meaning spells it with, and marks the
- * term wherever else it's written, outside code and links.
+ * Sets a defined term written with a `!` before it, outside code and
+ * links, as its entry sets it.
  */
 function uses(state) {
   if (state.inlineMode) return;
@@ -149,16 +157,13 @@ function uses(state) {
   if (!known?.size) return;
   const terms = [...known.keys()].sort((a, b) => a.length - b.length);
   const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const find = new RegExp(`(?<![\\p{L}\\p{N}_])(?:${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
+  const find = new RegExp(`(?<![\\p{L}\\p{N}_])!(?:${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
   // An acronym is matched as written; a word or phrase in lower case, in any case.
   const term = (text) => (known.has(text) ? text : terms.find((t) => t === t.toLowerCase() && t === text.toLowerCase()));
 
   for (const block of state.tokens) {
     if (block.type !== 'inline' || !block.children) continue;
-    if (block.meta?.definition) {
-      initials(state, block, block.meta.definition.term);
-      continue;
-    }
+    if (block.meta?.definition) continue;
     const out = [];
     let link = 0;
     for (const child of block.children) {
@@ -170,11 +175,11 @@ function uses(state) {
       }
       let last = 0;
       for (const m of child.content.matchAll(find)) {
-        const t = term(m[0]);
+        const t = term(m[0].slice(1));
         if (!t) continue;
         if (m.index > last) out.push(text(state, child.content.slice(last, m.index)));
         const use = new state.Token('def_use', 'span', 0);
-        use.meta = { text: m[0], term: t, senses: known.get(t) };
+        use.meta = { text: m[0].slice(1), term: t, senses: known.get(t) };
         out.push(use);
         last = m.index + m[0].length;
       }
