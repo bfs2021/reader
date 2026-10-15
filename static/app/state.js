@@ -18,7 +18,7 @@ export const el = {
   workBtn: $('workBtn'), presentBtn: $('presentBtn'), presentWrap: $('presentWrap'), fitPop: $('fitPop'),
   pages: $('pages'), pageBack: $('pageBack'), pageNext: $('pageNext'), pageDots: $('pageDots'), pageCount: $('pageCount'),
   goto: $('goto'), gotoInput: $('gotoInput'), gotoList: $('gotoList'),
-  deck: $('deck'), stage: $('stage'), deckNotes: $('deckNotes'), deckBy: $('deckBy'), deckCount: $('deckCount'),
+  deck: $('deck'), stage: $('stage'), deckNotes: $('deckNotes'), deckBy: $('deckBy'), deckCount: $('deckCount'), deckSays: $('deckSays'), bar: $('bar'),
 };
 
 export const RENDER_DELAY = 100;
@@ -55,6 +55,7 @@ export const deck = {
   notes: false,         // the notes strip under the slide
   stageReady: null,
   channel: null,        // talks to the speaker view
+  returnTo: null,       // what had focus before Present
 };
 
 export const dirty = () => state.current?.type === 'md' && el.editor.value !== state.saved;

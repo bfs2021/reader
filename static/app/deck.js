@@ -48,7 +48,10 @@ export async function present() {
   deck.reveal = 0;
   deck.open = true;
   el.editor.readOnly = true;
+  deck.returnTo = document.activeElement;
   if (document.activeElement === el.editor) el.editor.blur();
+  // Out of reach under the slides, for the keyboard and for a screen reader.
+  el.bar.inert = el.split.inert = true;
   el.deck.hidden = false;
   el.deck.focus();
   // On two screens: the slides full screen on the room's, the speaker view
@@ -135,6 +138,10 @@ export async function showSlide({ render = true, transition } = {}) {
     ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition }
     : { type: 'reveal', reveal: deck.reveal }, '*');
   el.deckCount.textContent = paging(i);
+  // Said aloud as it changes, the slide's number and how far into it.
+  const where = `Slide ${i + 1} of ${deck.slides.length}`;
+  el.stage.title = where;
+  el.deckSays.textContent = deck.reveal ? `${where}, step ${Math.min(deck.reveal, slide.steps)} of ${slide.steps}` : where;
   el.deckNotes.innerHTML = slide.notesHtml;
   el.deckNotes.hidden = !deck.notes || !slide.notes;
   deck.channel?.postMessage({ type: 'go', index: i, reveal: deck.reveal });
@@ -191,9 +198,11 @@ export function closeDeck() {
   if (!deck.open) return;
   deck.open = false;
   el.deck.hidden = true;
+  el.bar.inert = el.split.inert = false;
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   deck.channel?.postMessage({ type: 'end' });
   setWorking(state.working);
+  if (document.activeElement === document.body) (deck.returnTo?.isConnected && deck.returnTo !== document.body ? deck.returnTo : el.presentBtn).focus();
 }
 
 export function toggleNotes() {
@@ -252,6 +261,8 @@ export function deckKey(e) {
     case 't': case 'T': toggleNotes(); break;
     case 'f': case 'F': toggleFullscreen(); break;
     case 's': case 'S': openSpeaker(); break;
+    // Nothing else is in reach while presenting, so focus stays on the slides.
+    case 'Tab': el.deck.focus(); break;
     default: return false;
   }
   return true;

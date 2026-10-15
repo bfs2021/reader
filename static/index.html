@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<header class="bar">
+<header class="bar" id="bar">
   <div class="bar-left">
     <button class="ghost icon" id="sidebarToggle" title="Toggle file list (⌘\)" aria-label="Toggle file list">☰</button>
     <span class="mark" id="rootName">reader</span>
@@ -17,7 +17,7 @@
     <button class="ghost icon copy-path" id="copyPath" title="Copy the file's path" aria-label="Copy the file's path" hidden>⧉</button>
   </div>
   <div class="bar-right">
-    <span class="save-state" id="saveState"></span>
+    <span class="save-state" id="saveState" role="status"></span>
     <span class="present-wrap" id="presentWrap">
       <button class="ghost small" id="presentBtn" title="Present as slides (⌘⇧.)" hidden>Present</button>
       <div class="fit-pop" id="fitPop" hidden></div>
@@ -55,7 +55,7 @@
   </section>
 
   <section class="pane write-pane" id="writePane">
-    <div class="conflict" id="conflict" hidden>
+    <div class="conflict" id="conflict" role="alert" hidden>
       <span>This file changed on disk.</span>
       <button class="ghost small" id="reloadBtn">Load disk version</button>
       <button class="ghost small" id="overwriteBtn">Keep mine</button>
@@ -88,13 +88,14 @@
   </section>
 </main>
 
-<div class="deck" id="deck" tabindex="-1" hidden>
+<div class="deck" id="deck" tabindex="-1" role="dialog" aria-modal="true" aria-label="Slides" hidden>
   <iframe id="stage" src="/preview.html" title="Slide" tabindex="-1" sandbox="allow-scripts"></iframe>
   <div class="deck-notes" id="deckNotes" hidden></div>
   <footer class="deck-foot">
     <span id="deckBy"></span>
     <span class="deck-keys">n p step · N slide end · P slide start · T notes · S speaker view · F full screen · Esc done</span>
     <span id="deckCount"></span>
+    <span class="vh" id="deckSays" role="status"></span>
   </footer>
 </div>
 
@@ -103,7 +104,7 @@
   <ol class="goto-list" id="gotoList"></ol>
 </div>
 
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <!-- where each slide is measured, at the speaker view's size; see app/fit.js -->
 <iframe class="measure" id="measure" src="/preview.html" title="" tabindex="-1" aria-hidden="true" sandbox="allow-scripts"></iframe>

@@ -55,5 +55,10 @@ export function toast(msg, isError = false, action = null) {
   el.toast.className = `toast${isError ? ' err' : ''}`;
   el.toast.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.toast.hidden = true; }, isError || action ? 6000 : 2800);
+  // Not while it's being reached for: an Undo can't go while it's pointed at or focused.
+  const hide = () => {
+    if (el.toast.matches(':hover, :focus-within')) toastTimer = setTimeout(hide, 1000);
+    else el.toast.hidden = true;
+  };
+  toastTimer = setTimeout(hide, isError || action ? 6000 : 2800);
 }
