@@ -180,6 +180,28 @@ test('trash sets a file aside, and restore brings it back, but not over another'
   assert.throws(() => content.restore('nope'), PathError);
 });
 
+test('backups and the trash refuse a link in .reader, and touch nothing it points at', () => {
+  const { base, root, content } = fixture();
+  const outside = path.join(base, 'outside');
+  fs.mkdirSync(outside);
+  for (let i = 0; i < 15; i++) fs.writeFileSync(path.join(outside, `file${String(i).padStart(2, '0')}.txt`), 'keep\n');
+  fs.mkdirSync(path.join(root, '.reader', 'backups'), { recursive: true });
+  fs.symlinkSync(outside, path.join(root, '.reader', 'backups', 'a.md'));
+  assert.throws(() => content.write('a.md', '# edited\n', { explicit: true }), PathError);
+  assert.equal(fs.readdirSync(outside).length, 15);
+  assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), '# a\n');
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'z.md' }]), PathError);
+  assert.ok(fs.existsSync(path.join(root, 'a.md')));
+
+  fs.mkdirSync(path.join(outside, '20260101-000000-000'));
+  fs.writeFileSync(path.join(outside, '20260101-000000-000', 'id_rsa.md'), 'key\n');
+  fs.symlinkSync(outside, path.join(root, '.reader', 'trash'));
+  assert.throws(() => content.trash('sub/b.markdown'), PathError);
+  assert.ok(fs.existsSync(path.join(root, 'sub', 'b.markdown')));
+  assert.throws(() => content.restore('20260101-000000-000/id_rsa.md'), PathError);
+  assert.equal(fs.existsSync(path.join(root, 'id_rsa.md')), false);
+});
+
 test('extract writes the new files and what is left, or none of it', () => {
   const { root, content } = fixture();
   fs.writeFileSync(path.join(root, 'sub', 'taken.md'), 'here already\n');

@@ -74,6 +74,20 @@ export function createContent(rootDir) {
     return abs;
   }
 
+  /**
+   * A path in reader's own .reader folder, refusing a symlink anywhere along
+   * it: a folder that came with the files could point backups and the trash
+   * anywhere, to be written, pruned and taken from.
+   */
+  function own(abs) {
+    for (let at = abs; at !== root; at = path.dirname(at)) {
+      if (fs.lstatSync(at, { throwIfNoEntry: false })?.isSymbolicLink()) {
+        throw new PathError(`${toRel(at)} is a link; reader keeps its own files there`);
+      }
+    }
+    return abs;
+  }
+
   function list() {
     const out = [];
     const walk = (dir) => {
@@ -172,7 +186,7 @@ export function createContent(rootDir) {
   }
 
   function backup(rel, previous, explicit) {
-    const dir = path.join(backupRoot, rel);
+    const dir = own(path.join(backupRoot, rel));
     fs.mkdirSync(dir, { recursive: true });
     const existing = fs.readdirSync(dir).filter((f) => !f.startsWith('.')).sort();
     const newest = existing.at(-1);
@@ -271,6 +285,9 @@ export function createContent(rootDir) {
       }
       if (fs.existsSync(toAbs) || targets.has(toAbs)) throw new ConflictError(`${to} already exists`);
       targets.add(toAbs);
+      // Before anything moves, so that none does.
+      own(path.join(backupRoot, toRel(fromAbs)));
+      own(path.join(backupRoot, toRel(toAbs)));
       return [fromAbs, toAbs];
     });
     return {
@@ -285,7 +302,7 @@ export function createContent(rootDir) {
   function trash(rel) {
     const { abs } = statFile(rel);
     const id = `${stamp()}/${toRel(abs)}`;
-    const dest = path.join(trashRoot, id);
+    const dest = own(path.join(trashRoot, id));
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.renameSync(abs, dest);
     return { path: toRel(abs), trash: id };
@@ -296,7 +313,7 @@ export function createContent(rootDir) {
     if (!m) throw new PathError('not something in the trash');
     const rel = m[2];
     const toAbs = resolve(rel);
-    const fromAbs = path.join(trashRoot, m[1], ...rel.split('/'));
+    const fromAbs = own(path.join(trashRoot, m[1], ...rel.split('/')));
     if (!fs.existsSync(fromAbs)) throw new NotFoundError(`${rel} isn't in the trash`);
     if (fs.existsSync(toAbs)) throw new ConflictError(`${rel} already exists`);
     fs.mkdirSync(path.dirname(toAbs), { recursive: true });
@@ -363,9 +380,9 @@ export function createContent(rootDir) {
     const to = toRel(toAbs);
     resolve(to);
     if (fs.existsSync(toAbs)) throw new ConflictError(`${to} already exists`);
+    const oldBackups = own(path.join(backupRoot, from));
+    const newBackups = own(path.join(backupRoot, to));
     fs.renameSync(fromAbs, toAbs);
-    const oldBackups = path.join(backupRoot, from);
-    const newBackups = path.join(backupRoot, to);
     if (fs.existsSync(oldBackups)) {
       if (!fs.existsSync(newBackups)) {
         fs.mkdirSync(path.dirname(newBackups), { recursive: true });
