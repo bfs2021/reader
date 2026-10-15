@@ -201,7 +201,6 @@ function action(cls, title, onClick) {
   if (ICONS[cls]) b.innerHTML = icon(cls);
   b.title = title;
   b.setAttribute('aria-label', title);
-  b.tabIndex = -1;
   b.addEventListener('click', onClick);
   return b;
 }
@@ -262,7 +261,8 @@ export function onListKey(e) {
   const at = document.activeElement;
   if (at?.matches('.entry') && entryKey(e, at)) return e.preventDefault();
   const list = rows();
-  const i = list.indexOf(at);
+  // From one of a row's actions, the arrows go on from its row.
+  const i = list.indexOf(list.includes(at) ? at : at?.closest('li')?.querySelector('.file, .folder, .entry'));
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
     list[Math.min(list.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))]?.focus();
@@ -278,7 +278,7 @@ export function onListKey(e) {
   } else if (e.key === 'Backspace' && e.metaKey && at?.matches('.file:not(.group)')) {
     e.preventDefault();
     trash(at.dataset.path);
-  } else if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && !e.metaKey && !el.filter.value.trim()) {
+  } else if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && !e.metaKey && !el.filter.value.trim() && list.includes(at)) {
     e.preventDefault();
     up();
   }

@@ -126,7 +126,6 @@ function entryItem(e, { depth, key, open, here, number }) {
   const out = document.createElement('button');
   out.className = 'row-action extract';
   out.innerHTML = icon('extract');
-  out.tabIndex = -1;
   out.title = picked.size > 1 && picked.has(key) ? `Extract these ${picked.size} into files of their own` : 'Extract into a file of its own';
   out.setAttribute('aria-label', out.title);
   out.addEventListener('click', () => (picked.size > 1 && picked.has(key) ? extractPicked() : askName(li, e)));
