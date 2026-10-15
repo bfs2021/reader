@@ -5,9 +5,9 @@
  * moves.
  */
 
-import { el, state, dirty } from './state.js';
+import { el, state } from './state.js';
 import { api } from './api.js';
-import { save } from './saving.js';
+import { saveFirst } from './saving.js';
 import { toast } from './status.js';
 import { showEmpty } from './render.js';
 import { loadTree, open, go, reveal, visiblePaths } from './files.js';
@@ -15,9 +15,8 @@ import { groupOf, splitPath, dirOf } from './versions.js';
 
 const LISTED = new Set(['.md', '.markdown', '.pdf']);
 
-async function saveFirst(paths) {
-  if (dirty() && paths.includes(state.current?.path)) await save();
-  if (dirty() && paths.includes(state.current?.path)) throw new Error('not saved, so left as it was');
+async function saveIfOpen(paths) {
+  if (paths.includes(state.current?.path) && !(await saveFirst())) throw new Error('not saved, so left as it was');
 }
 
 /** After files move: the list again, and the open file under its new name. */
@@ -32,7 +31,7 @@ const join = (dir, name) => (dir ? `${dir}/${name}` : name);
 /** Copy `p` as `<name>.draft.md` beside it, open the copy, and ask what to call it. */
 export async function branch(p) {
   try {
-    await saveFirst([p]);
+    await saveIfOpen([p]);
     const { dir, stem, ext } = splitPath(p);
     const base = groupOf(state.files, p)?.name || stem;
     const taken = new Set(state.files.map((f) => f.path));
@@ -80,7 +79,7 @@ export function rename(p, { group = null } = {}) {
     if (!keep || !name || name === plan.value) return loadTree();
     try {
       const moves = plan.moves(name);
-      await saveFirst(moves.map((m) => m.from));
+      await saveIfOpen(moves.map((m) => m.from));
       const out = await api('POST', '/api/rename', { moves });
       await moved(out.moved);
       el.files.querySelector(group ? `.group[data-group="${CSS.escape(name)}"]` : `.file[data-path="${CSS.escape(out.moved[0].to)}"]`)?.focus();
@@ -136,7 +135,7 @@ function planRename(p, groupName) {
 export async function trash(p) {
   try {
     const wasOpen = state.current?.path === p;
-    if (wasOpen && dirty()) await save();
+    await saveIfOpen([p]);
     const paths = visiblePaths();
     const i = paths.indexOf(p);
     const out = await api('POST', '/api/trash', { path: p });
@@ -175,7 +174,7 @@ async function restore(id) {
 /** Make `p` the main version of `base`; the old main one is named for its day. */
 export async function promote(p, base) {
   try {
-    await saveFirst(groupOf(state.files, p)?.versions.map((v) => v.file.path) || [p]);
+    await saveIfOpen(groupOf(state.files, p)?.versions.map((v) => v.file.path) || [p]);
     const out = await api('POST', '/api/promote', { path: p, base });
     await moved(out.moved);
     go(dirOf(p), base);

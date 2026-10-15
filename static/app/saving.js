@@ -24,6 +24,16 @@ export function save({ explicit = false, force = false } = {}) {
   return state.saving;
 }
 
+/**
+ * Saves the open file if it has edits, and says whether they're on disk: a
+ * conflict or a failed save leaves them only in the editor, where they must
+ * stay until they're kept or let go.
+ */
+export async function saveFirst() {
+  if (dirty()) await save();
+  return !dirty();
+}
+
 export async function doSave({ explicit, force }) {
   const cur = state.current;
   if (cur?.type !== 'md') return;

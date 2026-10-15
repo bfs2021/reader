@@ -9,7 +9,7 @@ import { api } from './api.js';
 import { dirOf } from './versions.js';
 import { loadTree, drawTree, visiblePaths, step, open, createFile, showNewForm, go, reveal, rememberedDir, onListKey, onListDoubleClick } from './files.js';
 import { whenReady, showEmpty } from './render.js';
-import { save, reloadFromDisk, checkDisk } from './saving.js';
+import { save, saveFirst, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
 import { toggleSidebar, restoreLayout, setWorking } from './modes.js';
@@ -130,7 +130,10 @@ function wire() {
     else if (document.visibilityState === 'visible') checkDisk();
   });
   window.addEventListener('beforeunload', (e) => {
-    if (!dirty() || state.conflict) return;
+    if (!dirty()) return;
+    e.preventDefault();
+    // In a conflict the edits can't be saved over the other, only kept here.
+    if (state.conflict) return;
     // Best effort: a keepalive request outlives the page.
     fetch('/api/file', {
       method: 'PUT',
@@ -138,7 +141,6 @@ function wire() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: state.current.path, text: el.editor.value, baseMtime: state.mtime }),
     });
-    e.preventDefault();
   });
 
   window.addEventListener('keydown', onKey);
@@ -146,10 +148,7 @@ function wire() {
 
 /** Prints the open document, saved first, as its HTML file prints. */
 async function print() {
-  if (dirty()) {
-    await save();
-    if (dirty()) return toast('not saved, so not printed', true);
-  }
+  if (!(await saveFirst())) return toast('not saved, so not printed', true);
   try {
     await printDocument(state.current.path);
   } catch (err) {

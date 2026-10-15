@@ -7,7 +7,7 @@
 
 import { el, state, dirty } from './state.js';
 import { api } from './api.js';
-import { save, reloadFromDisk } from './saving.js';
+import { saveFirst, reloadFromDisk } from './saving.js';
 import { toast } from './status.js';
 import { loadTree } from './files.js';
 import { extract, slug } from './sections.js';
@@ -33,8 +33,7 @@ export async function extractEntries(entries, names) {
   const p = state.current?.path;
   if (!p || !entries.length) return;
   try {
-    if (dirty()) await save();
-    if (dirty()) throw new Error('not saved, so left as it was');
+    if (!(await saveFirst())) throw new Error('not saved, so left as it was');
     const before = el.editor.value;
     const { text, files } = extract(before, entries, names.map((n) => (splitPath(n).ext ? n : `${n}.md`)));
     const dir = dirOf(p);

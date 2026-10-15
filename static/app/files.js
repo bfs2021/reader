@@ -5,9 +5,9 @@
  * outline (outline.js).
  */
 
-import { el, state, dirty } from './state.js';
+import { el, state } from './state.js';
 import { api, exportUrl } from './api.js';
-import { save, setConflict } from './saving.js';
+import { saveFirst, setConflict } from './saving.js';
 import { exportDocument } from './exporting.js';
 import { showPdf } from './pdf.js';
 import { renderNow, showPreview } from './render.js';
@@ -298,10 +298,7 @@ function exportLink(p) {
   a.innerHTML = icon('export');
   a.addEventListener('click', async (e) => {
     e.preventDefault();
-    if (state.current?.path === p && dirty()) {
-      await save();
-      if (dirty()) return toast('not saved, so not exported', true);
-    }
+    if (state.current?.path === p && !(await saveFirst())) return toast('not saved, so not exported', true);
     try {
       await exportDocument(p);
     } catch (err) {
@@ -332,8 +329,10 @@ export function step(delta) {
 
 export async function open(p) {
   const seq = ++state.openSeq;
-  if (dirty()) await save();
+  const kept = await saveFirst();
   if (seq !== state.openSeq) return;
+  // Opening another file would put its text over edits that are nowhere else.
+  if (!kept) return toast('not saved, so still open: reload it or overwrite it first', true);
 
   const entry = state.files.find((f) => f.path === p);
   const type = entry?.type || (/\.pdf$/i.test(p) ? 'pdf' : 'md');
