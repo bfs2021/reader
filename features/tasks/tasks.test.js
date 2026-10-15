@@ -12,9 +12,15 @@ test('task items become checkboxes that know their line', () => {
 
 test('a task box knows its line checked and unchecked, as written', () => {
   const { body } = render('- [ ] trash\n- [X] dishes\n- ( ) red\n');
-  assert.match(body, /data-line="0" data-on="- \[x\] trash" data-off="- \[ \] trash">/);
-  assert.match(body, /data-line="1" data-on="- \[X\] dishes" data-off="- \[ \] dishes" checked>/);
-  assert.match(body, /data-line="2" data-on="- \(x\) red" data-off="- \( \) red">/);
+  assert.match(body, /data-line="0" data-on="- \[x\] trash" data-off="- \[ \] trash" aria-label="trash">/);
+  assert.match(body, /data-line="1" data-on="- \[X\] dishes" data-off="- \[ \] dishes" aria-label="dishes" checked>/);
+  assert.match(body, /data-line="2" data-on="- \(x\) red" data-off="- \( \) red" aria-label="red">/);
+});
+
+test('a box is named by the words beside it, for a screen reader', () => {
+  const { body } = render('- [ ] call [mom](https://example.com) about `code`\n- ( ) Sat AM\n');
+  assert.match(body, /class="task-box" [^>]*aria-label="call mom about code"/);
+  assert.match(body, /class="choice-box" [^>]*aria-label="Sat AM"/);
 });
 
 test('choice items become radio buttons, one group to a list', () => {
@@ -46,7 +52,7 @@ test('task boxes in code, or not heading a list item, are left as typed', () => 
 
 test('a box in an aside knows its line in the file', () => {
   const { body } = render('text\n~ - [ ] in the aside\n', { line: 10 });
-  assert.match(body, /<li class="task"><input type="checkbox" class="task-box" data-line="11" data-on="~ - \[x\] in the aside" data-off="~ - \[ \] in the aside"> in the aside<\/li>/);
+  assert.match(body, /<li class="task"><input type="checkbox" class="task-box" data-line="11" data-on="~ - \[x\] in the aside" data-off="~ - \[ \] in the aside" aria-label="in the aside"> in the aside<\/li>/);
 });
 
 test('a list of radio buttons split by an aside is still one choice', () => {
@@ -67,7 +73,7 @@ test('the stylesheet comes with the feature', () => {
 
 test('a checkbox at the head of a heading marks it, and knows its line', () => {
   const { body } = render('# [ ] Gratitude\n\n## [x] Ways\n');
-  assert.match(body, /<h1 class="task-heading"[^>]*><input type="checkbox" class="task-box" data-line="0" data-on="# \[x\] Gratitude" data-off="# \[ \] Gratitude"> Gratitude<\/h1>/);
+  assert.match(body, /<h1 class="task-heading"[^>]*><input type="checkbox" class="task-box" data-line="0" data-on="# \[x\] Gratitude" data-off="# \[ \] Gratitude" aria-label="Gratitude"> Gratitude<\/h1>/);
   assert.match(body, /<h2 class="task-heading"[^>]*><input type="checkbox" class="task-box" data-line="2" [^>]* checked> Ways<\/h2>/);
 });
 

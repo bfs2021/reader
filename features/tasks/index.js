@@ -59,7 +59,7 @@ export function tasks(md) {
         addClass(t, heading ? 'task-heading' : 'task');
         first.content = first.content.slice(m[0].length);
         const input = new state.Token('task_box', 'input', 0);
-        input.meta = { ...box, group: lists.at(-1) };
+        input.meta = { ...box, group: lists.at(-1), name: nameOf(inline.children) };
         inline.children.unshift(input);
       }
     }
@@ -80,12 +80,26 @@ export function tasks(md) {
   });
 
   md.renderer.rules.task_box = (tokens, i) => {
-    const { line, radio, checked, on, off, group } = tokens[i].meta;
-    const lines = ` data-on="${escapeAttr(on)}" data-off="${escapeAttr(off)}"${checked ? ' checked' : ''}`;
+    const { line, radio, checked, on, off, group, name } = tokens[i].meta;
+    const lines = ` data-on="${escapeAttr(on)}" data-off="${escapeAttr(off)}"${name ? ` aria-label="${escapeAttr(name)}"` : ''}${checked ? ' checked' : ''}`;
     return radio
       ? `<input type="radio" class="choice-box" name="choice-${group}" data-line="${line}"${lines}> `
       : `<input type="checkbox" class="task-box" data-line="${line}"${lines}> `;
   };
+}
+
+/**
+ * What a box is for, as a screen reader says it: the words beside it. A
+ * label around them would make every link among them tick the box too.
+ */
+function nameOf(children) {
+  return children
+    .filter((t) => t.type === 'text' || t.type === 'code_inline')
+    .map((t) => t.content)
+    .join('')
+    .replace(/[\uE000-\uF8FF]\d*[\uE000-\uF8FF]?/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export default {
