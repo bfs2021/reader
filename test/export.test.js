@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { findBrowser } from '../src/browser.js';
+import { findBrowser, openBrowser } from '../src/browser.js';
 
 const READER = path.join(import.meta.dirname, '..', 'bin', 'reader.js');
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
@@ -83,6 +83,10 @@ test('a document that is not a deck is saved whole', async () => {
   const html = fs.readFileSync(path.join(root, 'a.html'), 'utf8');
   assert.match(html, /<header class="gm-masthead">/);
   assert.doesNotMatch(html, /gm-page/);
+});
+
+test('a browser that can\'t start is an error, not a wait', { timeout: 10000 }, async () => {
+  await assert.rejects(openBrowser(path.join(os.tmpdir(), 'no-such-browser'), 'http://127.0.0.1:1/'), /ENOENT/);
 });
 
 test('export draws diagrams with a browser', { skip: !findBrowser() && 'no Chrome or Chromium here', timeout: 60000 }, async () => {

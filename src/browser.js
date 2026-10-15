@@ -65,7 +65,8 @@ export async function openBrowser(browser, url) {
     'about:blank',
   ];
   const child = spawn(browser, args, { stdio: ['ignore', 'ignore', 'pipe'] });
-  const exited = new Promise((r) => child.on('exit', r));
+  // One that couldn't start never exits; it fails.
+  const exited = new Promise((r) => child.on('exit', r).on('error', r));
   // The profile is written to until the browser has gone, and its helper
   // processes can outlive it for a moment; a profile left in the temp
   // directory is no reason to fail what was drawn.
