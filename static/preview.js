@@ -308,6 +308,19 @@
     if (t) t.scrollIntoView({ behavior: 'smooth' });
   });
 
+  // A link to another markdown file being served opens it in the app, and
+  // not as text in a new tab; ⌘ or ⇧ still asks for the tab, and so does a
+  // link on stage, where the deck shouldn't give way to another file.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || Preview.deck || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    let url;
+    try { url = new URL(a.href); } catch { return; }
+    if (url.origin !== new URL(base.href).origin || !/\.(md|markdown)$/i.test(url.pathname)) return;
+    e.preventDefault();
+    window.parent.postMessage({ type: 'follow', href: url.href }, '*');
+  });
+
   // A link to an image shows the image while it's hovered.
   const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
   const peek = document.createElement('img');

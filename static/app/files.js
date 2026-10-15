@@ -6,7 +6,7 @@
  */
 
 import { el, state } from './state.js';
-import { api, exportUrl } from './api.js';
+import { api, exportUrl, contentUrl } from './api.js';
 import { saveFirst, setConflict } from './saving.js';
 import { exportDocument } from './exporting.js';
 import { showPdf } from './pdf.js';
@@ -250,6 +250,19 @@ export function rememberedDir() {
 export function reveal(p) {
   const group = groupOf(state.files, p);
   go(dirOf(p), group && group.opens.path !== p ? group.name : null, { focus: false });
+}
+
+/** A link the preview was asked to follow, to a markdown file: opened here if it's one of ours. */
+export function follow(href) {
+  const url = new URL(href);
+  const root = new URL(contentUrl(''), location.href);
+  const p = url.origin === root.origin && url.pathname.startsWith(root.pathname)
+    ? url.pathname.slice(root.pathname.length).split('/').map(decodeURIComponent).join('/')
+    : null;
+  if (!p || !state.files.some((f) => f.path === p && f.type === 'md')) return toast(`no file ${p ?? url.pathname} here`, true);
+  if (p === state.current?.path) return;
+  reveal(p);
+  open(p);
 }
 
 const rows = () => [...el.files.querySelectorAll('.file, .folder, .entry')];

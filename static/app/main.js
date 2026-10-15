@@ -7,7 +7,7 @@
 import { el, state, deck, dirty } from './state.js';
 import { api } from './api.js';
 import { dirOf } from './versions.js';
-import { loadTree, drawTree, visiblePaths, step, open, createFile, showNewForm, go, reveal, rememberedDir, onListKey, onListDoubleClick } from './files.js';
+import { loadTree, drawTree, visiblePaths, step, open, follow, createFile, showNewForm, go, reveal, rememberedDir, onListKey, onListDoubleClick } from './files.js';
 import { whenReady, showEmpty } from './render.js';
 import { save, saveFirst, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
@@ -67,6 +67,7 @@ function wire() {
     if (e.source !== el.preview.contentWindow) return;
     if (e.data?.type === 'edit') applyEdit(e.data);
     else if (e.data?.type === 'swipe') turn(e.data.by);
+    else if (e.data?.type === 'follow') follow(e.data.href);
     else if (e.data?.type === 'key') onKey({ ...e.data, preventDefault() {} });
   });
 
