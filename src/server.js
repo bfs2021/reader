@@ -44,6 +44,9 @@ import { FEATURES } from '../features/index.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const STATIC_DIR = path.join(HERE, '..', 'static');
+// The name each static file has on disk, which a case-insensitive disk would
+// otherwise let a request spell any way it likes.
+const STATIC_REAL = fs.realpathSync.native(STATIC_DIR);
 
 const MAX_BODY = 20 * 1024 * 1024;
 
@@ -129,6 +132,9 @@ const PAGE_POLICIES = {
     'frame-ancestors': "'self'",
   }),
 };
+
+// Any other page runs nothing and can't be framed.
+const UNLISTED_PAGE = POLICY({ ...LOCKED, 'frame-ancestors': "'none'" });
 
 // No scripts, no forms, and an opaque origin, for anything opened straight
 // from /content/. PDFs are left out: browsers won't show one in a sandbox,
@@ -230,7 +236,13 @@ export function createServer({ root, allowHosts = [] }) {
     if (!abs.startsWith(STATIC_DIR + path.sep) || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
       return send(res, 404, 'not found', 'text/plain');
     }
-    const policy = PAGE_POLICIES[rel] ? { 'Content-Security-Policy': PAGE_POLICIES[rel] } : {};
+    // Only by its own name: a page's policy is found by name, so /PREVIEW.HTML
+    // would otherwise be the preview with no policy, framed by anyone.
+    if (path.relative(STATIC_REAL, fs.realpathSync.native(abs)).split(path.sep).join('/') !== rel) {
+      return send(res, 404, 'not found', 'text/plain');
+    }
+    const csp = PAGE_POLICIES[rel] ?? (path.extname(rel) === '.html' ? UNLISTED_PAGE : undefined);
+    const policy = csp ? { 'Content-Security-Policy': csp } : {};
     if (rel === 'preview.html') {
       const html = fs.readFileSync(abs, 'utf8').replace('<!-- scripts -->', PREVIEW_SCRIPTS);
       return send(res, 200, html, TYPES['.html'], policy);

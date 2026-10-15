@@ -173,6 +173,14 @@ test('each page says what it may load: its own scripts only, nothing inline', as
   }
 });
 
+test('a page is served only by its own name, so no spelling of it comes without its policy', async () => {
+  for (const url of ['/PREVIEW.HTML', '/Preview.html', '/INDEX.HTML', '/Speaker.html', '/APP/main.js']) {
+    const res = await fetch(base + url);
+    assert.equal(res.status, 404, url);
+  }
+  assert.equal((await fetch(base + '/preview.html')).status, 200);
+});
+
 test('a request addressed to another host is refused, unless the server was started with its name', async () => {
   const ask = (port, host) => new Promise((resolve, reject) => {
     http.get({ host: '127.0.0.1', port, path: '/api/info', headers: { Host: host } }, (res) => {
