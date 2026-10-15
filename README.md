@@ -528,6 +528,24 @@ numbers.stream()
 <2> one line per running sum
 ````
 
+What the code prints goes in an `output` fence right after it. It's
+drawn attached under the code, tinted and bold, and a callout can mark
+its lines too, with the notes after both fences. On a slide, the output
+appears with the first callout in it, or as a step of its own after the
+code's. Output longer than 12 lines is cut short, with a link to show all
+of it; on a slide or on paper, it's whole.
+
+````markdown
+```java
+numbers.stream().gather(Gatherers.scan(() -> 0, Integer::sum)).forEach(System.out::println);
+```
+```output
+1
+3
+6
+```
+````
+
 A `mermaid` fence is drawn as a [Mermaid](https://mermaid.js.org/) diagram:
 a flowchart, a sequence, a state machine, a timeline and so on. While you
 type, the diagram keeps its last good drawing until the text reads again,

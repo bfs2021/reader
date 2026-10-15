@@ -33,16 +33,18 @@
       const shows = pre.closest('[data-step]');
       if (!shows) continue;
       const at = Math.min(Number(pre.dataset.focusSteps), Math.max(1, k - Number(shows.dataset.step) + 1));
-      for (const line of pre.querySelectorAll('.line')) {
+      // With its output and callouts' notes, which show from the first step
+      // they stand out in.
+      const group = pre.closest('.code-group') || pre;
+      for (const line of group.querySelectorAll('.line')) {
         line.classList.toggle('hl', (line.dataset.focus || '').split(' ').includes(String(at)));
       }
-      // A callout's note shows from the first step its lines stand out in.
-      for (const note of pre.closest('.callouts')?.querySelectorAll('.callout-notes > li[data-focus]') || []) {
-        const steps = note.dataset.focus.split(' ').map(Number);
+      for (const shown of group.querySelectorAll('.callout-notes > li[data-focus], pre.output[data-focus]')) {
+        const steps = shown.dataset.focus.split(' ').map(Number);
         const later = steps[0] > at;
-        note.classList.toggle('step-hidden', later && !dim);
-        note.classList.toggle('step-dim', later && dim);
-        note.classList.toggle('hl', steps.includes(at));
+        shown.classList.toggle('step-hidden', later && !dim);
+        shown.classList.toggle('step-dim', later && dim);
+        if (shown.matches('li')) shown.classList.toggle('hl', steps.includes(at));
       }
     }
   }

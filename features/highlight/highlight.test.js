@@ -56,7 +56,7 @@ test('ranges separated by | are steps, the first standing out from the start', (
 test('a callout marks its line, and its note follows the fence', () => {
   const body = fence('', 'a <1>');
   const html = render('```\na <1>\nb\nc // <2>\n```\n<1> - the first\n<2> the second\nrunning on\n').body;
-  assert.match(html, /<div class="callouts">\n<pre class="code-lines code-focus" data-focus-steps="3"><code>/);
+  assert.match(html, /<div class="code-group">\n<pre class="code-lines code-focus" data-focus-steps="3"><code>/);
   assert.match(html, /<span class="line" data-focus="2" data-callout="1">a<span class="callout" data-n="1"><\/span><\/span>\n<span class="line">b<\/span>\n<span class="line" data-focus="3" data-callout="2">c<span class="callout" data-n="2"><\/span><\/span>/);
   assert.match(html, /<ol class="callout-notes">\n<li data-callout="1" data-focus="2"><span class="callout" data-n="1"><\/span><span>the first<\/span><\/li>\n<li data-callout="2" data-focus="3"><span class="callout" data-n="2"><\/span><span>the second\nrunning on<\/span><\/li>\n<\/ol>\n<\/div>/);
   assert.match(body, /a &lt;1&gt;/, 'without a note, a marker is code');
@@ -81,6 +81,31 @@ test('a fence that picks its own lines keeps them, and its notes follow them', (
 
 test('a paragraph after a fence that is not notes is left alone', () => {
   const html = render('```\na <1>\n```\nJust text.\n').body;
-  assert.doesNotMatch(html, /callouts/);
+  assert.doesNotMatch(html, /code-group/);
   assert.match(html, /a &lt;1&gt;/);
+});
+
+test('an output fence after code is its output, shown as a step after it', () => {
+  const html = render('```js\nlog(1)\n```\n```output\n1\n```\n').body;
+  assert.match(html, /<div class="code-group">\n<pre data-focus-steps="2"><code class="hljs language-js">/);
+  assert.match(html, /<pre class="output" data-focus="2"><code class="language-output">1\n<\/code><\/pre>\n<\/div>/);
+});
+
+test('an output fence on its own is output, unattached', () => {
+  const html = render('```output\n1\n```\n').body;
+  assert.match(html, /<pre class="output"><code class="language-output">1\n<\/code><\/pre>/);
+  assert.doesNotMatch(html, /code-group/);
+});
+
+test('a callout in the output marks its line, and shows the output from its step', () => {
+  const html = render('```js\na <1>\n```\n```output\nb <2>\n```\n<1> one\n<2> two\n').body;
+  assert.match(html, /<pre class="code-lines code-focus" data-focus-steps="3">/);
+  assert.match(html, /<pre class="output code-lines code-focus" data-focus="3"><code class="language-output"><span class="line" data-focus="3" data-callout="2">b<span class="callout" data-n="2"><\/span><\/span>/);
+  assert.match(html, /<li data-callout="2" data-focus="3">/);
+});
+
+test('long output is cut short, with a way to show the rest', () => {
+  const html = render(`\`\`\`output\n${Array(13).fill('x').join('\n')}\n\`\`\`\n`).body;
+  assert.match(html, /<div class="output-long">\n<pre class="output">[\s\S]*<\/pre>\n<label class="output-more"><input type="checkbox"><span>Show all 13 lines<\/span><\/label>\n<\/div>/);
+  assert.doesNotMatch(render(`\`\`\`output\n${Array(12).fill('x').join('\n')}\n\`\`\`\n`).body, /output-long/);
 });

@@ -18,8 +18,10 @@
  * them it stands out in (`data-focus`); the first shows from the start, and
  * when presenting, the deck moves through the rest.
  *
- * Callouts, `<1>` at the end of a line and its note after the fence, are
- * in callouts.js; a fence with them is a fence with its lines picked out.
+ * Callouts, `<1>` at the end of a line and its note after the fence, and
+ * an `output` fence after code, are in callouts.js; a fence with callouts
+ * is a fence with its lines picked out. Output of more than a dozen lines
+ * is cut short, with a checkbox to show the rest.
  */
 
 import fs from 'node:fs';
@@ -91,39 +93,54 @@ export function highlighting(md) {
   md.core.ruler.before('inline', 'callouts', callouts);
   md.renderer.rules.callout_note_open = renderNote;
   md.renderer.rules.callout_note_close = renderNoteClose;
-  md.renderer.rules.fence = (tokens, i, opts, env, self) => {
+  md.renderer.rules.fence = (tokens, i) => {
     const token = tokens[i];
     const info = token.info ? md.utils.unescapeAll(token.info) : '';
-    const { lang, numbers, groups: picked } = parseInfo(info);
-    const marks = token.meta?.callouts;
-    const groups = token.meta?.groups ?? picked;
+    const { lang, numbers, groups } = parseInfo(info);
+    const meta = token.meta || {};
+    // The steps each line stands out in: the callouts', or the ranges'.
+    const focusOf = meta.focus
+      ? (n) => meta.focus.get(n) || []
+      : (n) => groups.flatMap((g, j) => (g.has(n) ? [j + 1] : []));
+    const steps = meta.steps ?? groups.length;
     const known = Boolean(lang && hljs.getLanguage(lang));
     const code = known ? ` class="hljs language-${escapeAttr(lang)}"` : (lang ? ` class="language-${escapeAttr(lang)}"` : '');
     const html = highlight(token.content, lang);
-    if (!numbers && !groups.length) return `<pre${self.renderAttrs(token)}><code${code}>${html}</code></pre>\n`;
+    const attrs = [...(token.attrs || [])];
+    if (steps > 1) attrs.push(['data-focus-steps', String(steps)]);
+    const lined = numbers || groups.length || meta.focus;
+    if (!lined) return `<pre${attributes(attrs)}><code${code}>${html}</code></pre>\n`;
 
     const rows = splitLines(html.replace(/\n$/, ''));
-    const classes = ['code-lines', numbers && 'code-numbers', groups.length && 'code-focus'].filter(Boolean);
-    const attrs = [...(token.attrs || [])];
+    const classes = ['code-lines', numbers && 'code-numbers', (groups.length || meta.focus) && 'code-focus'].filter(Boolean);
     const had = attrs.find(([k]) => k === 'class');
     if (had) had[1] = `${had[1]} ${classes.join(' ')}`;
     else attrs.unshift(['class', classes.join(' ')]);
     if (numbers) attrs.push(['style', `--digits: ${String(rows.length).length}`]);
-    if (groups.length > 1) attrs.push(['data-focus-steps', String(groups.length)]);
-    const pre = attrs.map(([k, v]) => ` ${k}="${escapeAttr(v)}"`).join('');
+    const pre = attributes(attrs);
 
     const body = rows.map((row, k) => {
       const n = k + 1;
-      const hl = groups[0]?.has(n) ? ' hl' : '';
-      const focus = groups.length > 1 ? groups.flatMap((g, j) => (g.has(n) ? [j + 1] : [])) : [];
-      const ns = marks?.get(n) || [];
-      const data = (focus.length ? ` data-focus="${focus.join(' ')}"` : '') + (ns.length ? ` data-callout="${ns.join(' ')}"` : '');
+      const focus = focusOf(n);
+      const hl = focus.includes(1) ? ' hl' : '';
+      const ns = meta.callouts?.get(n) || [];
+      const data = ((meta.focus || steps > 1) && focus.length ? ` data-focus="${focus.join(' ')}"` : '') + (ns.length ? ` data-callout="${ns.join(' ')}"` : '');
       const badges = ns.map((c) => `<span class="callout" data-n="${c}"></span>`).join('');
       return `<span class="line${hl}"${data}>${row}${badges}</span>`;
     }).join('\n');
     return `<pre${pre}><code${code}>${body}\n</code></pre>\n`;
   };
+  // Output long enough to be cut short, with a way to show all of it.
+  const fence = md.renderer.rules.fence;
+  md.renderer.rules.fence = (tokens, i, opts, env, self) => {
+    const html = fence(tokens, i, opts, env, self);
+    if (!tokens[i].meta?.long) return html;
+    const n = tokens[i].content.replace(/\n$/, '').split('\n').length;
+    return `<div class="output-long">\n${html}<label class="output-more"><input type="checkbox"><span>Show all ${n} lines</span></label>\n</div>\n`;
+  };
 }
+
+const attributes = (attrs) => attrs.map(([k, v]) => ` ${k}="${escapeAttr(v)}"`).join('');
 
 export default {
   name: 'highlight',

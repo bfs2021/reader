@@ -53,8 +53,8 @@ pre.code-numbers .line::before {
 
 /* callouts: a numbered badge at the end of a marked line, and the same
  * badge on its note below; the numbers are drawn here, so they don't copy */
-.callouts { --callout-hover: #f0ebde; }
-.callouts > pre { margin-bottom: 0.5rem; }
+.code-group { --callout-hover: #f0ebde; }
+.code-group > pre:has(+ .callout-notes) { margin-bottom: 0.5rem; }
 .callout::before {
   content: attr(data-n);
   display: inline-grid;
@@ -84,3 +84,48 @@ pre .callout { margin-left: 1.2ch; }
 .callout-notes > li > .callout { padding-top: .15em; }
 /* a note whose line stands out, while stepping through them */
 .callout-notes > li.hl { background: var(--callout-hover); }
+
+/* a fence's output, attached under it: tinted, bold, and labelled */
+pre.output {
+  position: relative;
+  background: #eef1f5;
+  border-color: #d5dbe4;
+}
+pre.output > code { font-weight: 600; }
+pre.output::before {
+  content: "output";
+  position: absolute;
+  top: .3rem;
+  right: .55rem;
+  font: 600 .62rem/1 var(--gm-sans);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--gm-ink-soft);
+  opacity: .7;
+}
+.code-group > pre:has(+ pre.output, + .output-long) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.code-group > pre + pre.output,
+.code-group > pre + .output-long > pre {
+  margin-top: 0;
+  border-top: 1px dashed #c9d1dc;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+pre.output.code-focus .line.hl { background: #dfe6ef; }
+
+/* long output: cut short until asked for, but whole on a slide or paper */
+.output-long > pre { max-height: 12lh; overflow: hidden; mask-image: linear-gradient(#000 70%, transparent); }
+.output-long:has(input:checked) > pre { max-height: none; mask-image: none; }
+.output-more { display: inline-block; margin: -.4rem 0 1rem; font: .8rem var(--gm-sans); color: var(--gm-ink-soft); cursor: pointer; }
+.output-more input { display: none; }
+.output-more:has(input:checked) { display: none; }
+.deck .output-long > pre { max-height: none; mask-image: none; }
+.deck .output-more { display: none; }
+@media print {
+  .output-long > pre { max-height: none; mask-image: none; }
+  .output-more { display: none; }
+}

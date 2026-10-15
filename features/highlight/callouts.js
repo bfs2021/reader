@@ -17,7 +17,10 @@
  * clean. A note runs from its `<N>` to the next, a `-` after the marker
  * read as part of it.
  *
- * The fence and its notes are drawn as one block (`.callouts`), each line a
+ * What the code prints goes in an `output` fence right after it, before
+ * the notes, and its lines can carry markers too.
+ *
+ * The fences and notes are drawn as one block (`.code-group`), each line a
  * marker's on saying so (`data-callout`). Each callout is a step of the
  * fence's highlight, after one where none stands out, unless the info
  * string picks out its own (`{1|3}`); a note shows with the first step its
@@ -64,26 +67,63 @@ export function takeMarks(code, known) {
   return { code: lines.join('\n'), marks };
 }
 
-/** A core rule: each fence followed by notes on its lines becomes one block. */
+const isOutput = (t) => t?.type === 'fence' && t.info.trim() === 'output';
+
+// Output this many lines or more is cut short, with a way to show the rest.
+const LONG = 12;
+
+/**
+ * A core rule: a code fence, the `output` fence right after it, and the
+ * notes on their lines after those, become one block. Each callout is a
+ * step after one where none stands out, unless the code picks out its own
+ * lines; the output shows with the first step its lines stand out in, or,
+ * with none, as a step of its own, after the rest.
+ */
 export function callouts(state) {
   const tokens = state.tokens;
-  for (let i = tokens.length - 4; i >= 0; i--) {
+  for (const t of tokens) {
+    if (!isOutput(t)) continue;
+    t.attrJoin('class', 'output');
+    t.meta = { ...t.meta, long: t.content.replace(/\n$/, '').split('\n').length > LONG };
+  }
+  for (let i = tokens.length - 1; i >= 0; i--) {
     const fence = tokens[i];
-    const open = tokens[i + 1];
-    if (fence.type !== 'fence' || open.type !== 'paragraph_open' || open.level !== fence.level) continue;
-    const notes = readNotes(tokens[i + 2].content);
-    if (!notes.length) continue;
-    const { code, marks } = takeMarks(fence.content, new Set(notes.map((note) => note.n)));
-    if (!marks.size) continue;
-    fence.content = code;
+    if (fence.type !== 'fence' || isOutput(fence)) continue;
+    let k = i + 1;
+    const output = isOutput(tokens[k]) && tokens[k].level === fence.level ? tokens[k++] : null;
+    const open = tokens[k]?.type === 'paragraph_open' && tokens[k].level === fence.level ? tokens[k] : null;
+    let notes = open ? readNotes(tokens[k + 1].content) : [];
+    const known = new Set(notes.map((note) => note.n));
+    const code = takeMarks(fence.content, known);
+    const out = output ? takeMarks(output.content, known) : { marks: new Map() };
+    if (!code.marks.size && !out.marks.size) notes = [];
+    if (!output && !notes.length) continue;
+    if (notes.length) {
+      fence.content = code.code;
+      if (output) output.content = out.code;
+    }
 
-    // Each callout's lines, a step each after one with none, unless the
-    // fence picks its own.
-    const linesOf = (n) => new Set([...marks].filter(([, ns]) => ns.includes(n)).map(([line]) => line));
+    const linesOf = (marks, n) => [...marks].filter(([, ns]) => ns.includes(n)).map(([line]) => line);
+    const marked = (n) => linesOf(code.marks, n).length || linesOf(out.marks, n).length;
+    const order = [...new Set(notes.map((note) => note.n))].filter(marked);
     const picked = parseInfo(fence.info ? state.md.utils.unescapeAll(fence.info) : '').groups;
-    const order = [...new Set(notes.map((note) => note.n))].filter((n) => linesOf(n).size);
-    const groups = picked.length ? picked : [new Set(), ...order.map(linesOf)];
-    fence.meta = { ...fence.meta, callouts: marks, groups };
+    const stepsOf = picked.length
+      ? (n) => picked.flatMap((g, j) => (linesOf(code.marks, n).some((line) => g.has(line)) ? [j + 1] : []))
+      : (n) => (order.includes(n) ? [order.indexOf(n) + 2] : []);
+    let steps = picked.length || (order.length ? order.length + 1 : 1);
+    const focus = (marks) => new Map([...marks].map(([line, ns]) => [line, [...new Set(ns.flatMap(stepsOf))].sort((a, b) => a - b)]));
+
+    fence.meta = { ...fence.meta, callouts: code.marks };
+    if (!picked.length && order.length) fence.meta.focus = focus(code.marks);
+    if (output) {
+      const lines = focus(out.marks);
+      const first = Math.min(...[...lines.values()].flat());
+      const start = Number.isFinite(first) ? first : ++steps;
+      output.meta.callouts = out.marks;
+      if (out.marks.size) output.meta.focus = lines;
+      if (steps > 1) output.attrSet('data-focus', String(start));
+    }
+    fence.meta.steps = steps;
 
     const Token = state.Token;
     const make = (type, tag, nesting, attrs = []) => {
@@ -93,22 +133,21 @@ export function callouts(state) {
       t.attrs = attrs;
       return t;
     };
-    const wrap = make('callouts_open', 'div', 1, [['class', 'callouts']]);
-    wrap.map = [fence.map[0], open.map[1]];
+    const end = notes.length ? k + 2 : k - 1;
+    const wrap = make('code_group_open', 'div', 1, [['class', 'code-group']]);
+    wrap.map = [fence.map[0], (notes.length ? open : output).map[1]];
     wrap.meta = { whole: true };
-    const list = make('callout_notes_open', 'ol', 1, [['class', 'callout-notes']]);
-    list.map = open.map;
-    const items = notes.flatMap((note) => {
-      const lines = linesOf(note.n);
-      const steps = groups.flatMap((g, j) => ([...lines].some((line) => g.has(line)) ? [j + 1] : []));
+    const list = !notes.length ? [] : [make('callout_notes_open', 'ol', 1, [['class', 'callout-notes']]), ...notes.flatMap((note) => {
       const li = make('callout_note_open', 'li', 1, [['data-callout', String(note.n)]]);
-      if (steps.length) li.attrPush(['data-focus', steps.join(' ')]);
+      const at = stepsOf(note.n);
+      if (at.length) li.attrPush(['data-focus', at.join(' ')]);
       const inline = make('inline', '', 0);
       inline.content = note.text;
       inline.children = [];
       return [li, inline, make('callout_note_close', 'li', -1)];
-    });
-    tokens.splice(i, 4, wrap, fence, list, ...items, make('callout_notes_close', 'ol', -1), make('callouts_close', 'div', -1));
+    }), make('callout_notes_close', 'ol', -1)];
+    if (list.length) list[0].map = open.map;
+    tokens.splice(i, end - i + 1, wrap, fence, ...(output ? [output] : []), ...list, make('code_group_close', 'div', -1));
   }
 }
 
@@ -125,7 +164,7 @@ export function hoverCss(max = 20) {
   const rules = [];
   for (let n = 1; n <= max; n++) {
     const on = `[data-callout~="${n}"]`;
-    rules.push(`.callouts:has(${on}:hover) ${on}`);
+    rules.push(`.code-group:has(${on}:hover) ${on}`);
   }
   return `${rules.join(',\n')} { background: var(--callout-hover); }\n`;
 }
