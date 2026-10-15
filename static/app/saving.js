@@ -11,11 +11,17 @@ import { loadTree } from './files.js';
 import { setSaveState, updateDirty, updateCounts, toast } from './status.js';
 
 let saveTimer = 0;
-export function scheduleSave() {
+export function scheduleSave(delay = AUTOSAVE_DELAY) {
   clearTimeout(saveTimer);
   if (state.conflict) return;
-  saveTimer = setTimeout(() => save(), AUTOSAVE_DELAY);
+  saveTimer = setTimeout(() => save(), delay);
 }
+
+// A save the server couldn't take, because it was down or failed, is tried
+// again, less often each time, until it goes through; what it refused (a
+// conflict, a path it won't write) waits for the next edit.
+const RETRY_LIMIT = 30000;
+let retryDelay = 0;
 
 /** Saves are queued so two never race each other to disk. */
 export function save({ explicit = false, force = false } = {}) {
@@ -49,6 +55,7 @@ export async function doSave({ explicit, force }) {
     if (state.current?.path !== cur.path) return;
     state.saved = text;
     state.mtime = out.mtime;
+    retryDelay = 0;
     setConflict(false);
     setSaveState('saved', 'ok');
     const f = state.files.find((x) => x.path === cur.path);
@@ -59,7 +66,11 @@ export async function doSave({ explicit, force }) {
       setSaveState('not saved', 'err');
     } else {
       setSaveState('not saved', 'err');
-      toast(`save failed: ${err.message}`, true);
+      const away = err.status === undefined || err.status >= 500;
+      // Said once, not on every try while the server is away.
+      if (!away || !retryDelay) toast(`save failed: ${err.message}`, true);
+      retryDelay = away ? Math.min(RETRY_LIMIT, retryDelay * 2 || 2000) : 0;
+      if (away) scheduleSave(retryDelay);
     }
   }
   updateDirty();
