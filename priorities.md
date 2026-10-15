@@ -8,6 +8,7 @@
 - [ ] internal link format
 - [x] #62 code fence annotations: `<1>` at the end of a line in the fence, its note after the fence. A step each on slides.
 - [x] #63 an `output` fence after a code fence, attached to it below. A step on slides.
+- [x] #65 retro cards: `Good (Josh):`, `Bad:`, `Try:`, with `A:` as discussion and `+1` votes. A checkbox on `Try` left for later.
 
 ## P1
 

@@ -73,3 +73,29 @@ test('a quote opening the line curls like any other', () => {
   const { body } = render('A (Ann): "Sparkle," she said.\n');
   assert.match(body, /<span class="qa-name">Ann<\/span>“Sparkle,” she said\./);
 });
+
+test('Good:, Bad: and Try: lines are cards, each one its own', () => {
+  const { body } = render('Good (Josh): one\nGood (Josh): two\nA (Rob): agreed\nBad: three\n\nTry (Josh): four\n\n\\Good: plain\n');
+  assert.equal(body.match(/class="qa qa-card qa-good"/g).length, 2);
+  assert.match(body, /<li class="qa qa-card qa-good">\n<p><span class="qa-label">G<\/span><span class="qa-name">Josh<\/span>two<\/p>\n<\/li>\n<li class="qa qa-a">\n<p><span class="qa-label">A<\/span><span class="qa-name">Rob<\/span>agreed/);
+  assert.match(body, /<li class="qa qa-card qa-bad">\n<p><span class="qa-label">B<\/span>three<\/p>/);
+  assert.match(body, /<span class="qa-label">T<\/span><span class="qa-name">Josh<\/span>four/);
+  assert.match(body, /<p>Good: plain<\/p>/);
+});
+
+test('+1 under a card or a question is a vote, counted on it', () => {
+  const { body } = render('Bad (Josh): late\n+1 (Rob)\n+1 (Joe): same, *again*\n+1\nA: so\n+1:\n\nQ: why?\n+1: me too\n');
+  assert.match(body, /<span class="qa-label">B<\/span><span class="qa-tally">\+4<\/span><span class="qa-name">Josh<\/span>late/);
+  assert.match(body, /<li class="qa qa-vote qa-bare">\n<p><span class="qa-label">\+1<\/span><span class="qa-name">Rob<\/span><\/p>/);
+  assert.match(body, /<li class="qa qa-vote">\n<p><span class="qa-label">\+1<\/span><span class="qa-name">Joe<\/span>same, <em>again<\/em><\/p>/);
+  assert.match(body, /<li class="qa qa-vote qa-bare">\n<p><span class="qa-label">\+1<\/span><\/p>\n<\/li>\n<li class="qa qa-a">/);
+  assert.match(body, /<span class="qa-label">Q<\/span><span class="qa-tally">\+1<\/span>why\?/);
+  assert.match(body, /<li class="qa qa-vote">\n<p><span class="qa-label">\+1<\/span>me too<\/p>/);
+});
+
+test('+1 with nothing to vote for stays as typed', () => {
+  const { body } = render('+1 (Rob)\n\nGood: one\ntext\n+1\n\nA: two\n+1 (Ann)\n');
+  assert.match(body, /<p>\+1 \(Rob\)<\/p>/);
+  assert.match(body, /one\ntext\n\+1/);
+  assert.doesNotMatch(body, /qa-vote|qa-tally/);
+});

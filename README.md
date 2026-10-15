@@ -176,6 +176,21 @@ line starting at the margin that isn't `Q:` or `A:` ends the exchange.
 
 A backslash (`\A:`) keeps a line that happens to start that way as typed.
 
+A retro's cards work the same way: `Good:`, `Bad:` and `Try:` each start a
+card, labelled G, B or T, with `A:` after it as its discussion. Every card
+line is a card of its own, even from the same person twice in a row. `+1`
+under a card or a question is a vote for it, named or not, with a comment
+after a colon or not; the card shows how many votes it has:
+
+```markdown
+Bad (Josh): We were surprised by the Join deadline
++1 (Rob)
++1 (Joe): same, I found out the day of
+A (Rob): Would like to see those planned relative to the calendar.
+```
+
+A `+1` with no card or question above it stays as typed.
+
 A line starting `@ ` is a **form field**: a label, a colon, and whatever's
 filled in after it, which can be nothing yet.
 
