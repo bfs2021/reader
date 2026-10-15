@@ -23,6 +23,7 @@ import asides from './asides/index.js';
 import fields from './fields/index.js';
 import tasks from './tasks/index.js';
 import qa from './qa/index.js';
+import definitions from './definitions/index.js';
 import sizes from './sizes/index.js';
 import alerts from './alerts/index.js';
 import attributions from './attributions/index.js';
@@ -50,4 +51,4 @@ import tabs from './tabs/index.js';
 // styles, which leaves it the lines its blocks open and close on. date comes after fields and tasks, so the lines
 // they keep are as written, without its marks. tabs comes last, so the
 // words it compares are the ones the others leave as text.
-export const FEATURES = [asides, fields, tasks, qa, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, social, math, arrows, emoji, highlight, mermaid, headline, number, puzzles, tabs];
+export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, social, math, arrows, emoji, highlight, mermaid, headline, number, puzzles, tabs];

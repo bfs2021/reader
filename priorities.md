@@ -4,6 +4,7 @@
 2. Please use "-s" when committing to that my signoff appears
 3. Please add 'Closes gh-xxx' to the end of the commit message where xxx is the ticket number
 
+- [x] #64 definitions: `!SLAB (Venkat): similar layers of abstraction`, a dictionary entry; the term elsewhere shows it on hover.
 - [ ] internal link format
 - [x] #62 code fence annotations: `<1>` at the end of a line in the fence, its note after the fence. A step each on slides.
 - [x] #63 an `output` fence after a code fence, attached to it below. A step on slides.

@@ -236,6 +236,31 @@ sentence. Square brackets typed into it are written as round ones, so they
 don't end it early. One followed by `(` is a link, as `[text](url)` is, and a backslash
 (`\[@ `) keeps it as typed.
 
+A line starting `!` is a **definition**: a term, a colon, and what it
+means, set as a dictionary sets it, the term in bold small capitals. The
+meaning is markdown like any other line (links, bold, `[red]{red}`), and who
+used the term can follow it in parentheses, as in an exchange:
+
+```markdown
+!SLAB (Venkat): similar layers of abstraction
+!gatherer: an intermediate operation that can see the whole stream
+!gatherer: one that keeps its own *state* between elements
+!REPL:
+```
+
+Definitions on lines in a row make one glossary, and the same term again
+straight after is another sense of it, numbered. A term with nothing after
+its colon is one you heard but haven't looked up: a blank, filled in as a
+field is. A term in capitals whose meaning spells it out has those letters
+bolded: **s**imilar **l**ayers of **ab**straction.
+
+Wherever else the term appears in the document -- before its definition or
+after, in an aside, on a later slide of a deck -- it's underlined, and its
+meaning shows on hover. A term in capitals is matched as written; one in
+lower case, in any case. Code and links are left alone.
+
+A backslash (`\!SLAB:`) keeps a line that happens to start that way as typed.
+
 A blockquote whose last line starts with `--` takes that line as its
 attribution, set right-aligned under the quote. Links, and `scripture:`, work
 there as anywhere:
@@ -1101,7 +1126,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups, the trash, branching, renaming and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `tabs`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `definitions`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `tabs`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |

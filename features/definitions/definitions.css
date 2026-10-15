@@ -1,0 +1,76 @@
+/* A dictionary's entry: the term in bold small capitals, its meaning after
+   it in the text's own serif, and the lines after the first hanging under
+   the term. */
+dl.defs { margin: 0.8rem 0; }
+.def { padding-left: 1.6em; text-indent: -1.6em; margin: 0.25rem 0; }
+.def > * { text-indent: 0; }
+.def-term, .def-meaning { display: inline; margin: 0; }
+.def-term {
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  margin-right: 0.5em;
+}
+/* More than one sense: each numbered, in a run after the term. */
+.def-senses { counter-reset: def-sense; }
+.def-senses > .def-meaning { counter-increment: def-sense; }
+.def-senses > .def-meaning::before {
+  content: counter(def-sense) ". ";
+  font-weight: 700;
+}
+.def-senses > .def-meaning + .def-meaning::before { content: " " counter(def-sense) ". "; }
+.def-initial { font-weight: 700; }
+/* Who used the term, as a dictionary cites its source. */
+.def-name {
+  margin-left: 0.5em;
+  font-family: var(--gm-sans);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  font-size: 0.85em;
+  color: var(--gm-ink-soft);
+}
+.def-name::before { content: "— "; }
+/* A term not yet looked up: a blank to fill in. */
+.def-meaning > .field.def-blank {
+  display: inline-flex;
+  vertical-align: baseline;
+  width: 16rem;
+  max-width: 100%;
+  margin: 0;
+}
+.def-blank > .field-value { min-height: 0; padding: 0 0.15em; line-height: inherit; background: none; border-bottom: 2px solid var(--gm-field-rule); }
+
+/* The term where it's used: underlined, its meaning shown on hover. */
+.def-use {
+  position: relative;
+  text-decoration: underline dotted var(--gm-accent);
+  text-underline-offset: 0.2em;
+  cursor: help;
+}
+.def-pop {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: calc(100% + 0.3em);
+  width: max-content;
+  max-width: 22rem;
+  padding: 0.45em 0.7em;
+  border: 1px solid var(--gm-rule);
+  border-radius: 4px;
+  background: var(--gm-paper);
+  color: var(--gm-ink);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+  font-family: var(--gm-serif);
+  font-size: 0.92rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+  cursor: auto;
+}
+.def-pop-term { font-variant: small-caps; letter-spacing: 0.04em; margin-right: 0.3em; }
+.def-use:hover > .def-pop, .def-use:focus > .def-pop { display: block; }
+@media print { .def-use { text-decoration: none; } .def-pop { display: none !important; } }
