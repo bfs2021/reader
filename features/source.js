@@ -108,8 +108,12 @@ function text(state, content) {
 /** `&`, `<`, `>` and `"` escaped, for text. */
 export const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
-/** `&`, `"` and `<` escaped, for an attribute's value. */
-export const escapeAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+/**
+ * `&`, `"`, `<` and `>` escaped, for an attribute's value. A raw `>` would be
+ * valid there, but later passes find tags with `<[^>]*>` and would end the
+ * tag at it.
+ */
+export const escapeAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
  * Adds `name` to a token's classes, after any it has; a token that had none

@@ -133,7 +133,7 @@ function deck(text, { file, read, drawn }) {
  * URL, a missing file) and stays as it is. A missing file goes on `missing`.
  */
 function dataUrl(content, file, src, missing) {
-  const ref = src.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<');
+  const ref = src.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
   if (!ref || /^([a-z][a-z0-9+.-]*:|\/|#)/i.test(ref)) return null;
   let rel;
   try {

@@ -8,7 +8,7 @@
  * Here, each puzzle fence is wrapped for the preview to draw:
  *
  *   <div class="puzzle" data-kind="sudoku" data-puzzle="k"
- *        data-from="f" data-to="t" data-prefix="> ">…the code block…</div>
+ *        data-from="f" data-to="t" data-prefix="&gt; ">…the code block…</div>
  *
  * numbered in document order (across a deck's slides too, through
  * `env.shared`) so the preview can tell it's the same puzzle after a

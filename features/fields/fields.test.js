@@ -72,3 +72,9 @@ test('[@ ] lines keep their breaks, and a link, code, an escape or an @ line are
 test('the stylesheet comes with the feature', () => {
   assert.match(render('@ A: b\n').css, /\.field \{/);
 });
+
+test('a > in a field stays out of the tags it is written into', () => {
+  const { body } = render('@ N"><svg>: v\n\nA [@ x"><b>: y].\n');
+  for (const [tag] of body.matchAll(/<span [^>]*>/g)) assert.doesNotMatch(tag.slice(1, -1), /[<>]/, tag);
+  assert.match(body, /data-text="@ N&quot;&gt;&lt;svg&gt;: v"/);
+});

@@ -57,9 +57,9 @@ test('a puzzle in a quote or a list knows its lines, and what they start with', 
   const src = '> ```sudoku\n> 5 3 .\n> ```\n\n- item\n\n  ```maze\n  path: R\n  ```\n\n> ```coord\n> ```\n';
   const hosts = render(src).body.match(HOST);
   assert.equal(hosts.length, 3);
-  assert.match(hosts[0], /data-kind="sudoku" data-puzzle="0" data-from="1" data-to="2" data-prefix="> "/);
+  assert.match(hosts[0], /data-kind="sudoku" data-puzzle="0" data-from="1" data-to="2" data-prefix="&gt; "/);
   assert.match(hosts[1], /data-kind="maze" data-puzzle="1" data-from="7" data-to="8" data-prefix=" {2}"/);
-  assert.match(hosts[2], /data-kind="coord" data-puzzle="2" data-from="11" data-to="11" data-prefix="> "/);
+  assert.match(hosts[2], /data-kind="coord" data-puzzle="2" data-from="11" data-to="11" data-prefix="&gt; "/);
 });
 
 test('a puzzle whose lines start differently, or in an aside, can be seen but not played', () => {
