@@ -37,6 +37,10 @@ function asideOf(line, key) {
 // `!TERM:` definitions.
 const BLOCK_START_RE = /^[ \t]*(?:[*+-][ \t]|\d+[.)][ \t]|#{1,6}[ \t]|>|```|~{3,}|-{3,}\s*$|_{3,}\s*$|:{3}|\+{3,}(?:[ \t]|$)|@[ \t]|\\?![ \t]*[^\s[!:()][^:\n]*:(?:[ \t]|$))/;
 
+// An HTML comment on lines of its own. The renderer takes no HTML, so it would
+// otherwise show as text; it's dropped instead, asides and all, which makes it
+// the place for a note to whoever opens the file, such as how to review it.
+const COMMENT_START_RE = /^ {0,3}<!--/;
 
 function expandTabs(line) {
   return line.replace(/\t/g, '    ');
@@ -116,6 +120,17 @@ export function preprocess(src, opts = {}) {
       fence = fm[1];
       out.push(line);
       from.push(i);
+      i++;
+      continue;
+    }
+
+    // Drop a comment, through the line that closes it.
+    if (COMMENT_START_RE.test(line)) {
+      let at = line.indexOf('<!--') + 4;
+      while (i < lines.length && !lines[i].includes('-->', at)) {
+        i++;
+        at = 0;
+      }
       i++;
       continue;
     }

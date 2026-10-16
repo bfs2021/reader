@@ -11,7 +11,7 @@ test('arrows, but not in code, comments or when escaped', () => {
   assert.match(text('a -> b <- c <-> d\n'), /a \u2192 b \u2190 c \u2194 d/);
   assert.match(text('`a -> b`\n'), /<code>a -&gt; b<\/code>/);
   assert.match(text('```\n->\n```\n'), /<code>-&gt;\n<\/code>/);
-  assert.match(text('<!-- x -->\n'), /&lt;!-- x --&gt;/);
+  assert.match(text('a <!-- x --> b\n'), /a &lt;!-- x --&gt; b/);
   assert.match(text('\\-> and \\<-\n'), /-&gt; and &lt;-/);
   assert.match(text('a => b <= c\n'), /a =&gt; b &lt;= c/);
 });

@@ -111,6 +111,15 @@ test('an aside under a line can still wrap, indented', () => {
   assert.equal(asides[0].text, 'first\nsecond');
 });
 
+test('an HTML comment is dropped, asides and all', () => {
+  const { asides, source } = preprocess('-----\nreviewer D: Drew\n-----\n\n<!--\nHow to review:\n\n~D like this\n-->\n\nbody\n');
+  assert.equal(asides.length, 0);
+  assert.doesNotMatch(source, /review|<!--|-->/);
+  assert.match(source, /body/);
+  assert.equal(preprocess('<!-- one line -->\nbody\n').source, 'body\n');
+  assert.match(preprocess('```\n<!-- kept -->\n```\n').source, /kept/);
+});
+
 // --- structural transparency: the whole point -----------------------------
 
 /** The parsed shape of the speaker's document, before any column splitting. */

@@ -59,6 +59,16 @@ Under a line, the paragraph carries on below it as one paragraph, so
 with a sentence to a line, a reviewer can answer any sentence. There,
 an aside that runs onto a second line indents it.
 
+An HTML comment on lines of its own is left out of the page, asides
+inside it too, so it's the place for a note to whoever opens the file,
+such as how to review it:
+
+```markdown
+<!--
+To review: write ~D and your topics under the line you mean, then a thought.
+-->
+```
+
 Emoji shortcodes like `:tada:` show as 🎉 in the rendered pane but stay as
 `:tada:` in the file. Code spans and unknown names are left as written.
 
