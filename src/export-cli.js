@@ -36,6 +36,10 @@ export async function main(argv) {
   const root = process.cwd();
   const content = createContent(root);
   const files = opts.files.map((f) => {
+    // A new line or the like in a name is never one someone typed, and it
+    // would break up a list of what was saved (the GitHub Action's).
+    // eslint-disable-next-line no-control-regex
+    if (/[\x00-\x1f\x7f]/.test(f)) fail(`not a name to export: ${JSON.stringify(f)}`);
     const rel = path.relative(root, path.resolve(f)).split(path.sep).join('/');
     if (rel.startsWith('../') || path.isAbsolute(rel)) fail(`${f} isn't under ${root}`);
     if (!DOC_EXTS.has(path.extname(rel).toLowerCase())) fail(`not a document: ${f}`);
@@ -101,7 +105,11 @@ function parseArgs(argv) {
   const opts = { files: [], out: null, draw: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '-h' || a === '--help') {
+    if (a === '--') {
+      // Everything after is a document, even one whose name starts with -.
+      opts.files.push(...argv.slice(i + 1));
+      break;
+    } else if (a === '-h' || a === '--help') {
       process.stdout.write(USAGE);
       process.exit(0);
     } else if (a === '--out' || a === '-o') {

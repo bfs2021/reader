@@ -32,9 +32,24 @@ runs:
       env:
         FILES: ${{ inputs.files }}
       run: |
-        files=( $FILES )
-        node "$GITHUB_ACTION_PATH/bin/reader.js" export "${files[@]}"
-        printf '%s\n' "${files[@]}" | sed 's/\.[^./]*$/.html/' > "$RUNNER_TEMP/reader-exported"
+        # The input is split on spaces and new lines with nothing matched yet,
+        # then each pattern is matched on its own, so a name it matches is
+        # never split again or taken as a pattern.
+        set -f
+        read -r -d '' -a patterns <<<"$FILES" || true
+        set +f
+        files=()
+        IFS=
+        for pattern in "${patterns[@]}"; do
+          matches=( $pattern )
+          files+=( "${matches[@]}" )
+        done
+        unset IFS
+        node "$GITHUB_ACTION_PATH/bin/reader.js" export -- "${files[@]}"
+        # What was saved, a NUL after each, as a name can hold a new line.
+        for file in "${files[@]}"; do
+          printf '%s\0' "${file%.*}.html"
+        done > "$RUNNER_TEMP/reader-exported"
 
     - name: Commit
       if: inputs.commit == 'true'
@@ -42,7 +57,8 @@ runs:
       env:
         MESSAGE: ${{ inputs.message }}
       run: |
-        while IFS= read -r file; do git add -- "$file"; done < "$RUNNER_TEMP/reader-exported"
+        # Each name is added as itself, never as a pattern matching others.
+        git --literal-pathspecs add --pathspec-from-file="$RUNNER_TEMP/reader-exported" --pathspec-file-nul
         if git diff --cached --quiet; then
           echo "The HTML is up to date."
           exit 0
