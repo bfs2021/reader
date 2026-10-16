@@ -276,18 +276,20 @@ function sendFile(res, abs, headers) {
 
 function readJson(req) {
   return new Promise((resolve, reject) => {
+    // A body too large is read to its end and dropped, and then answered
+    // with a 413: answering sooner and destroying the request reset the
+    // connection while the client was still sending, so it never saw the 413.
     const chunks = [];
-    let size = 0;
+    let size = Number(req.headers['content-length']) || 0;
+    if (size <= MAX_BODY) size = 0;
     req.on('data', (c) => {
+      if (size > MAX_BODY) return;
       size += c.length;
-      if (size > MAX_BODY) {
-        reject(Object.assign(new Error('request too large'), { status: 413 }));
-        req.destroy();
-      } else {
-        chunks.push(c);
-      }
+      if (size > MAX_BODY) chunks.length = 0;
+      else chunks.push(c);
     });
     req.on('end', () => {
+      if (size > MAX_BODY) return reject(Object.assign(new Error('request too large'), { status: 413 }));
       try {
         resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
       } catch {

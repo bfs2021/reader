@@ -90,6 +90,22 @@ test('refuses escapes, non-JSON writes and foreign hosts', async () => {
   assert.equal(status, 403);
 });
 
+test('a body over 20MB is answered with a 413, whether its length is given or not', async () => {
+  const big = Buffer.alloc(21 * 1024 * 1024, 'a');
+  const res = await fetch(base + '/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: big });
+  assert.equal(res.status, 413);
+  const status = await new Promise((resolve, reject) => {
+    const req = http.request(base + '/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' } }, (r) => {
+      r.resume();
+      resolve(r.statusCode);
+    });
+    req.on('error', reject);
+    for (let i = 0; i < 21; i++) req.write(big.subarray(0, 1024 * 1024));
+    req.end();
+  });
+  assert.equal(status, 413);
+});
+
 test('exports a document as one HTML file, its images inside it', async () => {
   fs.writeFileSync(path.join(root, 'dot.png'), Buffer.from('iVBORw0KGgo=', 'base64'));
   fs.writeFileSync(path.join(root, 'out.md'), '---\ntitle: Out & about\nbackground: dot.png navy\n---\n\n![a dot](dot.png)\n\n![far](https://example.com/far.png)\n');
