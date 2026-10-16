@@ -32,8 +32,11 @@ function asideOf(line, key) {
   return by ? { m, by } : null;
 }
 
-// Lines that begin a block the aside should not swallow as a lazy continuation.
-const BLOCK_START_RE = /^[ \t]*(?:[*+-][ \t]|\d+[.)][ \t]|#{1,6}[ \t]|>|```|~{3,}|-{3,}\s*$|_{3,}\s*$)/;
+// Lines that begin a block the aside should not swallow as a lazy continuation:
+// markdown's own, and reader's `:::` styles, `+++` panes, `@` fields and
+// `!TERM:` definitions.
+const BLOCK_START_RE = /^[ \t]*(?:[*+-][ \t]|\d+[.)][ \t]|#{1,6}[ \t]|>|```|~{3,}|-{3,}\s*$|_{3,}\s*$|:{3}|\+{3,}(?:[ \t]|$)|@[ \t]|\\?![ \t]*[^\s[!:()][^:\n]*:(?:[ \t]|$))/;
+
 
 function expandTabs(line) {
   return line.replace(/\t/g, '    ');
@@ -125,10 +128,16 @@ export function preprocess(src, opts = {}) {
       continue;
     }
 
+    // An aside written straight under a line of text, rather than after a
+    // blank, comments on that line from inside its paragraph: the line after
+    // it is the paragraph going on, not the aside wrapping, and a blank after
+    // it still ends the paragraph.
+    const within = out.length > 0 && out[out.length - 1].trim() !== '';
+
     // Collect the aside: its first line, plus any continuation lines. A
     // continuation is a non-blank line that is either indented past the `~`,
-    // prefixed with its own `~`, or plain prose lazily wrapped onto the next
-    // line. Anything that starts a new block ends the aside.
+    // prefixed with its own `~`, or (after a blank) plain prose lazily wrapped
+    // onto the next line. Anything that starts a new block ends the aside.
     const markerIndent = indentOf(line);
     const am = found.m;
     const first = (am[3] || '').trim();
@@ -147,7 +156,7 @@ export function preprocess(src, opts = {}) {
       // is instead a wrapped line of the *same* thought.
       if (asideOf(next, key)) break;
       const ind = indentOf(next);
-      if (ind > markerIndent || !BLOCK_START_RE.test(next)) {
+      if (ind > markerIndent || (!within && !BLOCK_START_RE.test(next))) {
         body.push(expandTabs(next).slice(Math.min(ind, contentIndent)));
         i++;
         continue;
@@ -156,8 +165,10 @@ export function preprocess(src, opts = {}) {
     }
 
     // Swallow one blank line after the aside so removing it does not leave a
-    // double blank that would loosen or split the surrounding list.
-    if (i < lines.length && !lines[i].trim()) i++;
+    // double blank that would loosen or split the surrounding list -- unless
+    // there was none before it, when that blank is all that keeps what comes
+    // next from joining the paragraph above.
+    if (!within && i < lines.length && !lines[i].trim()) i++;
 
     asides.push({
       anchor: out.length,

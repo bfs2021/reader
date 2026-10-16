@@ -86,6 +86,31 @@ test('an aside does not swallow the block that follows it', () => {
   assert.match(source, /^\* a bullet$/m);
 });
 
+test("an aside doesn't swallow reader's own block lines", () => {
+  for (const next of ['+++', '+++ Kotlin', ':::', '::: tabs', '@ Name: answer', '!SLAB (Venkat): layers']) {
+    const { asides, source } = preprocess(`a\n\n~ thought\n${next}\n`);
+    assert.equal(asides[0].text, 'thought', next);
+    assert.match(source, new RegExp(`^${next.replace(/[+()]/g, '\\$&')}$`, 'm'), next);
+  }
+});
+
+test('an aside under a line of text leaves its paragraph whole', () => {
+  const { asides, source } = preprocess('One sentence.\n~ about it\nAnother sentence.\n');
+  assert.equal(asides[0].text, 'about it');
+  assert.equal(source, 'One sentence.\nAnother sentence.\n');
+});
+
+test('an aside under a paragraph, then a blank, keeps the paragraphs apart', () => {
+  const { source } = preprocess('One paragraph.\n~ about it\n\nAnother paragraph.\n');
+  assert.equal(source, 'One paragraph.\n\nAnother paragraph.\n');
+  assert.equal(speakerShape('One paragraph.\n~ about it\n\nAnother paragraph.\n'), speakerShape('One paragraph.\n\nAnother paragraph.\n'));
+});
+
+test('an aside under a line can still wrap, indented', () => {
+  const { asides } = preprocess('a line\n~ first\n  second\nmore of the paragraph\n');
+  assert.equal(asides[0].text, 'first\nsecond');
+});
+
 // --- structural transparency: the whole point -----------------------------
 
 /** The parsed shape of the speaker's document, before any column splitting. */

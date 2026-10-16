@@ -54,6 +54,11 @@ with that one marked `?` for a slip of the finger. With more than one, or
 in a document with no aliases, a `~word` line reads as text, as it always
 has. In a deck, the aliases go in the deck's front matter.
 
+An aside can go after a paragraph or straight under any line of one.
+Under a line, the paragraph carries on below it as one paragraph, so
+with a sentence to a line, a reviewer can answer any sentence. There,
+an aside that runs onto a second line indents it.
+
 Emoji shortcodes like `:tada:` show as 🎉 in the rendered pane but stay as
 `:tada:` in the file. Code spans and unknown names are left as written.
 
