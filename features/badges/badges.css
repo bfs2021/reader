@@ -1,23 +1,24 @@
 /* `1)` lists: each number a badge in the list's margin, drawn here so it
  * doesn't copy; an item the asides carried on to the next row has its
  * badge already */
-ol.badges { list-style: none; }
+ol.badges { list-style: none; --badge: #a8532c; --badge-ink: #fff; }
+:root.gm-dark ol.badges { --badge: #e0915f; --badge-ink: #22252b; }
 ol.badges > li { position: relative; }
 ol.badges > li:not(.gm-cont)::before {
   content: attr(data-n);
   position: absolute;
-  right: calc(100% + .45em);
-  top: .2em;
+  right: calc(100% + .4em);
+  top: .12em;
   display: inline-grid;
   place-items: center;
-  min-width: 1.45em;
-  height: 1.45em;
-  padding: 0 .3em;
+  min-width: 1.6em;
+  height: 1.6em;
+  padding: 0 .35em;
   box-sizing: border-box;
   border-radius: 1em;
-  background: var(--gm-accent);
-  color: var(--gm-paper);
-  font: 600 .72em/1 var(--gm-sans);
+  background: var(--badge);
+  color: var(--badge-ink);
+  font: 600 .8em/1 var(--gm-sans);
   font-style: normal;
   user-select: none;
 }
