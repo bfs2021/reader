@@ -97,6 +97,8 @@ function drawCrumbs(shown) {
 function button(cls, name, sub) {
   const b = document.createElement('button');
   b.className = cls;
+  // What the arrows, F2 and ⌘⌫ do here, read after the row's name.
+  b.setAttribute('aria-describedby', 'filesKeys');
   const n = document.createElement('span');
   n.className = 'name';
   n.textContent = name;
@@ -128,7 +130,7 @@ function rowItem(row, { dir = '' } = {}) {
   fileButton(b, row.opens.path);
   b.dataset.group = row.name;
   b.dataset.dir = row.dir;
-  if (row.versions.some((v) => v.file.path === state.current?.path)) b.classList.add('now');
+  if (row.versions.some((v) => v.file.path === state.current?.path)) markNow(b);
   const into = action('into', `Versions of ${row.name}`, () => go(row.dir, row.name));
   into.textContent = '›';
   li.append(b, actions([
@@ -181,10 +183,16 @@ function folderItem(name) {
 function fileButton(b, p) {
   b.dataset.path = p;
   b.title = `${p} (double-click to rename)`;
-  if (state.current?.path === p) b.classList.add('now');
+  if (state.current?.path === p) markNow(b);
   b.addEventListener('click', () => {
     if (state.current?.path !== p) open(p);
   });
+}
+
+/** The open file's row, or the row of versions it's one of; the list is drawn again whenever that changes. */
+function markNow(b) {
+  b.classList.add('now');
+  b.setAttribute('aria-current', 'true');
 }
 
 /** Double-clicking a row's name edits it. */
