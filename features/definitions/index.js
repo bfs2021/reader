@@ -24,6 +24,7 @@
  */
 
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { beforeAsides, readLines, escapeHtml, escapeAttr } from '../source.js';
 
 // A term can't open with `[` (an image) and holds no colon or parentheses.
@@ -63,15 +64,20 @@ export function definitions(md) {
       + '<span class="field-value" data-value=""></span></span>';
   };
   md.renderer.rules.def_initial = (tokens, i) => `<b class="def-initial">${escapeHtml(tokens[i].content)}</b>`;
-  md.renderer.rules.def_use = (tokens, i) => {
+  md.renderer.rules.def_use = (tokens, i, options, env) => {
     const { text, term, senses } = tokens[i].meta;
     const said = senses.filter((s) => s.meaning);
     // Senses in a run, as in the entry: a list can't sit in a paragraph.
     const meaning = said.length > 1
       ? said.map((s, k) => `<b class="def-pop-sense">${k + 1}.</b> ${md.renderInline(s.meaning)}`).join(' ')
       : said.length ? md.renderInline(said[0].meaning) : '<i>not yet defined</i>';
-    return `<span class="def-use" tabindex="0">${escapeHtml(text)}`
-      + `<span class="def-pop" role="tooltip"><b class="def-pop-term">${escapeHtml(term)}</b> ${meaning}</span></span>`;
+    // The meaning is the term's description, read once on focus, rather than
+    // a second time as part of its text. Counted across a deck's slides, which
+    // an export puts on one page.
+    const shared = env.shared ?? env;
+    const id = `def-pop-${shared.defPops = (shared.defPops ?? 0) + 1}`;
+    return `<span class="def-use" tabindex="0" aria-describedby="${id}">${escapeHtml(text)}`
+      + `<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">${escapeHtml(term)}</b> <span id="${id}">${meaning}</span></span></span>`;
   };
 }
 
@@ -250,6 +256,7 @@ export default {
   name: 'definitions',
   plugin: definitions,
   css: fs.readFileSync(new URL('./definitions.css', import.meta.url), 'utf8'),
+  preview: fileURLToPath(new URL('./preview.js', import.meta.url)),
   // Reads the file as written, before render.js's own source pass.
   raw: true,
 };

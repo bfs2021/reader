@@ -56,21 +56,21 @@ test('an acronym has the letters it is spelled with bolded', () => {
 
 test('the term written with a ! elsewhere shows its meaning on hover', () => {
   const { body } = render('!SLAB and SLAB, !slab, `!SLAB`, [!SLAB](x), !SLABS, \\!SLAB, wow!SLAB.\n\n!SLAB: similar layers of abstraction\n!sealed interface: closed\n\nA !Sealed interface, a sealed interface.\n\n~ !SLAB in an aside\n');
-  const use = '<span class="def-use" tabindex="0">SLAB<span class="def-pop" role="tooltip"><b class="def-pop-term">SLAB</b> similar layers of abstraction</span></span>';
-  assert.equal(body.split(use).length - 1, 2);
-  assert.match(body, new RegExp(`<p>${use.replace(/[()]/g, '\\$&')} and SLAB, !slab, <code>!SLAB</code>, <a href="x">!SLAB</a>, !SLABS, !SLAB, wow!SLAB\\.</p>`));
-  assert.match(body, /A <span class="def-use" tabindex="0">Sealed interface<span class="def-pop" role="tooltip"><b class="def-pop-term">sealed interface<\/b> closed<\/span><\/span>, a sealed interface\./);
+  const use = (n) => `<span class="def-use" tabindex="0" aria-describedby="def-pop-${n}">SLAB<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">SLAB</b> <span id="def-pop-${n}">similar layers of abstraction</span></span></span>`;
+  assert.ok(body.includes(use(3)));
+  assert.match(body, new RegExp(`<p>${use(1).replace(/[()]/g, '\\$&')} and SLAB, !slab, <code>!SLAB</code>, <a href="x">!SLAB</a>, !SLABS, !SLAB, wow!SLAB\\.</p>`));
+  assert.match(body, /A <span class="def-use" tabindex="0" aria-describedby="def-pop-2">Sealed interface<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">sealed interface<\/b> <span id="def-pop-2">closed<\/span><\/span><\/span>, a sealed interface\./);
 });
 
 test('a term with senses, or none yet, says so on hover', () => {
   const { body } = render('!g: one\n!g: *two*\n!h:\n\n!g and !h\n');
-  assert.match(body, /<b class="def-pop-term">g<\/b> <b class="def-pop-sense">1\.<\/b> one <b class="def-pop-sense">2\.<\/b> <em>two<\/em><\/span>/);
-  assert.match(body, /<b class="def-pop-term">h<\/b> <i>not yet defined<\/i>/);
+  assert.match(body, /<b class="def-pop-term">g<\/b> <span id="def-pop-1"><b class="def-pop-sense">1\.<\/b> one <b class="def-pop-sense">2\.<\/b> <em>two<\/em><\/span><\/span>/);
+  assert.match(body, /<b class="def-pop-term">h<\/b> <span id="def-pop-\d+"><i>not yet defined<\/i>/);
 });
 
 test('a later slide knows the terms an earlier one defined', () => {
   const deck = slides('# One\n\n!SLAB: similar layers of abstraction\n\n---\n\n# Two\n\n!SLAB again\n');
-  assert.match(deck.slides[1].body, /<span class="def-use" tabindex="0">SLAB<span class="def-pop"/);
+  assert.match(deck.slides[1].body, /<span class="def-use" tabindex="0" aria-describedby="def-pop-1">SLAB<span class="def-pop"/);
 });
 
 test('the stylesheet comes with the feature', () => {

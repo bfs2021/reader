@@ -79,4 +79,5 @@ dl.defs {
 }
 .def-pop-term { font-variant: small-caps; letter-spacing: 0.04em; margin-right: 0.3em; }
 .def-use:hover > .def-pop, .def-use:focus > .def-pop { display: block; }
+.def-use.def-hushed > .def-pop { display: none; }
 @media print { .def-pop { display: none !important; } }
