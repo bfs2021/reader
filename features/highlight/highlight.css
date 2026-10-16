@@ -120,9 +120,13 @@ pre.output.code-focus .line.hl { background: #dfe6ef; }
 /* long output: cut short until asked for, but whole on a slide or paper */
 .output-long > pre { max-height: 12lh; overflow: hidden; mask-image: linear-gradient(#000 70%, transparent); }
 .output-long:has(input:checked) > pre { max-height: none; mask-image: none; }
-.output-more { display: inline-block; margin: -.4rem 0 1rem; font: .8rem var(--gm-sans); color: var(--gm-ink-soft); cursor: pointer; }
-.output-more input { display: none; }
-.output-more:has(input:checked) { display: none; }
+/* the box itself is hidden but still takes focus, and the label stays when
+ * it's ticked, so a keyboard can open it, and close it again, in place */
+.output-more { position: relative; display: inline-block; margin: -.4rem 0 1rem; font: .8rem var(--gm-sans); color: var(--gm-ink-soft); cursor: pointer; }
+.output-more::before { content: "\25B8\00A0" / ""; }
+.output-more:has(input:checked)::before { content: "\25BE\00A0" / ""; }
+.output-more input { position: absolute; opacity: 0; pointer-events: none; margin: 0; }
+.output-more:has(input:focus-visible) { outline: 2px solid var(--gm-accent); outline-offset: 2px; border-radius: 2px; }
 .deck .output-long > pre { max-height: none; mask-image: none; }
 .deck .output-more { display: none; }
 @media print {
