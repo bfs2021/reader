@@ -49,11 +49,14 @@ export function qa(md) {
   // Last, after markdown's own rules: a paragraph split off here has no
   // source text of its own for them to check before they'd run.
   md.core.ruler.push('qa_items', items);
-  md.renderer.rules.qa_label = (tokens, i) => {
+  md.renderer.rules.qa_label = (tokens, i, options, env) => {
     const { who, name, votes, toggle } = tokens[i].meta;
     const tally = votes ? `<span class="qa-tally">+${votes}</span>` : '';
-    const label = toggle
-      ? `<span class="qa-label qa-toggle" role="button" tabindex="0" title="${toggle.done ? 'Reopen the discussion' : 'Mark the discussion done'}" data-line="${toggle.line}" data-on="${escapeAttr(toggle.on)}" data-off="${escapeAttr(toggle.off)}">`
+    // A toggle, pressed once discussed, named for its card rather than its
+    // letter. An exported page has no script to press it with, so there it's
+    // only a label.
+    const label = toggle && !env.exported
+      ? `<span class="qa-label qa-toggle" role="button" tabindex="0" aria-label="${who}, discussed" aria-pressed="${toggle.done}" title="${toggle.done ? 'Reopen the discussion' : 'Mark the discussion done'}" data-line="${toggle.line}" data-on="${escapeAttr(toggle.on)}" data-off="${escapeAttr(toggle.off)}">`
       : '<span class="qa-label">';
     // A name is markdown like the rest of the line: *emphasis*, quotes.
     return `${label}${LABELS[who] ?? who}</span>${tally}${name ? `<span class="qa-name">${md.renderInline(name)}</span>` : ''}`;

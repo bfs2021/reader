@@ -41,11 +41,12 @@ md.core.ruler.push('reader_lines', (state) => {
  * `fonts` is likewise the front matter that names the fonts (see fonts.js):
  * a slide's deck's. `drawn` is what the preview frame drew of the page, by
  * feature (`{ mermaid: { text: svg } }`), to set into it where the page will
- * have nothing to draw it (export.js).
+ * have nothing to draw it (export.js). `exported` is for a page that will
+ * run no script of the app's, so draws nothing that would wait on one.
  */
-export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, drawn } = {}) {
+export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, drawn, exported = false } = {}) {
   const text = src || '';
-  const env = { lineBase: line, file, read, shared, asideKey, lines, drawn };
+  const env = { lineBase: line, file, read, shared, asideKey, lines, drawn, exported };
   const tokens = md.parse(text, env);
   const meta = env.frontMatter || {};
   const asides = env.asides || [];

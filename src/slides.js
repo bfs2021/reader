@@ -84,9 +84,9 @@ export function slides(src, { file, read } = {}) {
  * A deck as a workbook's pages: each slide drawn as a document is, not as a
  * stage, with nothing of the slide's notes. `line` is where the page starts
  * in the file, and, unless `lines` is false, its blocks carry theirs
- * (`data-line`). `drawn` is as render() takes it.
+ * (`data-line`). `drawn` and `exported` are as render() takes them.
  */
-export function pages(src, { file, read, lines = true, drawn } = {}) {
+export function pages(src, { file, read, lines = true, drawn, exported } = {}) {
   const { meta, key, slides: chunks } = split(src);
   let css = '';
   const out = [];
@@ -96,7 +96,7 @@ export function pages(src, { file, read, lines = true, drawn } = {}) {
     const lifted = lift(text);
     if (!lifted.body.trim()) continue;
     const own = liftBackground(lifted.notes);
-    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, lines, drawn });
+    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, lines, drawn, exported });
     css ||= r.css;
     out.push({ body: unmast(r.body), line });
   }

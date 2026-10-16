@@ -80,7 +80,7 @@ const INK = `<script>
 export function exportHtml(content, file, drawn) {
   const read = (rel) => content.read(rel).text;
   const text = content.read(file).text;
-  const out = (isDeck(text) && deck(text, { file, read, drawn })) || render(text, { file, read, drawn });
+  const out = (isDeck(text) && deck(text, { file, read, drawn })) || render(text, { file, read, drawn, exported: true });
   const missing = [];
   const inline = (m, before, src, after) => `${before}${dataUrl(content, file, src, missing) ?? src}${after}`;
   const body = out.body.replace(IMG_SRC, inline).replace(BACKDROP_URL, inline);
@@ -118,7 +118,7 @@ function orientation(text, meta) {
  * of each of its pages in turn; or null, when it has none.
  */
 function deck(text, { file, read, drawn }) {
-  const { css, meta, pages: list } = pages(text, { file, read, drawn, lines: false });
+  const { css, meta, pages: list } = pages(text, { file, read, drawn, lines: false, exported: true });
   if (!list.length) return null;
   return {
     css: `${css}${PAGES_CSS}@page numbered { size: ${orientation(text, meta)}; }\n`,

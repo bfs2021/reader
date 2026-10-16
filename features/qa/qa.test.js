@@ -110,6 +110,16 @@ test('a card with [x] is done: it and what is said under it are faded', () => {
   assert.match(body, /<p>Q \[x\]: plain<\/p>/);
 });
 
+test('a card\'s label is a toggle named for its card, pressed once discussed; in an export, only a label', () => {
+  const src = 'Good [x] (Josh): one\n\nBad: two\n';
+  const { body } = render(src);
+  assert.match(body, /<span class="qa-label qa-toggle" role="button" tabindex="0" aria-label="Good, discussed" aria-pressed="true"[^>]*>G<\/span>/);
+  assert.match(body, /<span class="qa-label qa-toggle" role="button" tabindex="0" aria-label="Bad, discussed" aria-pressed="false"[^>]*>B<\/span>/);
+  const exported = render(src, { exported: true }).body;
+  assert.doesNotMatch(exported, /qa-toggle|role="button"|data-on=/);
+  assert.match(exported, /<li class="qa qa-card qa-good qa-done">\n<p><span class="qa-label">G<\/span>/);
+});
+
 test('a card\'s label writes its line done, or not, as written', () => {
   const src = '---\ntitle: x\n---\nGood [x] (Josh): one rfc:9110[]\n\nBad [ ]: two\n\nTry: three\n';
   const toggles = [...render(src, { line: 10 }).body.matchAll(/data-line="(\d+)" data-on="([^"]*)" data-off="([^"]*)"/g)].map((m) => m.slice(1));
