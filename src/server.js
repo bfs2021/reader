@@ -24,6 +24,12 @@
  * can't set that content type without a CORS preflight, which we never
  * answer).
  *
+ * Nor another site's page: a request it makes says so (Sec-Fetch-Site), and
+ * one for the API or a file of the user's is refused (`foreign`), and every
+ * response but those the preview needs says it's for this origin only
+ * (Cross-Origin-Resource-Policy), for a browser that doesn't say. Else a page
+ * anywhere could load a note's .js as a script and read what it set.
+ *
  * Files from the content directory are served sandboxed: an HTML or SVG file
  * there, opened from a link in a note, would otherwise run its scripts as
  * this app and could read and write every file through the API.
@@ -136,6 +142,28 @@ const PAGE_POLICIES = {
 // Any other page runs nothing and can't be framed.
 const UNLISTED_PAGE = POLICY({ ...LOCKED, 'frame-ancestors': "'none'" });
 
+// A script in the content directory is served as text, never to be run: no
+// page loads one, and any page could otherwise run it and read what it set.
+const CONTENT_TYPES = { ...TYPES, '.js': TYPES['.txt'], '.mjs': TYPES['.txt'] };
+
+// Whether a request is another site's to refuse. A link followed from
+// anywhere (a message, a bookmark, another device's copy of a line's address)
+// is a top-level visit, which that site can't read, and is let through. The
+// preview frames are sandboxed, with no origin of their own, so everything
+// they load is cross-site too, with no Referer to tell it from anyone else's:
+// the app's own scripts and styles, which hold nothing of the user's, and a
+// note's images. What's refused is the rest: the API, and the user's files
+// asked for by anything but a visit or an image.
+function foreign(req, route) {
+  const meta = (name) => req.headers[`sec-fetch-${name}`];
+  if ([undefined, 'none', 'same-origin'].includes(meta('site'))) return false;
+  const visit = ['GET', 'HEAD'].includes(req.method) && meta('mode') === 'navigate' && meta('dest') === 'document';
+  if (visit) return false;
+  if (route.startsWith('/api/')) return true;
+  if (route.startsWith('/content/')) return meta('dest') !== 'image';
+  return false;
+}
+
 // No scripts, no forms, and an opaque origin, for anything opened straight
 // from /content/. PDFs are left out: browsers won't show one in a sandbox,
 // and a PDF can't reach the API anyway.
@@ -146,6 +174,8 @@ export function createServer({ root, allowHosts = [] }) {
   const hosts = new Set([...LOOPBACK, ...allowHosts.map((h) => h.toLowerCase())]);
 
   const server = http.createServer(async (req, res) => {
+    // For this origin only, unless what's sent is for the preview (`open`).
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
     try {
       await handle(req, res);
     } catch (err) {
@@ -164,6 +194,7 @@ export function createServer({ root, allowHosts = [] }) {
 
     const url = new URL(req.url, 'http://localhost');
     const route = url.pathname;
+    if (foreign(req, route)) return send(res, 403, 'cross-site request refused', 'text/plain');
 
     if (req.method === 'GET' || req.method === 'HEAD') {
       if (route === '/api/info') {
@@ -172,13 +203,16 @@ export function createServer({ root, allowHosts = [] }) {
       if (route === '/api/tree') return sendJson(res, { files: content.list() });
       if (route === '/api/file') return sendJson(res, content.read(url.searchParams.get('path')));
       if (route === '/api/export') return sendExport(res, url.searchParams.get('path') || '');
-      if (FEATURE_SCRIPTS.has(route)) return sendFile(res, FEATURE_SCRIPTS.get(route));
+      if (FEATURE_SCRIPTS.has(route)) return sendFile(open(res), FEATURE_SCRIPTS.get(route));
       if (route.startsWith('/content/')) {
         const rel = decodeURIComponent(route.slice('/content/'.length));
         const { abs } = content.statFile(rel);
-        return sendFile(res, abs, path.extname(abs).toLowerCase() === '.pdf' ? {} : CONTENT_SANDBOX);
+        const ext = path.extname(abs).toLowerCase();
+        const type = CONTENT_TYPES[ext] || 'application/octet-stream';
+        if (type.startsWith('image/')) open(res);
+        return send(res, 200, fs.readFileSync(abs), type, ext === '.pdf' ? {} : CONTENT_SANDBOX);
       }
-      return serveStatic(res, route);
+      return serveStatic(open(res), route);
     }
 
     if (!['POST', 'PUT'].includes(req.method)) return send(res, 405, 'method not allowed', 'text/plain');
@@ -251,6 +285,13 @@ export function createServer({ root, allowHosts = [] }) {
   }
 
   return { server, content };
+}
+
+// What a sandboxed preview frame loads, which a browser counts as another
+// origin's: the app's own files, and a note's images.
+function open(res) {
+  res.removeHeader('Cross-Origin-Resource-Policy');
+  return res;
 }
 
 function send(res, status, body, type, headers = {}) {

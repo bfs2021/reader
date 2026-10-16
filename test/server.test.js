@@ -145,6 +145,57 @@ test('serves content files sandboxed, so their scripts never run as the app', as
   assert.equal(pdf.headers.get('content-security-policy'), null);
 });
 
+test('a script in the content directory is served as text, for this origin only', async () => {
+  fs.writeFileSync(path.join(root, 'config.js'), 'window.token = "secret";\n');
+  const res = await fetch(`${base}/content/config.js`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /^text\/plain/);
+  assert.equal(res.headers.get('cross-origin-resource-policy'), 'same-origin');
+  assert.equal(await res.text(), 'window.token = "secret";\n');
+  for (const url of ['/api/tree', '/content/page.html', '/content/doc.pdf']) {
+    assert.equal((await fetch(base + url)).headers.get('cross-origin-resource-policy'), 'same-origin', url);
+  }
+  // What the sandboxed preview loads, which the browser counts as another origin's.
+  fs.writeFileSync(path.join(root, 'dot.png'), Buffer.from('iVBORw0KGgo=', 'base64'));
+  for (const url of ['/preview.js', '/features/qa/preview.js', '/content/dot.png']) {
+    assert.equal((await fetch(base + url)).headers.get('cross-origin-resource-policy'), null, url);
+  }
+});
+
+test("another site's page can't ask for the API or the user's files, but a link from it opens them", async () => {
+  fs.writeFileSync(path.join(root, 'config.js'), 'window.token = "secret";\n');
+  fs.writeFileSync(path.join(root, 'dot.png'), Buffer.from('iVBORw0KGgo=', 'base64'));
+  // Not by fetch(), which sets Sec-Fetch-Mode itself.
+  const ask = (url, headers, method = 'GET') => new Promise((resolve, reject) => {
+    http.request(base + url, { method, headers }, (res) => {
+      res.resume();
+      resolve(res.statusCode);
+    }).on('error', reject).end(method === 'POST' ? '{}' : undefined);
+  });
+  const from = (site, mode, dest) => ({ 'Sec-Fetch-Site': site, 'Sec-Fetch-Mode': mode, 'Sec-Fetch-Dest': dest });
+  for (const site of ['cross-site', 'same-site']) {
+    assert.equal(await ask('/content/config.js', from(site, 'no-cors', 'script')), 403, site);
+    assert.equal(await ask('/content/note.md', from(site, 'no-cors', 'style')), 403, site);
+    assert.equal(await ask('/api/tree', from(site, 'cors', 'empty')), 403, site);
+    assert.equal(await ask('/api/file?path=note.md', from(site, 'no-cors', 'script')), 403, site);
+    assert.equal(await ask('/content/doc.pdf', from(site, 'navigate', 'iframe')), 403, site);
+    assert.equal(await ask('/api/render', { ...from(site, 'cors', 'empty'), 'Content-Type': 'application/json' }, 'POST'), 403, site);
+    // A link followed from elsewhere, to the app, a line, or a file.
+    assert.equal(await ask('/', from(site, 'navigate', 'document')), 200, site);
+    assert.equal(await ask('/content/doc.pdf', from(site, 'navigate', 'document')), 200, site);
+    assert.equal(await ask('/content/doc.pdf', from(site, 'navigate', 'document'), 'HEAD'), 200, site);
+  }
+  // The sandboxed preview has no origin, so its scripts, styles and a note's images come cross-site.
+  for (const [url, dest] of [['/preview.js', 'script'], ['/preview.css', 'style'], ['/features/qa/preview.js', 'script'], ['/content/dot.png', 'image']]) {
+    assert.equal(await ask(url, from('cross-site', 'no-cors', dest)), 200, url);
+  }
+  // The app itself, a page typed in, and a client that doesn't say.
+  assert.equal(await ask('/content/config.js', from('same-origin', 'no-cors', 'script')), 200);
+  assert.equal(await ask('/api/tree', from('same-origin', 'cors', 'empty')), 200);
+  assert.equal(await ask('/content/config.js', from('none', 'navigate', 'document')), 200);
+  assert.equal(await ask('/api/tree', {}), 200);
+});
+
 test('the preview loads a script for each kind of puzzle and each feature that has one', async () => {
   const html = await (await fetch(base + '/preview.html')).text();
   assert.match(html, /<script src="\/features\/puzzles\/preview\.js"><\/script>/);
