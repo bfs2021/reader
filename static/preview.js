@@ -427,10 +427,12 @@
 
   // Clicking into the page gives this frame the keyboard, so pass the app's
   // shortcuts (and Esc, which leaves work mode) up to it. On a slide, pass
-  // every key: they're all the deck's.
+  // every key: they're all the deck's, but for one a feature has already
+  // taken, such as Enter on a card's label.
   document.addEventListener('keydown', (e) => {
     const meta = e.metaKey || e.ctrlKey;
     if (Preview.deck && !meta && !e.altKey) {
+      if (e.defaultPrevented) return;
       if (DECK_KEYS.has(e.key)) e.preventDefault();
       const { key, code, metaKey, ctrlKey, altKey, shiftKey } = e;
       window.parent.postMessage({ type: 'key', key, code, metaKey, ctrlKey, altKey, shiftKey }, '*');
