@@ -214,6 +214,28 @@
     if (leading && !telling) telling = requestAnimationFrame(tell);
   }, { passive: true });
 
+  // Every file a page can point to is served under here, its folder the top
+  // of the tree: as `/..` is `/` on disk, a relative link or image with more
+  // `..` than there are folders above it stops at the top, and doesn't climb
+  // out into the app's own addresses.
+  const CONTENT = '/content/';
+  const RELATIVE = /^(?![a-z][a-z\d+.-]*:|[/\\#?])/i;
+
+  function withinContent(page) {
+    const at = new URL(base.href);
+    if (!at.pathname.startsWith(CONTENT)) return;
+    // The folder as if it were the top of a site of its own.
+    const folder = new URL(at.pathname.slice(CONTENT.length - 1), at.origin);
+    for (const [selector, attr] of [['a[href]', 'href'], ['img[src]', 'src']]) {
+      for (const node of page.querySelectorAll(selector)) {
+        const was = node.getAttribute(attr);
+        if (!was || !RELATIVE.test(was)) continue;
+        const to = new URL(was, folder);
+        node.setAttribute(attr, new URL(CONTENT.slice(0, -1) + to.pathname + to.search + to.hash, at.origin).href);
+      }
+    }
+  }
+
   /** Puts a render in place: the page, its steps, its fit and its scroll. */
   function draw(m) {
     const y = window.scrollY;
@@ -222,7 +244,12 @@
     dim = Boolean(m.dim);
     // What features and puzzles were in the middle of carries over.
     Preview.replace(document.body, () => {
-      document.body.innerHTML = m.body;
+      // Put together out of the page first, so no image is asked for
+      // before its address is settled.
+      const page = document.createElement('template');
+      page.innerHTML = m.body;
+      withinContent(page.content);
+      document.body.replaceChildren(page.content);
       // Steps to come are hidden before anything measures the page (a
       // puzzle drawing itself, the background's color being read, the
       // fit below): a step first seen showing would fade out, flashing
