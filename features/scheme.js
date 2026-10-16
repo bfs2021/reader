@@ -13,11 +13,12 @@
  *     name: 'scripture',
  *     scheme: 'scripture',
  *     path: /[\w/.:-]* /,
- *     link: (path, label) => ({ href, label, attrs? }) | null,
+ *     link: (path, label) => ({ href, label, attrs?, after? }) | null,
  *   })
  *
  * The label is markdown, as in any link. `attrs` are more attributes for the
- * link, ahead of its `href`.
+ * link, ahead of its `href`; `after` is HTML to end the link with, after its
+ * label.
  */
 
 const BEFORE = /[\w\\]/;
@@ -74,6 +75,7 @@ export function schemeLinks(md, { name, scheme, path, link }) {
       for (const t of label) t.level += state.level;
       state.tokens.push(...label);
       state.tokens_meta.push(...label.map(() => null));
+      if (found.after) state.push('html_inline', '', 0).content = found.after;
       state.push('link_close', 'a', -1);
       return true;
     },

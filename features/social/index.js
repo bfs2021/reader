@@ -17,7 +17,10 @@
  * slash is another kind of page (`linkedin:company/vmware[]`).
  *
  * The marks are in icons/, and go into the stylesheet as masks, so each is
- * drawn in its site's color.
+ * drawn in its site's color. A mark is only seen, so the link also says
+ * where it goes, out of sight: "@jzheaux on Instagram", read aloud, where
+ * the page shows the mark and "@jzheaux". A name that already says its site
+ * (`github.com/jzheaux`, `[my GitHub]`) needs no more.
  */
 
 import fs from 'node:fs';
@@ -25,10 +28,11 @@ import { schemeLinks } from '../scheme.js';
 
 const bare = (name) => name.replace(/^@/, '');
 
-// scheme -> the site: its icon in icons/, its color (none: the text's own),
-// and the address and the words for a name there.
+// scheme -> the site: its name, its icon in icons/, its color (none: the
+// text's own), and the address and the words for a name there.
 const SITES = {
   linkedin: {
+    site: 'LinkedIn',
     icon: 'linkedin',
     color: '#0a66c2',
     at: (name) => {
@@ -37,6 +41,7 @@ const SITES = {
     },
   },
   bluesky: {
+    site: 'Bluesky',
     icon: 'bluesky',
     color: '#0285ff',
     at: (name) => {
@@ -45,6 +50,7 @@ const SITES = {
     },
   },
   gh: {
+    site: 'GitHub',
     icon: 'github',
     at: (name) => {
       // As GitHub writes its own references: `owner/repo#5`, `owner/repo@sha`.
@@ -56,29 +62,38 @@ const SITES = {
     },
   },
   fb: {
+    site: 'Facebook',
     icon: 'facebook',
     color: '#0866ff',
     at: (name) => ({ href: `https://www.facebook.com/${name}`, label: `facebook.com/${name}` }),
   },
   insta: {
+    site: 'Instagram',
     icon: 'instagram',
     color: '#e4405f',
     at: (name) => ({ href: `https://www.instagram.com/${name}`, label: `@${name}` }),
   },
   yt: {
+    site: 'YouTube',
     icon: 'youtube',
     color: '#ff0000',
     at: (name) => ({ href: `https://www.youtube.com/@${name}`, label: `@${name}` }),
   },
 };
 
-/** `linkedin`, `jzheaux`, `` -> `{ href, label }`, or null without a name. */
+/**
+ * `linkedin`, `jzheaux`, `` -> `{ href, label, site }`, or null without a
+ * name. `site` is the site's name, unless the label already says it.
+ */
 export function socialLink(scheme, path, label) {
   const name = bare(path).replace(/^\/+|\/+$/g, '');
   if (!name || !SITES[scheme]) return null;
   const found = SITES[scheme].at(name);
   if (!found) return null;
-  return { href: found.href, label: label.trim() || found.label };
+  const words = label.trim() || found.label;
+  const { site } = SITES[scheme];
+  const said = words.toLowerCase().includes(site.toLowerCase());
+  return { href: found.href, label: words, ...(said ? {} : { site }) };
 }
 
 export function social(md) {
@@ -89,7 +104,13 @@ export function social(md) {
       path: /[\w.@/#-]*/,
       link: (path, label) => {
         const found = socialLink(scheme, path, label);
-        return found && { ...found, attrs: [['class', `social social-${scheme}`]] };
+        if (!found) return null;
+        const { site, ...link } = found;
+        return {
+          ...link,
+          attrs: [['class', `social social-${scheme}`]],
+          after: site && `<span class="social-site"> on ${site}</span>`,
+        };
       },
     });
   }
