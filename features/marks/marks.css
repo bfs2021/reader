@@ -1,0 +1,67 @@
+/* Marks, as a pen makes them: an oval drawn around the words, a line
+   under them, or a highlighter over them, in the topic's colour. Each
+   keeps its shape on every line a phrase wraps onto. */
+.mk {
+  --mk-ink: var(--mk, var(--gm-accent));
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+/* A little out of round, as an oval drawn by hand is. */
+.mk-circle {
+  border: 0.09em solid var(--mk-ink);
+  border-radius: 48% 52% 45% 55% / 58% 46% 54% 42%;
+  padding: 0.02em 0.28em;
+  margin: 0 -0.12em;
+}
+.mk-underline {
+  text-decoration: underline 0.11em var(--mk-ink);
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: none;
+}
+.mk-highlight {
+  background: color-mix(in srgb, var(--mk-ink) 24%, transparent);
+  border-radius: 0.25em 0.1em 0.3em 0.15em;
+  padding: 0 0.12em;
+}
+
+/* The words an aside chose, at its start, for when the line to them can't
+   be seen: printed, exported, or on a page too narrow for the margin. */
+.mk-about {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--mk, var(--gm-ink-soft));
+  margin-right: 0.45em;
+}
+.mk-lost {
+  color: var(--gm-ink-soft);
+  font-weight: 400;
+  text-decoration: underline dotted;
+}
+
+/* The lines from each mark to its asides (preview.js). */
+.gm-doc:has(> .mk-lines) { position: relative; }
+.mk-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.mk-lines path {
+  fill: none;
+  stroke: var(--mk, var(--gm-accent));
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transition: opacity 0.15s, stroke-width 0.15s;
+}
+
+/* Hovering a mark or an aside about it picks out both, and the line. */
+.mk-lines path.mk-on { opacity: 1; stroke-width: 2; }
+.mk.mk-on.mk-circle { border-width: 0.14em; }
+.mk.mk-on.mk-underline { text-decoration-thickness: 0.17em; }
+.mk.mk-on.mk-highlight { background: color-mix(in srgb, var(--mk-ink) 40%, transparent); }
+.gm-aside-cell.mk-on { border-left-color: var(--mk, var(--gm-accent)); }

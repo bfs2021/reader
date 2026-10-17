@@ -59,6 +59,44 @@ Under a line, the paragraph carries on below it as one paragraph, so
 with a sentence to a line, a reviewer can answer any sentence. There,
 an aside that runs onto a second line indents it.
 
+### Marks
+
+An aside can say which **words** it's about, and they're marked as a pen
+would mark them: circled, underlined or highlighted, in the topic's colour,
+with a line drawn from them to the aside. Give a topic its style after its
+name and colour; one with none underlines. Then name the words in brackets
+after the aside's aliases:
+
+```markdown
+-----
+topic a: adjectives, circle
+topic v: verbs, teal, highlight
+topic c: clauses
+-----
+
+the quick brown fox jumped over the lazy dog
+~a[quick] nice job getting the q in early
+~v[jumped] ooh, j is hard too
+~c[the lazy dog] and a z for the win!!
+```
+
+The words are looked for in the line the aside is under, then in the rest
+of that paragraph, or, after a blank, the paragraph before. Whole words
+only; `[the#2]` is the second `the`. Braces after them override the
+topic's style (`~a[quick]{highlight}`). Several asides can name the same
+words, each with its own line, and the aside opens with the words it named,
+for when the line can't be seen: on a page too narrow for the margin, or
+exported, where nothing draws it. Words not found show there with a `?`.
+The writer's own aside can name words too (`~[quick]`), and one with
+nothing after the brackets just marks them.
+
+Words can be marked in the text as well, with or without an aside, as a
+style is set (below): `[the lazy dog]{c}` in topic `c`'s colour and style,
+`{c circle}` in another style, `{circle}` alone in the ink's. A color named
+alongside is the mark's. An aside naming those words is tied to that mark.
+
+Hovering a mark or an aside about it picks out both, and the line.
+
 An HTML comment on lines of its own is left out of the page, asides
 inside it too, so it's the place for a note to whoever opens the file,
 such as how to review it:
@@ -316,7 +354,8 @@ Text can be colored and set in another font by naming the styles in braces
 after it: `[this is red]{red}`, `[both]{darkgreen times-new-roman}`. A CSS
 color name (`red`, `slategray`, `rebeccapurple`, ...) sets the color; any
 other name is a font, with hyphens for spaces. A font you don't have falls
-back to the page's own. For whole paragraphs, lists or tables, fence them with
+back to the page's own. A topic's alias, or `circle`, `underline` or
+`highlight`, marks the text instead (see [Marks](#marks)). For whole paragraphs, lists or tables, fence them with
 `:::`:
 
 ```markdown
@@ -1177,7 +1216,7 @@ $ npm run lint
 | `src/content.js` | the content directory: listing, safe paths, saves, backups, the trash, branching, renaming and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
 | `src/columns.js` | the two-column layout: the speaker's passages beside the asides written against them, under the masthead |
-| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `definitions`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `tabs`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`) |
+| `features/` | one directory per piece of syntax: its markdown-it plugin, CSS, tests and, if it can be clicked, the `preview.js` that makes it so (so far: `asides`, `fields`, `tasks`, `qa`, `definitions`, `sizes`, `alerts`, `attributions`, `styles`, `columns`, `tabs`, `date`, `scripture`, `scripture-lds`, `search`, `social`, `math`, `arrows`, `emoji`, `highlight`, `mermaid`, `headline`, `number`, `puzzles`, `marks`) |
 | `src/slides.js` | a `slides`-format deck → rendered slides and their notes |
 | `src/pacing.js` | a deck's pacing plan: checkpoints and budgets from the notes, and when each slide should start |
 | `src/fonts.js` | a document's own fonts: `font:` and `title-font:` in the front matter |

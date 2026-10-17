@@ -11,7 +11,8 @@
  */
 
 import fs from 'node:fs';
-import { asideTokens, byStyle, byChips, legend } from '../features/asides/index.js';
+import { asideTokens, byChips, legend } from '../features/asides/index.js';
+import { about } from '../features/marks/index.js';
 import { splitPairs } from '../features/asides/split.js';
 
 const CSS = fs.readFileSync(new URL('./columns.css', import.meta.url), 'utf8');
@@ -27,19 +28,24 @@ function escapeHtml(s) {
 
 function renderAsideCell(md, aside, env, showMark) {
   const html = md.renderer.render(asideTokens(md, aside, env).slice(1, -1), md.options, env);
+  // The words it's about, if it chose some (features/marks), follow who
+  // it's from and what it's about, or its `~`.
+  const words = about(aside.mark);
+  const tied = aside.mark?.id;
+  const style = [aside.by?.who && `--by: ${escapeHtml(aside.by.who.color)}`, tied && aside.mark.color && `--mk: ${escapeHtml(aside.mark.color)}`].filter(Boolean).join('; ');
+  const attrs = `${style ? ` style="${style}"` : ''}${tied ? ` data-mark="${escapeHtml(tied)}"` : ''}`;
   // An attributed aside opens with who it's from and what it's about, at the
   // start of its first paragraph, or above it when it doesn't open with one.
   if (aside.by) {
-    const chips = byChips(aside.by);
+    const chips = byChips(aside.by) + words;
     const opened = /^<p\b/.test(html) ? html.replace(/^<p\b([^>]*)>/, `<p$1>${chips}`) : `${chips}\n${html}`;
-    return `<div class="gm-aside-cell gm-attributed"${byStyle(aside.by)}>\n${opened}</div>`;
+    return `<div class="gm-aside-cell gm-attributed"${attrs}>\n${opened}</div>`;
   }
   // Slip the `~` in front of the first line of prose so the mark survives into
   // the printed page.
-  const marked = showMark
-    ? html.replace(/<p\b([^>]*)>/, '<p$1><span class="gm-mark">~</span>')
-    : html;
-  return `<div class="gm-aside-cell">\n${marked}</div>`;
+  const lead = (showMark ? '<span class="gm-mark">~</span>' : '') + words;
+  const marked = /<p\b/.test(html) ? html.replace(/<p\b([^>]*)>/, `<p$1>${lead}`) : words ? `<p>${lead}</p>\n${html}` : html;
+  return `<div class="gm-aside-cell"${attrs}>\n${marked}</div>`;
 }
 
 /**

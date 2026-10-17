@@ -20,16 +20,30 @@ const META_RE = /^\s*([A-Za-z][A-Za-z0-9 _-]*?)\s*:\s*(.*)$/;
 
 // A `~` on its own, or followed by whitespace. `~~strike~~` and the `~~~` fence
 // are both excluded by requiring the next character not to be another tilde.
-// A run of aliases may come between the `~` and the space (see key.js).
-const ASIDE_RE = /^([ \t]*)~(?!~)([^\s~]*)([ \t]+.*)?$/;
+// A run of aliases may come between the `~` and the space (see key.js), and
+// after them the words in the line above it's about, in brackets, with how
+// to mark them in braces (see features/marks): `~v[jumped]{circle}`.
+const ASIDE_RE = /^([ \t]*)~(?!~)([^\s~[]*)(?:\[((?:[^\]\\\n]|\\.)+)\](?:\{(circle|underline|highlight)\})?)?([ \t]+.*)?$/i;
 
-/** Is `line` an aside, and if so, whose: `{ by }`, with `by` null for the writer's own. */
+/**
+ * Is `line` an aside, and if so, whose and about what: `{ by, select }`,
+ * with `by` null for the writer's own and `select` null when it names no
+ * words.
+ */
 function asideOf(line, key) {
   const m = ASIDE_RE.exec(line);
   if (!m) return null;
-  if (!m[2]) return { m, by: null };
+  const select = m[3] == null ? null : selection(m[3], m[4]);
+  if (!m[2]) return { m, by: null, select };
   const by = attribute(m[2], key);
-  return by ? { m, by } : null;
+  return by ? { m, by, select } : null;
+}
+
+/** `the#2` -> `{ text: 'the', nth: 2, style }`: the second `the`. */
+function selection(written, style) {
+  const n = /#(\d+)$/.exec(written);
+  const text = (n ? written.slice(0, n.index) : written).replace(/\\(.)/g, '$1');
+  return { text, nth: n ? Number(n[1]) : 1, style: style?.toLowerCase() ?? null };
 }
 
 // Lines that begin a block the aside should not swallow as a lazy continuation:
@@ -65,7 +79,9 @@ function indentOf(line) {
  *   `lines` has, for each line of `source`, the 0-based line of the original
  *   it came from, so positions in `source` can be traced back to the file.
  *   `key` is the aliases declared (see key.js), and an aside written with
- *   them has `by: { who, topics, unknown }`.
+ *   them has `by: { who, topics, unknown }`. One naming words in brackets
+ *   has `select: { text, nth, style }`, and `within` when it's written
+ *   straight under the line they're in.
  */
 export function preprocess(src, opts = {}) {
   const lines = String(src).replace(/\r\n?/g, '\n').split('\n');
@@ -155,8 +171,9 @@ export function preprocess(src, opts = {}) {
     // onto the next line. Anything that starts a new block ends the aside.
     const markerIndent = indentOf(line);
     const am = found.m;
-    const first = (am[3] || '').trim();
-    const contentIndent = expandTabs(line).indexOf('~') + am[2].length + 2;
+    const first = (am[5] || '').trim();
+    const head = am[0].length - am[1].length - (am[5] || '').length;
+    const contentIndent = expandTabs(line).indexOf('~') + head + 1;
     const body = [first];
     const startLine = i;
     i++;
@@ -190,6 +207,7 @@ export function preprocess(src, opts = {}) {
       text: body.join('\n').replace(/\s+$/, ''),
       line: startLine,
       ...(found.by && { by: found.by }),
+      ...(found.select && { select: found.select, within }),
     });
   }
 

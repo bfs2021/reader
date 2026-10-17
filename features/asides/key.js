@@ -6,13 +6,16 @@
  *   reviewer #: Josh
  *   reviewer m: Maria, teal
  *   topic c: Coherence
+ *   topic v: Verbs, teal, circle
  *   -----
  *
  * and used in a run straight after an aside's `~`, in any order:
  *
  *   ~#c This contradicts §2.        Josh, about Coherence
  *
- * A colour after the name (a CSS name or `#hex`) is the alias's own; the
+ * A colour after the name (a CSS name or `#hex`) is the alias's own, and a
+ * topic can name how it marks the words its asides choose (`circle`,
+ * `underline` or `highlight`; see features/marks); the
  * rest are dealt from a palette in the order they're declared, reviewers
  * from its start and topics from its end, so the two don't look paired. A run counts when its aliases are
  * declared, all but one at most: that one is taken for a slip of the
@@ -24,16 +27,25 @@
 const ENTRY = /^\s*(reviewer|topic)\s+(\S)\s*:\s*(.+?)\s*$/i;
 const COLOR = /^(?:#[0-9a-f]{3,8}|[a-z]+)$/i;
 
+/** How a mark can be drawn: features/marks. */
+export const STYLES = ['circle', 'underline', 'highlight'];
+
 // Dark enough to read as text on the page and to hold apart in grey.
 const PALETTE = ['#b5523b', '#2f7d6d', '#6a4fa3', '#9a6f0e', '#2f6aa1', '#a23d6d', '#4f7a2a', '#7a5c3e'];
 
-/** A front matter line declaring an alias -> `{ kind, alias, name, color }`, or null. */
+/** A front matter line declaring an alias -> `{ kind, alias, name, color, style }`, or null. */
 export function readEntry(line) {
   const m = ENTRY.exec(line);
   if (!m || m[2] === '~') return null;
-  const [name, color] = m[3].split(/\s*,\s*/);
+  const [name, ...after] = m[3].split(/\s*,\s*/);
   if (!name) return null;
-  return { kind: m[1].toLowerCase(), alias: m[2], name, color: color && COLOR.test(color) ? color : null };
+  let color = null;
+  let style = null;
+  for (const a of after) {
+    if (STYLES.includes(a.toLowerCase())) style ??= a.toLowerCase();
+    else if (COLOR.test(a)) color ??= a;
+  }
+  return { kind: m[1].toLowerCase(), alias: m[2], name, color, style };
 }
 
 /** Entries -> the key: each alias to its entry, with every colour filled in. */

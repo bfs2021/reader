@@ -57,7 +57,7 @@ const CONTAINERS = new Set([
   'blockquote_open',
 ]);
 
-function lastBlockBefore(tokens, anchor) {
+export function lastBlockBefore(tokens, anchor) {
   let found = null;
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];

@@ -2,7 +2,9 @@
  * Text set in a color and a font, by naming the styles in braces after it:
  * `[this is red]{red}`, `[both]{darkgreen times-new-roman}`. A CSS color name
  * sets the color (the first one given wins); any other name is a font, with
- * hyphens for spaces, tried in order before the page's own. For whole
+ * hyphens for spaces, tried in order before the page's own. A topic's alias
+ * or `circle`, `underline` or `highlight` marks the text instead, and a
+ * color then is the mark's (features/marks). For whole
  * paragraphs, lists or tables, fence them with `:::`:
  *
  *   ::: slategray georgia
@@ -25,6 +27,7 @@
 import fs from 'node:fs';
 import { beforeAsides } from '../source.js';
 import { LAYOUTS, OPEN as LAYOUT_OPEN, DIVIDER, CLOSE as LAYOUT_CLOSE } from '../layout.js';
+import { marking, markSpan } from '../marks/mark.js';
 
 const DIV = /^[ \t]{0,3}:::(?:[ \t]+([\w-]+(?:[ \t]+[\w-]+)*))?[ \t]*$/;
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
@@ -33,7 +36,8 @@ const OPEN = '\uE002';
 const CLOSE = '\uE003';
 const MARK = new RegExp(`${OPEN}([^${CLOSE}]*)${CLOSE}`, 'g');
 // What opens a line's block, for the marker to go after.
-const PREFIX = /^[ \t]*(?:~[^\s~]+[ \t]+|[>~][ \t]*)*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?(?:#{1,6}[ \t]+)?/;
+// An aside's `~` can carry aliases and the words it's about: `~c[the lazy dog] `.
+const PREFIX = /^[ \t]*(?:~[^\s~[]*(?:\[(?:[^\]\\\n]|\\.)+\](?:\{[a-z]+\})?)?[ \t]+|[>~][ \t]*)*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?(?:#{1,6}[ \t]+)?/;
 // Lines a marker would change the meaning of.
 const RULE = /^[ \t]*([-*_=])(?:[ \t]*\1)*[ \t]*$/;
 const DELIMITER_ROW = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
@@ -159,7 +163,16 @@ function span(state, silent) {
   const names = NAMES.exec(state.src.slice(end + 1));
   if (!names) return false;
   const open = state.push('style_span_open', 'span', 1);
-  apply(open, names[1]);
+  // A mark's colour is the mark's, not the text's (features/marks).
+  const marked = marking(names[1], state.env.asideKey);
+  if (marked) {
+    const color = marked.rest.find((n) => COLORS.has(n.toLowerCase()))?.toLowerCase();
+    const rest = marked.rest.filter((n) => !COLORS.has(n.toLowerCase()));
+    markSpan(open, { style: marked.style, color: color ?? marked.topic?.color });
+    if (rest.length) apply(open, rest.join(' '));
+  } else {
+    apply(open, names[1]);
+  }
   const max = state.posMax;
   state.pos = start + 1;
   state.posMax = end;

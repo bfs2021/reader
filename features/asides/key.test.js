@@ -15,8 +15,10 @@ import { slides } from '../../src/slides.js';
 const KEY = '-----\nreviewer #: Josh\nreviewer m: Maria, teal\ntopic c: Coherence\ntopic s: Style\n-----\n\n';
 
 test('the key: one alias a line, with an optional colour', () => {
-  assert.deepEqual(readEntry('reviewer #: Josh'), { kind: 'reviewer', alias: '#', name: 'Josh', color: null });
-  assert.deepEqual(readEntry('Topic c: Coherence, #2f6aa1'), { kind: 'topic', alias: 'c', name: 'Coherence', color: '#2f6aa1' });
+  assert.deepEqual(readEntry('reviewer #: Josh'), { kind: 'reviewer', alias: '#', name: 'Josh', color: null, style: null });
+  assert.deepEqual(readEntry('Topic c: Coherence, #2f6aa1'), { kind: 'topic', alias: 'c', name: 'Coherence', color: '#2f6aa1', style: null });
+  assert.deepEqual(readEntry('topic v: Verbs, circle'), { kind: 'topic', alias: 'v', name: 'Verbs', color: null, style: 'circle' });
+  assert.deepEqual(readEntry('topic v: Verbs, Highlight, teal'), { kind: 'topic', alias: 'v', name: 'Verbs', color: 'teal', style: 'highlight' });
   assert.equal(readEntry('reviewer ~: Nope'), null);
   assert.equal(readEntry('title: A Talk'), null);
   const key = makeKey([readEntry('reviewer #: Josh'), readEntry('reviewer m: Maria, teal'), readEntry('topic c: Coherence')]);
