@@ -19,9 +19,9 @@ export default [
       ],
     },
   },
-  // The server, the CLI, the renderer's features and the tests.
+  // The server, the CLI, the renderer's features, the tools and the tests.
   {
-    files: ['bin/**/*.js', 'src/**/*.js', 'features/**/*.js', 'test/**/*.js', '*.config.js'],
+    files: ['bin/**/*.js', 'src/**/*.js', 'features/**/*.js', 'test/**/*.js', 'tools/**/*.js', '*.config.js'],
     languageOptions: { sourceType: 'module', globals: globals.node },
   },
   // The app and what it imports are modules; the preview frame's scripts
