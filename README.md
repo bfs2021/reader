@@ -470,6 +470,8 @@ A few GitHub conventions show as they do there:
   a list can be chosen, and choosing one clears the others' `(x)`. A heading
   takes a checkbox too, `## [ ] Stretch`, to mark what's under it done;
   `## \[ ] Stretch` keeps the brackets as typed.
+  Boxes in a row, `- [ ][ ][ ]`, are one box with stages (see
+  [Recipes](#recipes-and-other-steps-to-follow)).
 
 - **Number badges.** A numbered list written `1)` in place of `1.` has its
   numbers drawn as badges, as a code fence's callouts are. It's still a
@@ -759,6 +761,22 @@ multiplier:[]
 - A number without `count:` stays as it is: 5 minutes, 2 inches of oil.
 - The multiple picked is yours, not the file's: it's remembered for that
   recipe in that document, as you edit and the next time you open it.
+
+Boxes in a row, `- [ ][ ][ ]`, are **one box with stages**: each click fills
+the next, written back as `[x][x][ ]`, and once they're all filled the item
+goes gray. A click on a full box empties it, and a shift-click goes back a
+stage. `phases:` on a line of its own names the stages of the boxes after
+it, up to the next heading, and the stage reached shows beside the box:
+
+```markdown
+phases: have, prepped, used
+* [x][x][ ] count:1 small yellow onion, diced
+* [x][ ][ ] count:2 cloves garlic, minced
+```
+
+`reset:[]` is a **Start over** button: it clears every box in its section,
+plain, staged or a choice, as one edit you can undo. `reset:[Clear]` names
+it. It's as much for a todo list or a game as for a recipe.
 
 ## Working and presenting
 

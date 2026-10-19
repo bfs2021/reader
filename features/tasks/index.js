@@ -5,17 +5,32 @@
  * checkbox too, for the section under it, or the page of a workbook, being
  * done; there's no radio button there.
  *
+ * Boxes in a row, `- [x][ ][ ]`, are one box with stages: each click fills
+ * the next, and once they're all filled the item is done. `phases: have,
+ * prepped, used` on a line of its own names the stages of the boxes after
+ * it, up to the next heading or `phases:`.
+ *
+ *   phases: have, prepped, used
+ *   - [x][x][ ] 1 small yellow onion, diced
+ *
+ * `reset:[]` is a button that clears every box in its section -- the
+ * heading it's under, to the next at that level or above -- as one edit:
+ * `reset:[Start over]` names it.
+ *
  * Each box carries its line, and that line as it reads checked and
- * unchecked, so the preview can rewrite it when the box is clicked. A box
- * that doesn't head a list item (say, in an indented code block) stays as
- * typed.
+ * unchecked (a staged box, at each stage), so the preview can rewrite it
+ * when the box is clicked. A box that doesn't head a list item (say, in an
+ * indented code block) stays as typed.
  */
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, placeholder, splitText, escapeAttr, addClass } from '../source.js';
+import { beforeAsides, readLines, placeholder, splitText, sections, escapeHtml, escapeAttr, addClass } from '../source.js';
+import { schemeRule } from '../scheme.js';
 
-const TASK = /^([ \t]*(?:[>~][ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:\[([ xX])\]|\(([ xX])\))(?=[ \t]|$)/;
+const TASK = /^([ \t]*(?:[>~][ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
+const PHASES = /^ {0,3}phases:[ \t]*(\S.*?)[ \t]*$/i;
+const ANY_HEADING = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const HEADING = /^( {0,3}#{1,6}[ \t]+)\[([ xX])\](?=[ \t]|$)/;
 const OPEN = '\uE000';
 const CLOSE = '\uE001';
@@ -25,14 +40,33 @@ const AT_HEAD = new RegExp(`^${OPEN}(\\d+)${CLOSE}[ \\t]?`);
 export function tasks(md) {
   beforeAsides(md, 'task_lines', (state) => {
     const boxes = [];
+    let phases = null;
     readLines(state, (line, n) => {
+      const named = PHASES.exec(line);
+      if (named) {
+        phases = named[1].split(',').map((p) => p.trim());
+        return '';
+      }
+      if (ANY_HEADING.test(line)) phases = null;
       const written = HEADING.test(line) ? HEADING : TASK;
       return line.replace(written, (m, lead, box, radio) => {
         const radioButton = box === undefined;
-        const mark = radioButton ? radio : box;
-        const checked = mark !== ' ';
-        const as = (on) => (checked && on ? line : line.replace(written, (t, l, b) => `${l}${b ? '[' : '('}${on ? 'x' : ' '}${b ? ']' : ')'}`));
-        boxes.push({ line: n, radio: radioButton, mark, checked, on: as(true), off: as(false) });
+        // A heading's one box is its mark alone.
+        const marks = radioButton ? [radio] : box.length === 1 ? [box] : [...box.matchAll(/\[([ xX])\]/g)].map((b) => b[1]);
+        if (marks.length > 1) {
+          // At stage k, the first k boxes are filled.
+          const at = (k) => line.replace(written, (t, l) => `${l}${marks.map((_, j) => `[${j < k ? 'x' : ' '}]`).join('')}`);
+          const stage = marks.filter((x) => x !== ' ').length;
+          const lines = marks.map((_, k) => at(k)).concat(at(marks.length));
+          // The line as it's written, whatever order or case its marks are in.
+          lines[stage] = line;
+          boxes.push({ line: n, staged: true, stage, checked: stage === marks.length, lines, phases });
+        } else {
+          const mark = marks[0];
+          const checked = mark !== ' ';
+          const as = (on) => (checked && on ? line : line.replace(written, (t, l, b) => `${l}${b ? '[' : '('}${on ? 'x' : ' '}${b ? ']' : ')'}`));
+          boxes.push({ line: n, radio: radioButton, mark, checked, on: as(true), off: as(false) });
+        }
         return `${lead}${placeholder(OPEN, CLOSE, boxes.length - 1)}`;
       });
     });
@@ -57,6 +91,7 @@ export function tasks(md) {
         const box = m && tasks.boxes[Number(m[1])];
         if (!box) continue;
         addClass(t, heading ? 'task-heading' : 'task');
+        if (box.staged && !heading) addClass(t, box.checked ? 'staged task-done' : 'staged');
         first.content = first.content.slice(m[0].length);
         const input = new state.Token('task_box', 'input', 0);
         input.meta = { ...box, group: lists.at(-1), name: nameOf(inline.children) };
@@ -66,6 +101,7 @@ export function tasks(md) {
     // Anywhere else, a box goes back to what was typed.
     const typed = (k) => {
       const box = tasks.boxes[k];
+      if (box.staged) return box.lines[box.stage].match(/(?:\[[ xX]\])+/)[0];
       return box.radio ? `(${box.mark})` : `[${box.mark}]`;
     };
     splitText(state, PLACED, (k) => {
@@ -79,13 +115,55 @@ export function tasks(md) {
     }
   });
 
+  schemeRule(md, {
+    name: 'reset',
+    scheme: 'reset',
+    path: /(?:)/,
+    make: (state, where, label) => {
+      if (state) state.push('task_reset', 'button', 0).meta = { label: label.trim() || 'Start over' };
+      return true;
+    },
+  });
+  // A reset clears the boxes of its section, by their lines in the file.
+  md.core.ruler.push('task_reset_sections', (state) => {
+    if (state.inlineMode) return;
+    const { of } = sections(state);
+    state.tokens.forEach((block, i) => {
+      for (const t of block.children ?? []) if (t.type === 'task_reset') t.meta.section = of[i];
+    });
+  });
+
+  md.renderer.rules.task_reset = (tokens, i) => {
+    const { label, section } = tokens[i].meta;
+    const to = section && section.end !== Infinity ? ` data-to="${section.end}"` : '';
+    return `<button type="button" class="task-reset" data-from="${section?.line ?? 0}"${to}>${escapeHtml(label)}</button>`;
+  };
+
   md.renderer.rules.task_box = (tokens, i) => {
+    if (tokens[i].meta.staged) return stageBox(tokens[i].meta);
     const { line, radio, checked, on, off, group, name } = tokens[i].meta;
     const lines = ` data-on="${escapeAttr(on)}" data-off="${escapeAttr(off)}"${name ? ` aria-label="${escapeAttr(name)}"` : ''}${checked ? ' checked' : ''}`;
     return radio
       ? `<input type="radio" class="choice-box" name="choice-${group}" data-line="${line}"${lines}> `
       : `<input type="checkbox" class="task-box" data-line="${line}"${lines}> `;
   };
+}
+
+/**
+ * A box with stages, drawn as a pip for each, those reached filled; its
+ * stage named when the list's phases name it.
+ */
+function stageBox({ line, stage, lines, phases, name }) {
+  const n = lines.length - 1;
+  const called = (k) => phases?.[k - 1] ?? `${k} of ${n}`;
+  const now = stage ? called(stage) : 'not started';
+  const label = `${name ? `${name}: ` : ''}${now}${phases?.[stage - 1] ? ` (${stage} of ${n})` : ''}`;
+  const next = stage < n ? `; next, ${called(stage + 1)}` : '';
+  const pips = lines.slice(1).map((_, k) => `<i${k < stage ? ' class="on"' : ''}></i>`).join('');
+  const shown = phases?.[stage - 1] && stage < n ? ` <span class="stage-name">${escapeHtml(phases[stage - 1])}</span>` : '';
+  return `<button type="button" class="stage-box" role="checkbox" aria-checked="${stage === n ? 'true' : stage ? 'mixed' : 'false'}"`
+    + ` aria-label="${escapeAttr(label)}" title="${escapeAttr(`${now}${next}`)}" data-line="${line}" data-stage="${stage}"`
+    + ` data-lines="${escapeAttr(JSON.stringify(lines))}"${phases ? ` data-phases="${escapeAttr(JSON.stringify(phases))}"` : ''}>${pips}</button>${shown} `;
 }
 
 /**

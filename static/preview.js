@@ -400,10 +400,10 @@
   window.addEventListener('scroll', hidePeek, { passive: true });
 
   // On a slide, a click anywhere but a link, a puzzle, a tab, a card's
-  // label, a field or a task's box or choice moves the deck, the left third
+  // label, a field, a task's box or choice or a button moves the deck, the left third
   // back and the rest forward.
   document.addEventListener('click', (e) => {
-    if (!Preview.deck || (e.target.closest && e.target.closest('a[href], .puzzle, .tab, .qa-toggle, input, label, .field'))) return;
+    if (!Preview.deck || (e.target.closest && e.target.closest('a[href], .puzzle, .tab, .qa-toggle, input, label, button, .field'))) return;
     window.parent.postMessage({ type: 'click', left: e.clientX < innerWidth / 3 }, '*');
   });
 

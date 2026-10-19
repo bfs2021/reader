@@ -11,3 +11,52 @@ li.task > .choice-box, li.task > p > .choice-box {
   vertical-align: -0.02em;
   cursor: pointer;
 }
+/* a box with stages: a pip for each, filled as it's reached */
+.stage-box {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  height: 1.05em;
+  padding: 0 3px;
+  margin: 0;
+  vertical-align: -0.12em;
+  border: 1.5px solid var(--gm-ink-soft);
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+}
+.task-heading > .stage-box { margin: 0 0.3em 0 0; }
+/* in the margin, ending where a checkbox does, so the words line up */
+li.staged { position: relative; }
+li.staged > .stage-box, li.staged > p > .stage-box {
+  position: absolute;
+  right: calc(100% + 0.4em);
+  top: 0.3em;
+}
+.stage-box > i {
+  width: 0.38em;
+  height: 0.38em;
+  border-radius: 50%;
+  border: 1px solid var(--gm-ink-soft);
+}
+.stage-box > i.on { background: var(--gm-accent); border-color: var(--gm-accent); }
+.stage-name {
+  font: 600 0.68em/1 var(--gm-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gm-accent);
+  margin-right: 0.15em;
+}
+li.task-done { color: var(--gm-ink-soft); opacity: 0.6; }
+li.task-done .stage-box > i.on { background: var(--gm-ink-soft); border-color: var(--gm-ink-soft); }
+.task-reset {
+  font: 600 0.78em/1 var(--gm-sans);
+  padding: 0.3em 0.75em;
+  border: 1px solid var(--gm-rule);
+  border-radius: 1em;
+  background: none;
+  color: var(--gm-ink-soft);
+  cursor: pointer;
+}
+.task-reset::before { content: "↺ "; }
+.task-reset:hover, .multiply:hover { color: var(--gm-ink); }

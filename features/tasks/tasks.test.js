@@ -83,3 +83,34 @@ test('a heading has no radio button, and an escaped box stays as typed', () => {
   assert.match(body, /<h1[^>]*>\( \) one<\/h1>/);
   assert.match(body, /<h1[^>]*>\[ \] two<\/h1>/);
 });
+
+const lines = (body) => [...body.matchAll(/data-lines="([^"]*)"/g)].map((m) => JSON.parse(m[1].replace(/&quot;/g, '"')));
+
+test('boxes in a row are one box with stages, knowing its line at each', () => {
+  const { body } = render('- [x][ ][ ] onion\n- [X][x] garlic\n');
+  assert.match(body, /<li class="task staged"><button type="button" class="stage-box" role="checkbox" aria-checked="mixed" aria-label="onion: 1 of 3" title="1 of 3; next, 2 of 3" data-line="0" data-stage="1" [^>]*><i class="on"><\/i><i><\/i><i><\/i><\/button> onion<\/li>/);
+  assert.deepEqual(lines(body)[0], ['- [ ][ ][ ] onion', '- [x][ ][ ] onion', '- [x][x][ ] onion', '- [x][x][x] onion']);
+  // Full, the item is done; its own line is kept as written.
+  assert.match(body, /<li class="task staged task-done"><button [^>]*aria-checked="true"/);
+  assert.deepEqual(lines(body)[1], ['- [ ][ ] garlic', '- [x][ ] garlic', '- [X][x] garlic']);
+});
+
+test('phases: names the stages of the boxes after it, up to a heading', () => {
+  const { body } = render('phases: have, prepped, used\n- [x][x][ ] onion\n- [ ][ ][ ] salt\n\n## Next\n- [x][ ][ ] other\n');
+  assert.doesNotMatch(body, /phases:/);
+  assert.match(body, /aria-label="onion: prepped \(2 of 3\)" title="prepped; next, used"/);
+  assert.match(body, /<\/button> <span class="stage-name">prepped<\/span> onion/);
+  assert.match(body, /aria-label="salt: not started" title="not started; next, have"/);
+  assert.match(body, /aria-label="other: 1 of 3"/);
+});
+
+test('a staged box in code stays as typed', () => {
+  const { body } = render('```\n- [x][ ] fenced\n```\n');
+  assert.match(body, /- \[x\]\[ \] fenced/);
+});
+
+test('reset:[] is a button for the boxes of its section', () => {
+  const { body } = render('## Beans\nreset:[]\n\n- [x] oil\n\n## Yam\nreset:[Again]\n- [ ] water\n');
+  assert.match(body, /<button type="button" class="task-reset" data-from="0" data-to="5">Start over<\/button>/);
+  assert.match(body, /<button type="button" class="task-reset" data-from="5">Again<\/button>/);
+});
