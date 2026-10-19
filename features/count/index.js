@@ -94,10 +94,12 @@ export function counts(md) {
     return `<span class="count" data-multiplier="${multiplier.id}" data-by="${escapeAttr(JSON.stringify(by))}">${escapeHtml(typed)}</span>`;
   };
 
-  md.renderer.rules.multiplier = (tokens, i) => {
+  md.renderer.rules.multiplier = (tokens, i, options, env) => {
     const { choices, id, key } = tokens[i].meta;
-    // Only a section's first: a second would have no counts of its own.
-    if (!id) return '';
+    // Only a section's first: a second would have no counts of its own. An
+    // exported page has no script to press it with, and its counts are as
+    // written.
+    if (!id || env.exported) return '';
     const buttons = choices.map((c) => `<button type="button" class="multiply" data-by="${c.by}" aria-pressed="${c.by === 1}">${escapeHtml(c.label)}</button>`);
     return `<span class="multiplier" role="group" aria-label="Multiply the amounts" data-multiplier="${id}" data-key="${escapeAttr(key)}">${buttons.join('')}</span>`;
   };

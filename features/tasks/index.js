@@ -149,7 +149,9 @@ export function tasks(md) {
     });
   });
 
-  md.renderer.rules.task_reset = (tokens, i) => {
+  md.renderer.rules.task_reset = (tokens, i, options, env) => {
+    // An exported page has no script to press it with.
+    if (env.exported) return '';
     const { label, section, log, multiplier } = tokens[i].meta;
     const to = section && section.end !== Infinity ? ` data-to="${section.end}"` : '';
     const reset = `<button type="button" class="task-reset" data-from="${section?.line ?? 0}"${to}>${escapeHtml(label)}</button>`;
