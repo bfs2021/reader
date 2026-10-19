@@ -32,7 +32,7 @@ export default [
     languageOptions: { sourceType: 'module', globals: globals.browser },
   },
   {
-    files: ['static/preview-api.js', 'static/preview.js', 'static/speaker.js', 'static/picks.js', 'features/*/preview.js', 'features/puzzles/kinds/*.js'],
+    files: ['static/preview-api.js', 'static/preview.js', 'static/speaker.js', 'static/picks.js', 'static/views.js', 'features/*/preview.js', 'features/puzzles/kinds/*.js'],
     languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly' } },
   },
 ];

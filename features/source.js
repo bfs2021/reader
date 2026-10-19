@@ -124,3 +124,31 @@ export function addClass(token, name) {
   if (had) token.attrSet('class', `${had} ${name}`);
   else token.attrs = [['class', name], ...(token.attrs || [])];
 }
+
+/**
+ * The sections of a parse, as its headings make them: `list` holds each,
+ * `{ level, title, line, end, parent }`, the document's own first (level 0,
+ * from its first line); `of[i]` is the section token `i` is in, a heading in
+ * its own. `line` is where the section starts in the file and `end` where
+ * the next heading at its level or above does (Infinity for none).
+ */
+export function sections(state) {
+  const base = state.env.lineBase ?? 0;
+  const lineOf = (t) => base + (state.env.sourceLines?.[t.map[0]] ?? t.map[0]);
+  const top = { level: 0, title: '', line: base, end: Infinity, parent: null };
+  const list = [top];
+  const of = [];
+  let at = top;
+  state.tokens.forEach((t, i) => {
+    if (t.type === 'heading_open' && t.map) {
+      const level = Number(t.tag.slice(1));
+      const line = lineOf(t);
+      for (; at.level >= level; at = at.parent) at.end = line;
+      const title = (state.tokens[i + 1]?.content ?? '').replace(/[\uE000-\uF8FF]\d*[\uE000-\uF8FF]?/g, '').trim();
+      at = { level, title, line, end: Infinity, parent: at };
+      list.push(at);
+    }
+    of[i] = at;
+  });
+  return { list, of };
+}

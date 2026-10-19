@@ -32,6 +32,7 @@ import date from './date/index.js';
 import scripture from './scripture/index.js';
 import scriptureLds from './scripture-lds/index.js';
 import search from './search/index.js';
+import count from './count/index.js';
 import social from './social/index.js';
 import arrows from './arrows/index.js';
 import math from './math/index.js';
@@ -54,4 +55,4 @@ import marks from './marks/index.js';
 // they keep are as written, without its marks. tabs comes last, so the
 // words it compares are the ones the others leave as text, and marks after
 // it, finding the words an aside chooses in what's left as text.
-export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, social, math, arrows, emoji, highlight, mermaid, headline, number, badges, puzzles, tabs, marks];
+export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, count, social, math, arrows, emoji, highlight, mermaid, headline, number, badges, puzzles, tabs, marks];

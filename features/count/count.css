@@ -1,0 +1,20 @@
+.multiplier {
+  display: inline-flex;
+  gap: 0;
+  vertical-align: 0.05em;
+  border: 1px solid var(--gm-rule);
+  border-radius: 1em;
+  overflow: hidden;
+}
+.multiply {
+  font: 600 0.78em/1 var(--gm-sans);
+  padding: 0.3em 0.7em;
+  border: 0;
+  background: none;
+  color: var(--gm-ink-soft);
+  cursor: pointer;
+}
+.multiply + .multiply { border-left: 1px solid var(--gm-rule); }
+.multiply[aria-pressed="true"] { background: var(--gm-accent); color: var(--gm-paper); }
+.count.scaled { color: var(--gm-accent); font-weight: 600; }
+@media print { .multiply:not([aria-pressed="true"]) { display: none; } }

@@ -731,6 +731,35 @@ Everything else is ordinary markdown. Front matter (`Title`, `Author`, `Date`,
 `Tags`, `Speaker`, `Listener`) becomes the masthead; without a `Title` the
 file name is used. `Speaker` and `Listener` head the two columns.
 
+### Recipes, and other steps to follow
+
+`count:` before an amount marks it as one that scales, and `multiplier:[]`
+sets buttons, 1×, 2× and 3×, that multiply every count in its section: the
+heading it's under, to the next heading at that level or above. So a file
+of recipes has a multiplier for each.
+
+```markdown
+## Akara
+Serves: count:4
+multiplier:[]
+
+* count:2 cups dried black-eyed peas
+* count:1–2 fresh chili peppers
+* (optional) count:1/2 teaspoon ground cayenne
+
+1) Fry in batches of count:5–6, 3–4 minutes a side.
+```
+
+- Name other multiples in the brackets: `multiplier:[1/2, 2, 4]`. 1× is
+  always among them, to go back.
+- An amount is a whole number, a fraction (`1/2`, `1 1/2`, `½`), a decimal
+  or a range of them (`1–2`, `2 to 3`), and it's multiplied as written:
+  `1/2` three times is `1 1/2`. A changed amount is tinted, and shows what
+  was written on hover.
+- A number without `count:` stays as it is: 5 minutes, 2 inches of oil.
+- The multiple picked is yours, not the file's: it's remembered for that
+  recipe in that document, as you edit and the next time you open it.
+
 ## Working and presenting
 
 **Work** (`⌘.`) hides the file list and the editor and gives the rendered page
