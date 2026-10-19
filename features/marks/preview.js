@@ -75,7 +75,7 @@
       const gap = Math.round(r.top + r.height / 2 + height / 2);
       const lane = gap + 2.5 * scale * (lanes.get(gap) ?? 0);
       lanes.set(gap, (lanes.get(gap) ?? 0) + 1);
-      const y = mark.classList.contains('mk-underline') ? r.bottom - scale : r.top + r.height / 2;
+      const y = mark.matches('.mk-underline, .mk-dotted, .mk-wavy') ? r.bottom - scale : r.top + r.height / 2;
       const [x1, y1] = at(x, y);
       const [xl, yl] = at(edge, lane);
       const [x2, y2] = at(tx, ty);

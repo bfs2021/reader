@@ -1,6 +1,7 @@
 /**
- * Marks: words circled, underlined or highlighted, as on paper, in a
- * topic's colour, and tied to the aside that comments on them by a line.
+ * Marks: words circled, underlined (`underline`, `dotted` or `wavy`) or
+ * highlighted, as on paper, in a topic's colour, and tied to the aside
+ * that comments on them by a line.
  *
  *   -----
  *   topic a: adjectives, circle

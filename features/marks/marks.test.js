@@ -25,6 +25,14 @@ test('a topic with no style underlines, and braces after the words override it',
   assert.deepEqual(marks(body).map((m) => m.style), ['underline', 'highlight']);
 });
 
+test('words can be underlined dotted or wavy, by a topic, an aside or in braces', () => {
+  const key = '-----\ntopic d: doubts, wavy\n-----\n\n';
+  const { body } = render(`${key}the quick brown fox\n~d[quick] really?\n~[fox]{dotted} which one\n`);
+  assert.deepEqual(marks(body).map((m) => m.style), ['wavy', 'dotted']);
+  assert.match(render('[x]{wavy red}\n').body, /<span class="mk mk-wavy" style="--mk: red" data-mark="mk-1">x<\/span>/);
+  assert.match(render('[x]{dotted}\n').body, /<span class="mk mk-dotted" data-mark="mk-1">x<\/span>/);
+});
+
 test('a phrase, and #2 for the second time it\'s there', () => {
   const { body } = render(`${KEY}the dog saw the lazy dog\n~c[the lazy dog] a phrase\n~a[dog#2] the second\n`);
   assert.deepEqual(marks(body).map((m) => m.text), ['the lazy ', 'dog']);

@@ -3,8 +3,8 @@
  * `[this is red]{red}`, `[both]{darkgreen times-new-roman}`. A CSS color name
  * sets the color (the first one given wins); any other name is a font, with
  * hyphens for spaces, tried in order before the page's own. A topic's alias
- * or `circle`, `underline` or `highlight` marks the text instead, and a
- * color then is the mark's (features/marks). For whole
+ * or `circle`, `underline`, `dotted`, `wavy` or `highlight` marks the text
+ * instead, and a color then is the mark's (features/marks). For whole
  * paragraphs, lists or tables, fence them with `:::`:
  *
  *   ::: slategray georgia

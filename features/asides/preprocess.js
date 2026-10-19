@@ -12,7 +12,7 @@
  * be re-attached once the structure is known.
  */
 
-import { readEntry, makeKey, attribute } from './key.js';
+import { readEntry, makeKey, attribute, STYLES } from './key.js';
 
 const FENCE_RE = /^\s{0,3}(`{3,}|~{3,})/;
 const FRONT_MATTER_RE = /^-{3,}\s*$/;
@@ -23,7 +23,7 @@ const META_RE = /^\s*([A-Za-z][A-Za-z0-9 _-]*?)\s*:\s*(.*)$/;
 // A run of aliases may come between the `~` and the space (see key.js), and
 // after them the words in the line above it's about, in brackets, with how
 // to mark them in braces (see features/marks): `~v[jumped]{circle}`.
-const ASIDE_RE = /^([ \t]*)~(?!~)([^\s~[]*)(?:\[((?:[^\]\\\n]|\\.)+)\](?:\{(circle|underline|highlight)\})?)?([ \t]+.*)?$/i;
+const ASIDE_RE = new RegExp(String.raw`^([ \t]*)~(?!~)([^\s~[]*)(?:\[((?:[^\]\\\n]|\\.)+)\](?:\{(${STYLES.join('|')})\})?)?([ \t]+.*)?$`, 'i');
 
 /**
  * Is `line` an aside, and if so, whose and about what: `{ by, select }`,

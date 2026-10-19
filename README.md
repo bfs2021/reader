@@ -62,9 +62,10 @@ an aside that runs onto a second line indents it.
 ### Marks
 
 An aside can say which **words** it's about, and they're marked as a pen
-would mark them: circled, underlined or highlighted, in the topic's colour,
-with a line drawn from them to the aside. Give a topic its style after its
-name and colour; one with none underlines. Then name the words in brackets
+would mark them: circled, underlined (straight, `dotted` or `wavy`) or
+highlighted, in the topic's colour, with a line drawn from them to the
+aside. Give a topic its style after its name and colour; one with none
+underlines. Then name the words in brackets
 after the aside's aliases:
 
 ```markdown
@@ -356,8 +357,8 @@ Text can be colored and set in another font by naming the styles in braces
 after it: `[this is red]{red}`, `[both]{darkgreen times-new-roman}`. A CSS
 color name (`red`, `slategray`, `rebeccapurple`, ...) sets the color; any
 other name is a font, with hyphens for spaces. A font you don't have falls
-back to the page's own. A topic's alias, or `circle`, `underline` or
-`highlight`, marks the text instead (see [Marks](#marks)). For whole paragraphs, lists or tables, fence them with
+back to the page's own. A topic's alias, or `circle`, `underline`,
+`dotted`, `wavy` or `highlight`, marks the text instead (see [Marks](#marks)). For whole paragraphs, lists or tables, fence them with
 `:::`:
 
 ```markdown

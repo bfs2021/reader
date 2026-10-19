@@ -1,5 +1,5 @@
 /* Marks, as a pen makes them: an oval drawn around the words, a line
-   under them, or a highlighter over them, in the topic's colour. Each
+   under them (straight, dotted or wavy), or a highlighter over them, in the topic's colour. Each
    keeps its shape on every line a phrase wraps onto. */
 .mk {
   --mk-ink: var(--mk, var(--gm-accent));
@@ -21,6 +21,14 @@
   text-underline-offset: 0.2em;
   text-decoration-skip-ink: none;
 }
+/* A dotted line, or a wavy one, under them: a query, or a doubt. */
+.mk-dotted, .mk-wavy {
+  text-decoration: underline 0.11em var(--mk-ink);
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: none;
+}
+.mk-dotted { text-decoration-style: dotted; text-decoration-thickness: 0.14em; }
+.mk-wavy { text-decoration-style: wavy; text-decoration-thickness: 0.08em; text-underline-offset: 0.16em; }
 .mk-highlight {
   background: color-mix(in srgb, var(--mk-ink) 24%, transparent);
   border-radius: 0.25em 0.1em 0.3em 0.15em;
@@ -62,6 +70,7 @@
 /* Hovering a mark or an aside about it picks out both, and the line. */
 .mk-lines path.mk-on { opacity: 1; stroke-width: 2; }
 .mk.mk-on.mk-circle { border-width: 0.14em; }
-.mk.mk-on.mk-underline { text-decoration-thickness: 0.17em; }
+.mk.mk-on.mk-underline, .mk.mk-on.mk-dotted { text-decoration-thickness: 0.17em; }
+.mk.mk-on.mk-wavy { text-decoration-thickness: 0.12em; }
 .mk.mk-on.mk-highlight { background: color-mix(in srgb, var(--mk-ink) 40%, transparent); }
 .gm-aside-cell.mk-on { border-left-color: var(--mk, var(--gm-accent)); }
