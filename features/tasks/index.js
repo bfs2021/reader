@@ -15,7 +15,9 @@
  *
  * `reset:[]` is a button that clears every box in its section -- the
  * heading it's under, to the next at that level or above -- as one edit:
- * `reset:[Start over]` names it.
+ * `reset:[Start over]` names it. When the section has a heading `Log` in
+ * it, a second button adds a heading for today to the end of the log,
+ * with the multiple the section's multiplier is at (features/count).
  *
  * Each box carries its line, and that line as it reads checked and
  * unchecked (a staged box, at each stage), so the preview can rewrite it
@@ -25,7 +27,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, placeholder, splitText, sections, escapeHtml, escapeAttr, addClass } from '../source.js';
+import { beforeAsides, keepWritten, readLines, placeholder, splitText, sections, escapeHtml, escapeAttr, addClass } from '../source.js';
 import { schemeRule } from '../scheme.js';
 
 const TASK = /^([ \t]*(?:[>~][ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
@@ -125,19 +127,35 @@ export function tasks(md) {
       return true;
     },
   });
-  // A reset clears the boxes of its section, by their lines in the file.
+  // A reset clears the boxes of its section, by their lines in the file;
+  // with a log in the section, it can add to it, and say the multiple.
+  keepWritten(md);
   md.core.ruler.push('task_reset_sections', (state) => {
     if (state.inlineMode) return;
-    const { of } = sections(state);
+    const { list, of } = sections(state);
+    const multipliers = new Map();
     state.tokens.forEach((block, i) => {
-      for (const t of block.children ?? []) if (t.type === 'task_reset') t.meta.section = of[i];
+      for (const t of block.children ?? []) if (t.type === 'multiplier' && !multipliers.has(of[i])) multipliers.set(of[i], t.meta);
+    });
+    state.tokens.forEach((block, i) => {
+      for (const t of block.children ?? []) {
+        if (t.type !== 'task_reset') continue;
+        const section = of[i];
+        t.meta.section = section;
+        for (let s = section; s && !t.meta.multiplier; s = s.parent) t.meta.multiplier = multipliers.get(s);
+        const log = list.find((s) => LOG.test(s.title) && s !== section && under(s, section));
+        if (log) t.meta.log = { at: logEnd(state, log), level: Math.min(6, log.level + 1) };
+      }
     });
   });
 
   md.renderer.rules.task_reset = (tokens, i) => {
-    const { label, section } = tokens[i].meta;
+    const { label, section, log, multiplier } = tokens[i].meta;
     const to = section && section.end !== Infinity ? ` data-to="${section.end}"` : '';
-    return `<button type="button" class="task-reset" data-from="${section?.line ?? 0}"${to}>${escapeHtml(label)}</button>`;
+    const reset = `<button type="button" class="task-reset" data-from="${section?.line ?? 0}"${to}>${escapeHtml(label)}</button>`;
+    if (!log) return reset;
+    const by = multiplier?.id ? ` data-multiplier="${multiplier.id}"` : '';
+    return `${reset} <button type="button" class="task-log" data-at="${log.at}" data-level="${log.level}"${by}>Log today</button>`;
   };
 
   md.renderer.rules.task_box = (tokens, i) => {
@@ -148,6 +166,24 @@ export function tasks(md) {
       ? `<input type="radio" class="choice-box" name="choice-${group}" data-line="${line}"${lines}> `
       : `<input type="checkbox" class="task-box" data-line="${line}"${lines}> `;
   };
+}
+
+const LOG = /^log$/i;
+const BLANK = /^\s*(?:(?:[-*_][ \t]*){3,})?$/;
+
+/** Whether section `s` is inside `around`. */
+function under(s, around) {
+  for (let p = s.parent; p; p = p.parent) if (p === around) return true;
+  return false;
+}
+
+/** The line after a log's last entry: past it are only blank lines, or a rule before what's next. */
+function logEnd(state, log) {
+  const base = state.env.lineBase ?? 0;
+  const lines = state.env.written ?? state.src.split('\n');
+  let end = Math.min(log.end, base + lines.length);
+  while (end - 1 > log.line && BLANK.test(lines[end - 1 - base] ?? '')) end--;
+  return end;
 }
 
 /**

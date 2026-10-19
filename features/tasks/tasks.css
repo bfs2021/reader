@@ -49,7 +49,7 @@ li.staged > .stage-box, li.staged > p > .stage-box {
 }
 li.task-done { color: var(--gm-ink-soft); opacity: 0.6; }
 li.task-done .stage-box > i.on { background: var(--gm-ink-soft); border-color: var(--gm-ink-soft); }
-.task-reset {
+.task-reset, .task-log {
   font: 600 0.78em/1 var(--gm-sans);
   padding: 0.3em 0.75em;
   border: 1px solid var(--gm-rule);
@@ -59,4 +59,5 @@ li.task-done .stage-box > i.on { background: var(--gm-ink-soft); border-color: v
   cursor: pointer;
 }
 .task-reset::before { content: "↺ "; }
-.task-reset:hover, .multiply:hover { color: var(--gm-ink); }
+.task-log::before { content: "+ "; }
+.task-reset:hover, .task-log:hover, .multiply:hover { color: var(--gm-ink); }

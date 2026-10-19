@@ -1,5 +1,6 @@
 /**
- * A card's label (G, B or T) marks its discussion done, or not done again:
+ * A card's label (G, B or T) marks its discussion done, or not done again
+ * (a Try's, that it's been tried):
  * a click, or Enter or Space on it, writes its line with `[x]` or without
  * (`data-on`, `data-off`); the re-render that follows fades the card. Runs
  * in the preview frame.

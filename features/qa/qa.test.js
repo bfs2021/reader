@@ -79,7 +79,7 @@ test('Good:, Bad: and Try: lines are cards, each one its own', () => {
   assert.equal(body.match(/class="qa qa-card qa-good"/g).length, 2);
   assert.match(body, /<li class="qa qa-card qa-good">\n<p><span class="qa-label qa-toggle"[^>]*>G<\/span><span class="qa-name">Josh<\/span>two<\/p>\n<\/li>\n<li class="qa qa-a">\n<p><span class="qa-label">A<\/span><span class="qa-name">Rob<\/span>agreed/);
   assert.match(body, /<li class="qa qa-card qa-bad">\n<p><span class="qa-label qa-toggle"[^>]*>B<\/span>three<\/p>/);
-  assert.match(body, /<span class="qa-label qa-toggle"[^>]*>T<\/span><span class="qa-name">Josh<\/span>four/);
+  assert.match(body, /<span class="qa-label qa-toggle qa-tried"[^>]*>T<\/span><span class="qa-name">Josh<\/span>four/);
   assert.match(body, /<p>Good: plain<\/p>/);
 });
 
@@ -129,4 +129,10 @@ test('a card\'s label writes its line done, or not, as written', () => {
     ['17', 'Try [x]: three', 'Try: three'],
   ]);
   assert.match(render('Q: x\nA: y\n').body, /^(?![\s\S]*qa-toggle)/);
+});
+
+test('a Try card\'s label is a box, ticked once it\'s been tried', () => {
+  const { body } = render('Try (Josh): half the cumin\n\nTry [x]: less salt\n');
+  assert.match(body, /<span class="qa-label qa-toggle qa-tried" role="checkbox" tabindex="0" aria-label="Try, tried" aria-checked="false" title="Mark it tried"[^>]*>T<\/span>/);
+  assert.match(body, /<li class="qa qa-card qa-try qa-done">\n<p><span class="qa-label qa-toggle qa-tried" role="checkbox"[^>]*aria-checked="true" title="Not tried yet"/);
 });

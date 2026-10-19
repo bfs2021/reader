@@ -114,3 +114,17 @@ test('reset:[] is a button for the boxes of its section', () => {
   assert.match(body, /<button type="button" class="task-reset" data-from="0" data-to="5">Start over<\/button>/);
   assert.match(body, /<button type="button" class="task-reset" data-from="5">Again<\/button>/);
 });
+
+test('reset:[] in a recipe with a log can add to it, after its last entry', () => {
+  const src = '## Akara\nmultiplier:[]\nreset:[]\n\n### Steps\n1) [ ] fry\n\n### Log\n#### date:2026-10-01[]\nGood (Ana): yum\n\n---\n\n## Yam\nreset:[]\n';
+  const { body } = render(src);
+  assert.match(body, /class="task-reset" data-from="0" data-to="13">Start over<\/button> <button type="button" class="task-log" data-at="10" data-level="4" data-multiplier="1">Log today<\/button>/);
+  assert.match(body, /class="task-reset" data-from="13">Start over<\/button><\/p>/);
+});
+
+test('an empty log is added to under its heading', () => {
+  const { body } = render('## Yam\nreset:[]\n\n## Log\n\n## Akara\n');
+  assert.doesNotMatch(body, /task-log/);
+  const nested = render('## Yam\nreset:[]\n\n### Log\n\n## Akara\n').body;
+  assert.match(nested, /class="task-log" data-at="4" data-level="4">/);
+});

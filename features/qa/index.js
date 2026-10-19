@@ -20,8 +20,10 @@
  *   A (Rob): Plan them against the calendar.
  *
  * `Bad [x] (Josh):` is a card whose discussion is done: it and what's said
- * under it are faded. A click on a card's label writes or takes away the
- * `[x]` (preview.js); `[ ]` is a card not yet done, as no box is.
+ * under it are faded. On a `Try`, the `[x]` is a box ticked instead: it's
+ * been tried, as a recipe's log says of a change to make next time. A
+ * click on a card's label writes or takes away the `[x]` (preview.js);
+ * `[ ]` is a card not yet done, as no box is.
  *
  * Before anything else reads the source -- the asides included, so
  * that an aside ends where an exchange's line begins -- each such line
@@ -55,8 +57,13 @@ export function qa(md) {
     // A toggle, pressed once discussed, named for its card rather than its
     // letter. An exported page has no script to press it with, so there it's
     // only a label.
+    // A Try is ticked off once it's been tried, a checkbox rather than a toggle.
+    const tried = who === 'Try';
+    const state = tried
+      ? `role="checkbox" tabindex="0" aria-label="Try, tried" aria-checked="${toggle?.done}" title="${toggle?.done ? 'Not tried yet' : 'Mark it tried'}"`
+      : `role="button" tabindex="0" aria-label="${who}, discussed" aria-pressed="${toggle?.done}" title="${toggle?.done ? 'Reopen the discussion' : 'Mark the discussion done'}"`;
     const label = toggle && !env.exported
-      ? `<span class="qa-label qa-toggle" role="button" tabindex="0" aria-label="${who}, discussed" aria-pressed="${toggle.done}" title="${toggle.done ? 'Reopen the discussion' : 'Mark the discussion done'}" data-line="${toggle.line}" data-on="${escapeAttr(toggle.on)}" data-off="${escapeAttr(toggle.off)}">`
+      ? `<span class="qa-label qa-toggle${tried ? ' qa-tried' : ''}" ${state} data-line="${toggle.line}" data-on="${escapeAttr(toggle.on)}" data-off="${escapeAttr(toggle.off)}">`
       : '<span class="qa-label">';
     // A name is markdown like the rest of the line: *emphasis*, quotes.
     return `${label}${LABELS[who] ?? who}</span>${tally}${name ? `<span class="qa-name">${md.renderInline(name)}</span>` : ''}`;

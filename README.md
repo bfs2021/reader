@@ -244,9 +244,11 @@ A (Rob): Would like to see those planned relative to the calendar.
 
 A `+1` with no card or question above it stays as typed.
 
-Clicking a card's G, B or T marks its discussion done: the line gets an
+Clicking a card's G or B marks its discussion done: the line gets an
 `[x]` (`Good [x] (Josh):`), and the card, its votes and its answers fade.
-Click again to take it away. That's how a `Try` gets ticked off, too.
+Click again to take it away. A `Try`'s T is a box instead, ticked once it's
+been tried: the same `[x]`, a check in place of the T, and the card stays
+as it was.
 
 A line starting `@ ` is a **form field**: a label, a colon, and whatever's
 filled in after it, which can be nothing yet.
@@ -830,6 +832,22 @@ names it can't slip by:
   `### Ingredients`), unless it's one of the document's top headings.
 - A `!` before a word a definition defines is the definition's, and `\!`
   keeps one as typed.
+
+A heading `Log` in a recipe keeps **when it was made and how it went**, in
+retro cards: a heading for each time, and `Try` for what to change next
+time, ticked once it's been tried.
+
+```markdown
+### Log
+#### date:2026-10-18[] · 2×
+Good (Ana): loved the plantains
++1 (Sam)
+Try (Josh): half the cumin
+```
+
+With a log in its section, `reset:[]` has a **Log today** button beside
+Start over, which adds a heading for today after the log's last entry, with
+the multiple the recipe is at.
 
 ## Working and presenting
 

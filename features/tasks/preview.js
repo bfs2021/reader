@@ -4,7 +4,8 @@
  * stick. Each box knows its line checked and unchecked (`data-on`,
  * `data-off`), and a box with stages its line at each (`data-lines`): a
  * click fills the next stage, or empties a full box, and a shift-click
- * goes back one. A reset button clears every box on its lines. Runs in
+ * goes back one. A reset button clears every box on its lines, and a log
+ * button beside it adds a heading for today, with the multiple picked. Runs in
  * the preview frame, and lends other features `Preview.stageLine` and
  * `Preview.setStage`, to move a staged box with an edit of their own.
  */
@@ -51,6 +52,17 @@
       if (to === stage) return;
       Preview.edit([stageLine(box, to)], { undo: true });
       setStage(box, to);
+      return;
+    }
+    const log = e.target.closest?.('.task-log');
+    if (log) {
+      const at = Number(log.dataset.at);
+      const d = new Date();
+      const today = [d.getFullYear(), d.getMonth() + 1, d.getDate()].map((n) => String(n).padStart(2, '0')).join('-');
+      const multiplier = log.dataset.multiplier && document.querySelector(`.multiplier[data-multiplier="${log.dataset.multiplier}"]`);
+      const by = multiplier?.querySelector('.multiply[aria-pressed="true"]:not([data-by="1"])')?.textContent;
+      const heading = `${'#'.repeat(Number(log.dataset.level))} date:${today}[]${by ? ` · ${by}` : ''}`;
+      Preview.edit([{ from: at, to: at, before: [], after: ['', heading] }], { undo: true });
       return;
     }
     const reset = e.target.closest?.('.task-reset');
