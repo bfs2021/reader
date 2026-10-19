@@ -10,7 +10,7 @@ import { api, exportUrl, contentUrl } from './api.js';
 import { saveFirst, setConflict } from './saving.js';
 import { exportDocument } from './exporting.js';
 import { showPdf } from './pdf.js';
-import { renderNow, showPreview } from './render.js';
+import { renderNow, showPreview, showEmpty } from './render.js';
 import { scheduleGutter } from './lines.js';
 import { setSaveState, updateCounts, toast } from './status.js';
 import { updatePresentable } from './deck.js';
@@ -399,6 +399,24 @@ export async function open(p) {
   updatePresentable();
   drawTree();
   el.files.querySelector('.file.now')?.scrollIntoView({ block: 'nearest' });
+}
+
+/** Leave nothing open, `msg` where the page was: the header, title, address and counts name no file. */
+export function closeFile(msg) {
+  state.current = null;
+  state.saved = '';
+  setConflict(false);
+  el.editor.value = '';
+  history.replaceState(null, '', location.pathname + location.search);
+  document.title = 'reader';
+  el.crumb.textContent = '';
+  el.copyPath.hidden = true;
+  setSaveState('');
+  updateCounts();
+  scheduleGutter();
+  updatePresentable();
+  drawTree();
+  showEmpty(msg);
 }
 
 export function today() {

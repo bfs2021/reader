@@ -9,8 +9,7 @@ import { el, state } from './state.js';
 import { api } from './api.js';
 import { saveFirst } from './saving.js';
 import { toast } from './status.js';
-import { showEmpty } from './render.js';
-import { loadTree, open, go, reveal, visiblePaths } from './files.js';
+import { loadTree, open, closeFile, go, reveal, visiblePaths } from './files.js';
 import { groupOf, splitPath, dirOf } from './versions.js';
 
 const LISTED = new Set(['.md', '.markdown', '.pdf']);
@@ -147,11 +146,7 @@ export async function trash(p) {
     if (wasOpen) {
       const next = paths.slice(i + 1).concat(paths.slice(0, i).reverse()).find((q) => state.files.some((f) => f.path === q));
       if (next) await open(next);
-      else {
-        el.editor.value = '';
-        el.editor.disabled = true;
-        showEmpty('Nothing open.');
-      }
+      else closeFile('Nothing open.');
     }
     toast(`${splitPath(p).name} is in the trash`, false, { label: 'Undo', run: () => restore(out.trash) });
   } catch (err) {
