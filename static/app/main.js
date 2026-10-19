@@ -12,7 +12,7 @@ import { whenReady, showEmpty } from './render.js';
 import { save, saveFirst, saveOnLeave, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
-import { toggleSidebar, restoreLayout, setWorking } from './modes.js';
+import { toggleSidebar, toggleDrawer, wireDrawer, restoreLayout, setWorking } from './modes.js';
 import { wirePages, paged, turn } from './pages.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
 import { wireFit } from './fit.js';
@@ -87,6 +87,7 @@ function wire() {
   wireLines();
   wireOutline();
   wireGoTo();
+  wireDrawer();
 
   el.filter.addEventListener('input', drawTree);
   el.files.addEventListener('keydown', onListKey);
@@ -97,7 +98,10 @@ function wire() {
       el.files.querySelector('.file, .folder')?.focus();
     } else if (e.key === 'Enter') {
       const first = visiblePaths()[0];
-      if (first) open(first);
+      if (first) {
+        open(first);
+        toggleDrawer(false);
+      }
     } else if (e.key === 'Escape') {
       el.filter.value = '';
       drawTree();

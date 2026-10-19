@@ -59,10 +59,12 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .bar-left, .bar-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
+/* At a narrow width the file's name gives way, not the buttons. */
+.bar-right { flex-shrink: 0; }
 
 .mark { font-family: var(--serif); font-size: 15px; white-space: nowrap; }
 .crumb {
-  color: var(--ink-soft); font-size: 12.5px; white-space: nowrap;
+  min-width: 0; color: var(--ink-soft); font-size: 12.5px; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -346,9 +348,9 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   padding: 8px 14px; border-top: 1px solid var(--line-soft);
   font-size: 11.5px; color: var(--ink-faint);
 }
-.foot-info { display: flex; align-items: center; gap: 8px; min-width: 0; font-variant-numeric: tabular-nums; }
+.foot-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; font-variant-numeric: tabular-nums; }
 .foot-info .dot { color: var(--accent); font-size: 9px; }
-.foot-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.foot-right { display: flex; flex-shrink: 0; align-items: center; gap: 8px; min-width: 0; }
 .foot-right .ghost { padding: 1px 6px; font-family: var(--mono); font-size: 11px; }
 .foot-right .ghost[aria-pressed="false"] { color: var(--ink-faint); }
 /* off screen, at the speaker view's size */
@@ -406,7 +408,20 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 @media (max-width: 900px) {
   .split, .split.no-sidebar { grid-template-columns: 1fr; grid-template-rows: minmax(0, 52%) minmax(0, 48%); }
   .sidebar { display: none; }
+  .split { position: relative; }
+  .split.list-open .sidebar {
+    display: flex; visibility: visible; position: absolute; z-index: 15;
+    top: 0; bottom: 0; left: 0; width: min(var(--side-w) + 40px, 100vw);
+    border-right: 1px solid var(--line); box-shadow: 0 6px 24px rgba(0,0,0,.22);
+  }
   .view-pane { border-right: 0; border-bottom: 1px solid var(--line); }
   .split.work-mode { grid-template-rows: minmax(0, 1fr) 0; }
   .split.work-mode .view-pane { border-bottom: 0; }
+}
+/* A phone, or 400% zoom: the bar takes a second row rather than lose its buttons. */
+@media (max-width: 480px) {
+  body { grid-template-rows: auto 1fr; }
+  .bar { flex-wrap: wrap; gap: 6px; padding: 6px 8px; min-height: var(--bar-h); }
+  .bar-left, .bar-right { gap: 6px; }
+  .bar-right { margin-left: auto; }
 }

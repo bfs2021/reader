@@ -9,7 +9,7 @@ const $ = (id) => document.getElementById(id);
 export const el = {
   rootName: $('rootName'), crumb: $('crumb'), copyPath: $('copyPath'), saveState: $('saveState'),
   sidebarToggle: $('sidebarToggle'), helpToggle: $('helpToggle'), help: $('help'),
-  split: $('split'), filter: $('filter'), files: $('files'),
+  split: $('split'), sidebar: $('sidebar'), filter: $('filter'), files: $('files'),
   newBtn: $('newBtn'), crumbs: $('crumbs'), newForm: $('newForm'), newName: $('newName'),
   preview: $('preview'), pdfView: $('pdfView'), empty: $('empty'),
   writePane: $('writePane'), editor: $('editor'), gutter: $('gutter'), gutterToggle: $('gutterToggle'),
