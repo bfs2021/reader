@@ -13,6 +13,7 @@
  * a checkbox shows what the file says.
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { render } from './render.js';
@@ -61,15 +62,27 @@ const PAGES_CSS = `
 `;
 
 // The preview frame's `ink()`: light text on a dark background.
-const INK = `<script>
+const INK_JS = `
 (() => {
   const bg = document.querySelector('.gm-bg');
   const rgb = bg && getComputedStyle(bg).backgroundColor.match(/[\\d.]+/g)?.map(Number);
   const dark = Boolean(rgb) && (rgb[3] ?? 1) > 0.5 && (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000 < 140;
   document.documentElement.classList.toggle('gm-dark', dark);
 })();
-</script>
 `;
+const INK = `<script>${INK_JS}</script>\n`;
+
+// What the page may load and run: its own styles, images inside it or on
+// the web, and the one script above. A diagram drawn into it can't add
+// another, should one ever get past mermaid's own cleaning.
+const CSP = [
+  "default-src 'none'",
+  'img-src * data:',
+  "style-src 'unsafe-inline'",
+  `script-src 'sha256-${crypto.createHash('sha256').update(INK_JS).digest('base64')}'`,
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
 
 /**
  * `{ name, html, missing }` for the document at `file`: the name to save it
@@ -88,6 +101,7 @@ export function exportHtml(content, file, drawn) {
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(out.title)}</title>
 <style>

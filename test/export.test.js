@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -85,6 +86,19 @@ test('a deck with speaker notes prints across the sheet, one without down it, un
   assert.equal(size('talk.html'), 'landscape');
   assert.equal(size('packet.html'), 'portrait');
   assert.equal(size('turned.html'), 'landscape');
+});
+
+test('an exported page runs only its own script', async () => {
+  const root = dir({ 'deck.md': '---\nbackground: navy\n---\n\n# One\n' });
+  await reader(root, 'deck.md', '--no-draw');
+  const html = fs.readFileSync(path.join(root, 'deck.html'), 'utf8');
+  const policy = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]*)">/)?.[1];
+  assert.ok(policy, 'no policy');
+  assert.match(policy, /default-src 'none'/);
+  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  assert.equal(scripts.length, 1);
+  const hash = crypto.createHash('sha256').update(scripts[0]).digest('base64');
+  assert.match(policy, new RegExp(`script-src 'sha256-${hash.replace(/[+/]/g, '\\$&')}'`));
 });
 
 test('a document that is not a deck is saved whole', async () => {
