@@ -104,6 +104,21 @@ test('a callout in the output marks its line, and shows the output from its step
   assert.match(html, /<li data-callout="2" data-focus="3">/);
 });
 
+test('versions of the code in tabs share the output and notes after them', () => {
+  const html = render('::: tabs\n```java\na() // <1>\n```\n\n```kotlin\nb() // <1>\n```\n:::\n```output\n1\n```\n<1> - the call\n').body;
+  assert.match(html, /<div class="code-group">\n<div class="tabs">/);
+  assert.equal(html.match(/<span class="line" data-focus="2" data-callout="1">[ab]\(\)<span class="callout" data-n="1"><\/span><\/span>/g)?.length, 2);
+  assert.doesNotMatch(html, /\/\/ &lt;1&gt;/);
+  assert.match(html, /<\/div>\n<pre class="output" data-focus="3"><code class="language-output">1\n<\/code><\/pre>\n<ol class="callout-notes">\n<li data-callout="1" data-focus="2">[\s\S]*the call<\/span><\/li>\n<\/ol>\n<\/div>/);
+  assert.equal(html.match(/data-focus-steps="3"/g)?.length, 2);
+});
+
+test('a fence\'s output and notes in tabs stay in its tab', () => {
+  const html = render('::: tabs\n```java\na() <1>\n```\n```output\nA\n```\n<1> java\n\n```kotlin\nb()\n```\n:::\n').body;
+  assert.equal(html.match(/<label class="tab">/g)?.length, 2);
+  assert.match(html, /<div class="tab-pane" data-tab="java" data-label="Java">\n<div class="code-group">\n<pre[^>]*>[\s\S]*<pre class="output"[\s\S]*<ol class="callout-notes">[\s\S]*java<\/span><\/li>\n<\/ol>\n<\/div>\n<\/div>\n<div class="tab-pane" data-tab="kotlin"/);
+});
+
 test('long output is cut short, with a way to show the rest', () => {
   const html = render(`\`\`\`output\n${Array(13).fill('x').join('\n')}\n\`\`\`\n`).body;
   assert.match(html, /<div class="output-long">\n<pre class="output">[\s\S]*<\/pre>\n<label class="output-more"><input type="checkbox"><span>Show all 13 lines<\/span><\/label>\n<\/div>/);

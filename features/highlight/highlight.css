@@ -103,13 +103,19 @@ pre.output::before {
   color: var(--gm-ink-soft);
   opacity: .7;
 }
-.code-group > pre:has(+ pre.output, + .output-long) {
+.code-group > pre:has(+ pre.output, + .output-long),
+.code-group > .tabs:has(+ pre.output, + .output-long) .tab-pane > pre:last-child {
   margin-bottom: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
+/* under versions of the code (::: tabs), every version's */
+.code-group > .tabs:has(+ pre.output, + .output-long) { margin-bottom: 0; }
+.code-group > .tabs:has(+ .callout-notes) { margin-bottom: 0.5rem; }
 .code-group > pre + pre.output,
-.code-group > pre + .output-long > pre {
+.code-group > pre + .output-long > pre,
+.code-group > .tabs + pre.output,
+.code-group > .tabs + .output-long > pre {
   margin-top: 0;
   border-top: 1px dashed #c9d1dc;
   border-top-left-radius: 0;

@@ -23,6 +23,8 @@
  * into panes with `panes()`.
  */
 
+import { isOutput, readNotes } from './highlight/callouts.js';
+
 export const LAYOUTS = ['columns', 'tabs', 'compare'];
 
 export const OPEN = '\uE021';
@@ -78,7 +80,10 @@ export function panes(state, startLine, endLine, name) {
   return { end, panes: out };
 }
 
-/** `tokens`, a block at a time. */
+/**
+ * `tokens`, a block at a time. A fence's `output` fence and the notes on
+ * its lines (highlight/callouts.js) go with it, in its block.
+ */
 function each(tokens) {
   const out = [];
   let block = [];
@@ -87,8 +92,18 @@ function each(tokens) {
     block.push(t);
     depth += t.nesting;
     if (depth) continue;
-    out.push(block);
+    const last = out.at(-1);
+    if (last && belongs(last, block)) last.push(...block);
+    else out.push(block);
     block = [];
   }
   return out;
+}
+
+/** Whether `block` is the output of, or the notes on, the fence that `before` ends with. */
+function belongs(before, block) {
+  const end = before.at(-1);
+  if (end.type !== 'fence') return false;
+  if (isOutput(block[0])) return !isOutput(end);
+  return block[0].type === 'paragraph_open' && readNotes(block[1].content).length > 0;
 }

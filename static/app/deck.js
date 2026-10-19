@@ -120,12 +120,13 @@ export function steps(body) {
 /**
  * Gives `node` the step after `n`, and returns the last step it takes: one,
  * plus one for each further range a fence in it moves through
- * (`data-focus-steps`, from a fence written `{1-3|5}`).
+ * (`data-focus-steps`, from a fence written `{1-3|5}`); of versions of a
+ * fence (`::: tabs`), the one that moves through the most.
  */
 function step(node, n) {
   node.dataset.step = ++n;
-  const fence = node.matches(FOCUS) ? node : node.querySelector(FOCUS);
-  return n + (fence ? Number(fence.dataset.focusSteps) - 1 : 0);
+  const fences = node.matches(FOCUS) ? [node] : [...node.querySelectorAll(FOCUS)];
+  return n + Math.max(0, ...fences.map((fence) => Number(fence.dataset.focusSteps) - 1));
 }
 
 /** Puts the current slide on the stage; with `render: false`, only its reveal. */
