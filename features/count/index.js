@@ -42,7 +42,9 @@ export function counts(md) {
     if (!m) return false;
     if (!silent) {
       state.pending = state.pending.slice(0, -'count'.length);
-      state.push('count', 'span', 0).meta = { amount: [...m] };
+      const count = state.push('count', 'span', 0);
+      count.content = m[0];
+      count.meta = { amount: [...m] };
     }
     state.pos = colon + 1 + m[0].length;
     return true;

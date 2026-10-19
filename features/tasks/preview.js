@@ -5,7 +5,8 @@
  * `data-off`), and a box with stages its line at each (`data-lines`): a
  * click fills the next stage, or empties a full box, and a shift-click
  * goes back one. A reset button clears every box on its lines. Runs in
- * the preview frame.
+ * the preview frame, and lends other features `Preview.stageLine` and
+ * `Preview.setStage`, to move a staged box with an edit of their own.
  */
 (() => {
   const boxLine = (b, on) => {
@@ -13,13 +14,13 @@
     // `defaultChecked` is what the file said when the page was drawn.
     return { from: line, to: line + 1, before: [b.defaultChecked ? b.dataset.on : b.dataset.off], after: [on ? b.dataset.on : b.dataset.off] };
   };
-  const stageLine = (b, to) => {
+  const stageLine = Preview.stageLine = (b, to) => {
     const line = Number(b.dataset.line);
     const lines = JSON.parse(b.dataset.lines);
     return { from: line, to: line + 1, before: [lines[Number(b.dataset.stage)]], after: [lines[to]] };
   };
   /** Until the next render, the page is what the file says. */
-  const setStage = (b, to) => {
+  const setStage = Preview.setStage = (b, to) => {
     b.dataset.stage = String(to);
     [...b.children].forEach((pip, k) => pip.classList.toggle('on', k < to));
     const n = b.children.length;
@@ -36,6 +37,8 @@
     const edits = group.map((b) => boxLine(b, b === box ? box.checked : false))
       .filter((x) => x.before[0] !== x.after[0]);
     for (const b of group) b.defaultChecked = b.checked;
+    // What else a box being ticked changes, in the same edit (ingredients/preview.js).
+    document.dispatchEvent(new CustomEvent('tasks:edits', { detail: { box, edits } }));
     if (edits.length) Preview.edit(edits, { undo: true });
   });
 

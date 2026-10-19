@@ -30,6 +30,7 @@ import { schemeRule } from '../scheme.js';
 
 const TASK = /^([ \t]*(?:[>~][ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
 const PHASES = /^ {0,3}phases:[ \t]*(\S.*?)[ \t]*$/i;
+const NAMED = new Set(['count', 'ingredient_key', 'ingredient_use']);
 const ANY_HEADING = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const HEADING = /^( {0,3}#{1,6}[ \t]+)\[([ xX])\](?=[ \t]|$)/;
 const OPEN = '\uE000';
@@ -172,7 +173,8 @@ function stageBox({ line, stage, lines, phases, name }) {
  */
 function nameOf(children) {
   return children
-    .filter((t) => t.type === 'text' || t.type === 'code_inline')
+    // Words other features set apart (a count, an ingredient) carry theirs too.
+    .filter((t) => t.type === 'text' || t.type === 'code_inline' || NAMED.has(t.type))
     .map((t) => t.content)
     .join('')
     .replace(/[\uE000-\uF8FF]\d*[\uE000-\uF8FF]?/g, '')

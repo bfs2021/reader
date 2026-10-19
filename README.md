@@ -803,6 +803,34 @@ place.
   `localhost` or https: not one opened by the machine's address on the
   network.)
 
+`!word` in a list item **ties an ingredient to the steps that use it**. The
+word is the item's key, as a definition's `!` names its term, and elsewhere
+in the recipe it's found without one, plural or singular, so a step that
+names it can't slip by:
+
+```markdown
+### Ingredients
+* [ ] count:1 small yellow !onion, diced
+* [ ] a handful of fresh !cilantro, chopped
+
+### Steps
+1) [ ] Add the diced onion and cook until soft.
+```
+
+- The word is underlined where it's used, and hovering or focusing it shows
+  its item, amounts multiplied.
+- The lit step's ingredients are lit, in the step and in the list.
+- When the last step that names an ingredient is marked done, its box is
+  marked too, in the same edit: a box with stages filled, a plain one
+  ticked.
+- An ingredient that nothing else in the recipe names is flagged *in no
+  step*.
+- The recipe is the section with the multiplier, if there is one; or else
+  the section the list's heading is under (`## Akara`, for a list under
+  `### Ingredients`), unless it's one of the document's top headings.
+- A `!` before a word a definition defines is the definition's, and `\!`
+  keeps one as typed.
+
 ## Working and presenting
 
 **Work** (`⌘.`) hides the file list and the editor and gives the rendered page
