@@ -155,8 +155,14 @@ async function print() {
   }
 }
 
+let tabLeaves = false;
+
 function onKey(e) {
   const meta = e.metaKey || e.ctrlKey;
+  // Tab indents in the editor, unless it's just after Esc: then it goes on
+  // to what's next, as Tab does elsewhere.
+  const leaving = tabLeaves;
+  tabLeaves = e.key === 'Escape' && !meta && !e.altKey && !e.shiftKey;
   const key = e.key.toLowerCase();
   if (isGoTo(e)) {
     e.preventDefault();
@@ -195,7 +201,7 @@ function onKey(e) {
     toLineEdge(e.key === 'End', e.shiftKey);
     return;
   }
-  if (e.key === 'Tab' && !meta && !e.altKey && el.editor.selectionStart === el.editor.selectionEnd && !e.shiftKey) {
+  if (e.key === 'Tab' && !leaving && !meta && !e.altKey && el.editor.selectionStart === el.editor.selectionEnd && !e.shiftKey) {
     e.preventDefault();
     replaceSelection('  ');
   }
