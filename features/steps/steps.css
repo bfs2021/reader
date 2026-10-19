@@ -1,0 +1,28 @@
+/* A step's badge is its box: the box sits over it, unseen, and the badge
+ * says whether it's done. The badge's sizes are badges.css's, at its .72em. */
+ol.badges > li.step > .task-box, ol.badges > li.step > p > .task-box {
+  position: absolute;
+  right: calc(100% + 0.45em * 0.72);
+  top: calc(0.2em * 0.72);
+  width: calc(1.45em * 0.72);
+  height: calc(1.45em * 0.72);
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+ol.badges > li.step::before { cursor: pointer; }
+ol.badges > li.step-done::before { content: "✓"; background: var(--gm-ink-soft); }
+ol.badges > li.step-done { color: var(--gm-ink-soft); }
+ol.badges > li.step:has(> .task-box:focus-visible, > p > .task-box:focus-visible)::before {
+  outline: 2px solid var(--gm-accent);
+  outline-offset: 2px;
+}
+/* the step being worked on */
+ol.badges > li.step { border-radius: 4px; transition: background-color 0.2s; cursor: default; }
+ol.badges > li.step-current {
+  background: color-mix(in srgb, var(--badge) 9%, transparent);
+  box-shadow: -0.35em 0 0 0.2em color-mix(in srgb, var(--badge) 9%, transparent), 0.35em 0 0 0.2em color-mix(in srgb, var(--badge) 9%, transparent);
+  color: var(--gm-ink);
+}
+ol.badges > li.step-current::before { box-shadow: 0 0 0 3px color-mix(in srgb, var(--badge) 35%, transparent); }
+@media print { ol.badges > li.step-current { background: none; box-shadow: none; } }

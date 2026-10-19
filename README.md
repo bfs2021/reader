@@ -778,6 +778,31 @@ phases: have, prepped, used
 plain, staged or a choice, as one edit you can undo. `reset:[Clear]` names
 it. It's as much for a todo list or a game as for a recipe.
 
+A `1)` list whose items have boxes is **steps to follow**: each number badge
+is the step's box, and a click on it marks the step done, a check in its
+place.
+
+```markdown
+### Steps
+1) [x] Heat a splash of oil in a large pot.
+2) [ ] Add the diced onion and cook until soft, about 5 minutes.
+> [!TIP]
+> Go slow; it's sweeter.
+
+3) [ ] Stir in the garlic.
+```
+
+- Once a step is done, the first not done is lit up, and marking that one
+  done lights the next. Click a step to light it instead; with the page
+  clicked into, `j` and `k` light the next and the one before, and `x`
+  marks the lit one done. What's lit is only on the page, not in the file.
+- The steps under one heading go together, across a callout or a quote
+  between them.
+- While steps are under way -- begun and not all done -- the screen is kept
+  on, as hands are busy. (A browser keeps it on only for a page on
+  `localhost` or https: not one opened by the machine's address on the
+  network.)
+
 ## Working and presenting
 
 **Work** (`⌘.`) hides the file list and the editor and gives the rendered page

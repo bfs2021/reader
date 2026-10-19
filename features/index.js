@@ -43,6 +43,7 @@ import mermaid from './mermaid/index.js';
 import headline from './headline/index.js';
 import number from './number/index.js';
 import badges from './badges/index.js';
+import steps from './steps/index.js';
 import columns from './columns/index.js';
 import tabs from './tabs/index.js';
 import marks from './marks/index.js';
@@ -55,4 +56,4 @@ import marks from './marks/index.js';
 // they keep are as written, without its marks. tabs comes last, so the
 // words it compares are the ones the others leave as text, and marks after
 // it, finding the words an aside chooses in what's left as text.
-export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, count, social, math, arrows, emoji, highlight, mermaid, headline, number, badges, puzzles, tabs, marks];
+export const FEATURES = [asides, fields, tasks, qa, definitions, sizes, alerts, attributions, styles, columns, date, scripture, scriptureLds, search, count, social, math, arrows, emoji, highlight, mermaid, headline, number, badges, steps, puzzles, tabs, marks];
