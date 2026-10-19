@@ -53,13 +53,7 @@ export async function doSave({ explicit, force }) {
       path: cur.path, text, baseMtime: state.mtime, explicit, force,
     });
     if (state.current?.path !== cur.path) return;
-    state.saved = text;
-    state.mtime = out.mtime;
-    retryDelay = 0;
-    setConflict(false);
-    setSaveState('saved', 'ok');
-    const f = state.files.find((x) => x.path === cur.path);
-    if (f) f.mtime = out.mtime;
+    saved(cur.path, text, out.mtime);
   } catch (err) {
     if (err.status === 409) {
       setConflict(true);
@@ -74,6 +68,39 @@ export async function doSave({ explicit, force }) {
     }
   }
   updateDirty();
+}
+
+/** Takes `text` as what's on disk at `mtime`. */
+function saved(path, text, mtime) {
+  state.saved = text;
+  state.mtime = mtime;
+  retryDelay = 0;
+  setConflict(false);
+  setSaveState('saved', 'ok');
+  const f = state.files.find((x) => x.path === path);
+  if (f) f.mtime = mtime;
+}
+
+/**
+ * Saves the open file as the page is left, as best it can: a keepalive
+ * request outlives the page. If the page stays after all (Stay, at the
+ * prompt), what it saved is taken as saved, so the next save isn't a
+ * conflict with it.
+ */
+export function saveOnLeave() {
+  const { path } = state.current;
+  const text = el.editor.value;
+  const sent = fetch('/api/file', {
+    method: 'PUT',
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path, text, baseMtime: state.mtime }),
+  }).then((res) => (res.ok ? res.json() : null)).catch(() => null);
+  state.saving = state.saving.then(() => sent).then((out) => {
+    if (!out || state.current?.path !== path) return;
+    saved(path, text, out.mtime);
+    updateDirty();
+  });
 }
 
 export function setConflict(on) {

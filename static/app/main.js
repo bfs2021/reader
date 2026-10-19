@@ -9,7 +9,7 @@ import { api } from './api.js';
 import { dirOf } from './versions.js';
 import { loadTree, drawTree, visiblePaths, step, open, follow, createFile, showNewForm, go, reveal, rememberedDir, onListKey, onListDoubleClick } from './files.js';
 import { whenReady, showEmpty } from './render.js';
-import { save, saveFirst, reloadFromDisk, checkDisk } from './saving.js';
+import { save, saveFirst, saveOnLeave, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
 import { toggleSidebar, restoreLayout, setWorking } from './modes.js';
@@ -135,13 +135,7 @@ function wire() {
     e.preventDefault();
     // In a conflict the edits can't be saved over the other, only kept here.
     if (state.conflict) return;
-    // Best effort: a keepalive request outlives the page.
-    fetch('/api/file', {
-      method: 'PUT',
-      keepalive: true,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: state.current.path, text: el.editor.value, baseMtime: state.mtime }),
-    });
+    saveOnLeave();
   });
 
   window.addEventListener('keydown', onKey);
