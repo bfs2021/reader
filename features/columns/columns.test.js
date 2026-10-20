@@ -61,3 +61,8 @@ test('an aside in or after it sits beside all of it, and never cuts it', () => {
     assert.match(body, /<div class="gm-speaker">\n<div class="columns">[\s\S]*c<\/p>\n<\/div>\n<\/div>\n<\/div>\n<div class="gm-asides">/, src);
   }
 });
+
+test('columns in a list item stay in it', () => {
+  const html = render('- item\n\n  ::: columns red\n  left\n  +++\n  right\n  :::\n- next\n').body;
+  assert.match(html, /<ul>\n<li>\n<p>item<\/p>\n<div class="columns"[^>]*>\n<div class="column">\n<p style="color: red">left<\/p>\n<\/div>\n<div class="column">\n<p style="color: red">right<\/p>\n<\/div>\n<\/div>\n<\/li>\n<li>\n<p>next<\/p>\n<\/li>\n<\/ul>/);
+});

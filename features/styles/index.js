@@ -73,6 +73,8 @@ function lines(state) {
       return line;
     }
     const div = DIV.exec(line);
+    // A layout's marks keep the line's indent, to stay in a list item.
+    const indent = /^[ \t]*/.exec(line)[0];
     if (div) {
       // The fence lines themselves read as blank, keeping the line count; a
       // layout's are left for it to find.
@@ -80,13 +82,13 @@ function lines(state) {
         const names = div[1].trim().split(/\s+/);
         const layout = names.map((n) => n.toLowerCase()).find((n) => LAYOUTS.includes(n));
         open.push({ names: names.filter((n) => !LAYOUTS.includes(n.toLowerCase())), layout });
-        return layout ? LAYOUT_OPEN + layout : '';
+        return layout ? indent + LAYOUT_OPEN + layout : '';
       }
-      if (open.length) return open.pop().layout ? LAYOUT_CLOSE : '';
+      if (open.length) return open.pop().layout ? indent + LAYOUT_CLOSE : '';
       return line;
     }
     const plus = PLUS.exec(line);
-    if (plus && open.some((o) => o.layout)) return DIVIDER + (plus[1] ?? '');
+    if (plus && open.some((o) => o.layout)) return indent + DIVIDER + (plus[1] ?? '');
     // Innermost first, so its font leads and its color wins.
     const names = open.flatMap((o) => o.names.length ? [o.names] : []).reverse().flat().join(' ');
     return names ? mark(line, names) : line;
