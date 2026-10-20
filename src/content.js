@@ -75,6 +75,19 @@ export function createContent(rootDir) {
   }
 
   /**
+   * Whether `toAbs` is there already, as another file than `fromAbs`. On a
+   * filesystem that ignores case, `A.md` is there when `a.md` is, but as
+   * the same file, and renaming one to the other only changes its case.
+   */
+  function taken(fromAbs, toAbs) {
+    const to = fs.statSync(toAbs, { throwIfNoEntry: false });
+    if (!to) return false;
+    if (fromAbs.toLowerCase() !== toAbs.toLowerCase()) return true;
+    const from = fs.statSync(fromAbs, { throwIfNoEntry: false });
+    return !from || from.dev !== to.dev || from.ino !== to.ino;
+  }
+
+  /**
    * A path in reader's own .reader folder, refusing a symlink anywhere along
    * it: a folder that came with the files could point backups and the trash
    * anywhere, to be written, pruned and taken from.
@@ -296,7 +309,7 @@ export function createContent(rootDir) {
       if (!LISTED_EXTS.has(path.extname(toAbs).toLowerCase()) || kind(fromAbs) !== kind(toAbs)) {
         throw new PathError(`${to} would be a different kind of file than ${from}`);
       }
-      if (fs.existsSync(toAbs) || targets.has(toAbs)) throw new ConflictError(`${to} already exists`);
+      if (taken(fromAbs, toAbs) || targets.has(toAbs)) throw new ConflictError(`${to} already exists`);
       targets.add(toAbs);
       // Before anything moves, so that none does.
       own(path.join(backupRoot, toRel(fromAbs)));
@@ -392,12 +405,12 @@ export function createContent(rootDir) {
     const from = toRel(fromAbs);
     const to = toRel(toAbs);
     resolve(to);
-    if (fs.existsSync(toAbs)) throw new ConflictError(`${to} already exists`);
+    if (taken(fromAbs, toAbs)) throw new ConflictError(`${to} already exists`);
     const oldBackups = own(path.join(backupRoot, from));
     const newBackups = own(path.join(backupRoot, to));
     fs.renameSync(fromAbs, toAbs);
     if (fs.existsSync(oldBackups)) {
-      if (!fs.existsSync(newBackups)) {
+      if (!taken(oldBackups, newBackups)) {
         fs.mkdirSync(path.dirname(newBackups), { recursive: true });
         fs.renameSync(oldBackups, newBackups);
       } else {

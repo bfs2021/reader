@@ -238,3 +238,14 @@ test('unextract puts it back while neither file has changed, the new one in the 
   assert.equal(fs.existsSync(path.join(root, 'one.md')), false);
   assert.equal(fs.readdirSync(content.trashRoot).length, 1);
 });
+
+test('rename changes only the case of a name, backups and all', () => {
+  const { root, content } = fixture();
+  content.write('a.md', '# a, changed\n', { explicit: true });
+  const out = content.rename([{ from: 'a.md', to: 'A.md' }]);
+  assert.deepEqual(out.moved, [{ from: 'a.md', to: 'A.md' }]);
+  assert.ok(fs.readdirSync(root).includes('A.md'));
+  assert.ok(!fs.readdirSync(root).includes('a.md'));
+  assert.ok(fs.readdirSync(content.backupRoot).includes('A.md'));
+  assert.equal(fs.readdirSync(path.join(content.backupRoot, 'A.md')).length, 1);
+});
