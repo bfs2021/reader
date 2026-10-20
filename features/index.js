@@ -8,9 +8,8 @@
  * - `html`: a pass over the finished page's HTML, for what the tokens don't
  *   reach (the masthead, say).
  * - `css`: added to the rendered page's stylesheet.
- * - `raw`: applied before render.js's own source pass, which the rest come
- *   after: a feature that reads the file as written, or asides, whose rule
- *   the others place theirs by.
+ * - `raw`: applied before the rest: a feature that reads the file as
+ *   written, or asides, whose rule the others place theirs by.
  * - `preview`: the path of a script the server loads into the preview frame,
  *   where it can use static/preview-api.js, or a list of them, loaded in
  *   order.

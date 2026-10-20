@@ -12,7 +12,11 @@
  * (`splitText`).
  */
 
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
+// A fence's opening line, after the `>` of any blockquotes it's in and the
+// markers of any list items; and the line that closes it.
+const FENCE = /^((?:[ \t]*>)*)([ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)*)(`{3,}|~{3,})/;
+const QUOTES = /^(?:[ \t]*>)*/;
+const CLOSING = /^[ \t]*(`{3,}|~{3,})[ \t]*$/;
 
 /**
  * Adds `rule` to read the source before the asides come out, or after
@@ -48,20 +52,40 @@ export function keepWritten(md) {
 export function readLines(state, fn) {
   if (state.inlineMode || state.env.__aside) return;
   const base = state.env.lineBase ?? 0;
-  let fence = null;
+  const code = fenced();
   const lines = state.src.split('\n');
-  state.src = lines.map((line, n) => {
-    const f = FENCE.exec(line);
+  state.src = lines.map((line, n) => (code(line) ? line : fn(line, base + n, lines, n))).join('\n');
+}
+
+/**
+ * A reader of lines in turn, saying whether each is fenced code: a fence's
+ * opening line, what's in it, or its closing line. A fence may be in a
+ * blockquote or a list item, and ends with it: at a line with fewer `>`, or,
+ * in a list item, at one indented less than the fence. A line indented as
+ * code that reads as a fence is taken for one too, which it is, as code.
+ */
+export function fenced() {
+  let fence = null;
+  return (line) => {
+    const quotes = (QUOTES.exec(line)[0].match(/>/g) ?? []).length;
     if (fence) {
-      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null;
-      return line;
+      const rest = line.replace(QUOTES, '');
+      const indent = /^[ \t]*/.exec(rest)[0].length;
+      const out = quotes < fence.quotes || (fence.column != null && rest.trim() && indent < fence.column);
+      if (!out) {
+        const c = CLOSING.exec(rest);
+        if (c && quotes === fence.quotes && c[1][0] === fence.mark[0] && c[1].length >= fence.mark.length) fence = null;
+        return true;
+      }
+      fence = null;
     }
-    if (f) {
-      fence = f[1];
-      return line;
-    }
-    return fn(line, base + n, lines, n);
-  }).join('\n');
+    const f = FENCE.exec(line);
+    if (!f) return false;
+    // Out of a list and not indented as code, a fence's lines may be indented less than it is.
+    const inList = f[2].length > 3 || /[-*+\d]/.test(f[2]);
+    fence = { mark: f[3], quotes, column: inList ? f[2].length : null };
+    return true;
+  };
 }
 
 /** The placeholder for item `k`, between `open` and `close`. */

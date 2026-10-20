@@ -262,6 +262,6 @@ export default {
   plugin: definitions,
   css: fs.readFileSync(new URL('./definitions.css', import.meta.url), 'utf8'),
   preview: fileURLToPath(new URL('./preview.js', import.meta.url)),
-  // Reads the file as written, before render.js's own source pass.
+  // Reads the file as written, before the features that don't.
   raw: true,
 };

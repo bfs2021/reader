@@ -105,6 +105,6 @@ export default {
   css: fs.readFileSync(new URL('./date.css', import.meta.url), 'utf8'),
   // Drawn into the preview frame, for the calendar.
   preview: fileURLToPath(new URL('./preview.js', import.meta.url)),
-  // Reads the file as written, before render.js's own source pass.
+  // Reads the file as written, before the features that don't.
   raw: true,
 };
