@@ -61,3 +61,10 @@ test('code fenced in a blockquote ends with it', () => {
   assert.match(body, /<a href="https:\/\/www\.rfc-editor\.org\/rfc\/rfc9110\.html">RFC 9110<\/a>/);
   assert.match(body, /<img src="x\.png" alt="" style="width: 10px">/);
 });
+
+test('a document opening with a --- rule has no front matter', () => {
+  const { body, title } = render('---\n\nA paragraph between rules.\n\n---\n\nmore\n', { file: 'notes.md' });
+  assert.equal(title, 'notes');
+  assert.match(body, /<hr>\n<p>A paragraph between rules\.<\/p>\n<hr>\n<p>more<\/p>/);
+  assert.equal(render('---\ntitle: Kept\n\n---\nbody\n').title, 'Kept');
+});
