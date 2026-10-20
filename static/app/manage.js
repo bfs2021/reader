@@ -10,7 +10,7 @@ import { api } from './api.js';
 import { saveFirst } from './saving.js';
 import { toast } from './status.js';
 import { loadTree, open, closeFile, go, reveal, visiblePaths } from './files.js';
-import { groupOf, splitPath, dirOf } from './versions.js';
+import { groupOf, splitPath, dirOf, joinPath } from './versions.js';
 
 const LISTED = new Set(['.md', '.markdown', '.pdf']);
 
@@ -25,8 +25,6 @@ async function moved(list) {
   if (now) await open(now.to);
 }
 
-const join = (dir, name) => (dir ? `${dir}/${name}` : name);
-
 /** Copy `p` as `<name>.draft.md` beside it, open the copy, and ask what to call it. */
 export async function branch(p) {
   try {
@@ -34,8 +32,8 @@ export async function branch(p) {
     const { dir, stem, ext } = splitPath(p);
     const base = groupOf(state.files, p)?.name || stem;
     const taken = new Set(state.files.map((f) => f.path));
-    let to = join(dir, `${base}.draft${ext}`);
-    for (let n = 2; taken.has(to); n++) to = join(dir, `${base}.draft-${n}${ext}`);
+    let to = joinPath(dir, `${base}.draft${ext}`);
+    for (let n = 2; taken.has(to); n++) to = joinPath(dir, `${base}.draft-${n}${ext}`);
     await api('POST', '/api/branch', { from: p, to });
     await loadTree();
     go(dir, base, { focus: false });
@@ -104,7 +102,7 @@ function planRename(p, groupName) {
       value: g.name,
       moves: (name) => g.versions.map(({ file }) => {
         const { dir, stem, ext } = splitPath(file.path);
-        return { from: file.path, to: join(dir, name + stem.slice(g.name.length) + ext) };
+        return { from: file.path, to: joinPath(dir, name + stem.slice(g.name.length) + ext) };
       }),
     };
   }
@@ -114,7 +112,7 @@ function planRename(p, groupName) {
     // In a group's list: the version's own name. The main one has none to change.
     const variant = stem.slice(g.name.length + 1);
     if (!variant) return null;
-    return { value: variant, moves: (name) => [{ from: p, to: join(dir, `${g.name}.${name}${ext}`) }] };
+    return { value: variant, moves: (name) => [{ from: p, to: joinPath(dir, `${g.name}.${name}${ext}`) }] };
   }
   // A document's row leaves off `.md`; a PDF's shows `.pdf`. Typing an
   // extension the list shows keeps it, and anything else gets the old one.
@@ -125,7 +123,7 @@ function planRename(p, groupName) {
     select: [0, stem.length],
     moves: (name) => {
       const typed = splitPath(name).ext.toLowerCase();
-      return [{ from: p, to: join(dir, LISTED.has(typed) ? name : name + ext) }];
+      return [{ from: p, to: joinPath(dir, LISTED.has(typed) ? name : name + ext) }];
     },
   };
 }

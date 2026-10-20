@@ -198,20 +198,6 @@ body {
 .gm-legend { margin-top: 0.45rem; font-size: 0.95rem; }
 .gm-legend b { font-weight: 400; opacity: 0.8; margin-left: 0.15em; }
 
-/* Inline layout (single column) */
-.gm-aside {
-  font-family: var(--gm-sans);
-  font-style: italic;
-  font-size: 0.88rem;
-  color: var(--gm-aside-ink);
-  border-left: 2px solid var(--gm-aside-rule);
-  padding-left: 0.8rem;
-  margin: 0.5rem 0 0.6rem;
-}
-.gm-aside.gm-attributed { border-left-color: var(--by, var(--gm-aside-rule)); }
-.gm-aside p { margin: 0 0 0.4rem; }
-.gm-aside p:last-child { margin-bottom: 0; }
-
 /* ---------- shared prose ------------------------------------------------- */
 
 h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }

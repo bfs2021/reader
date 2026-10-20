@@ -2,18 +2,12 @@
  * Re-attaching asides to a parsed document.
  *
  * `preprocess` gave each aside an anchor: a line number in the cleaned source.
- * Here we turn that line number into a position in the token stream, in two
- * different ways depending on what we are rendering.
- *
- *   inline   -- the aside goes immediately after the block it followed, inside
- *               whatever list item or blockquote that block lived in.
- *
- *   columns  -- the speaker's flow is cut into chunks, and each aside is
- *               top-aligned with the chunk that begins at its cut. The cut is
- *               placed at the *start* of the last block written before the
- *               aside, so "~ but it doesn't allow me to add my own voice" lines
- *               up with "markdown is fast" -- the thing it reacts to -- rather
- *               than with the top of the list or the item after it.
+ * Here we turn that line number into a position in the token stream. The
+ * speaker's flow is cut into chunks, and each aside is top-aligned with the
+ * chunk that begins at its cut. The cut is placed at the *start* of the last
+ * block written before the aside, so "~ but it doesn't allow me to add my own
+ * voice" lines up with "markdown is fast" -- the thing it reacts to -- rather
+ * than with the top of the list or the item after it.
  *
  * Cutting a nested structure means closing every open container at the cut and
  * reopening it in the next chunk. Reopened lists carry their numbering forward
@@ -136,25 +130,6 @@ export function resolveAnchors(tokens, asides) {
       // next begins below the aside instead of running alongside it.
       endCut: firstTokenAtOrAfter(tokens, block.map[1]),
     };
-  });
-}
-
-/**
- * Find the block an aside follows and the index just past that block's close,
- * used by inline rendering to drop the aside back where it was written.
- */
-export function resolveInlineInsertions(tokens, asides) {
-  return asides.map((a) => {
-    const block = lastBlockBefore(tokens, a.anchor);
-    if (!block) return { ...a, at: 0 };
-    const openIdx = tokens.indexOf(block);
-    if (block.nesting === 0) return { ...a, at: openIdx + 1 };
-    let depth = 0;
-    for (let i = openIdx; i < tokens.length; i++) {
-      depth += tokens[i].nesting;
-      if (depth === 0 && i > openIdx) return { ...a, at: i + 1 };
-    }
-    return { ...a, at: tokens.length };
   });
 }
 

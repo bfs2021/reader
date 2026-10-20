@@ -20,10 +20,9 @@
  * No DOM here, so the tests can run it.
  */
 
+import { frontMatter, fenced } from '../markdown.js';
+
 const SEPARATOR = /^---[ \t]*$/;
-const MATTER = /^-{3,}[ \t]*$/;
-const META = /^[ \t]*[\w-]+(?:[ \t]+\S)?[ \t]*:/;
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 const HEADING = /^ {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$/;
 const DEEPEST = 3;
 
@@ -139,7 +138,7 @@ export function extract(src, entries, names) {
     while (b > a && !lines[b - 1].trim()) b--;
     if (a === b) continue;
     const body = lines.slice(a, b).join('\n');
-    const head = matter ? `${retitle(lines.slice(matter.start, matter.end), matter.meta.title, e.title).join('\n')}\n\n` : '';
+    const head = matter ? `${retitle(lines.slice(0, matter.end), matter.meta.title, e.title).join('\n')}\n\n` : '';
     files.unshift({ name, text: `${head}${body}\n` });
     lines.splice(a, b - a, `→ [${e.title.replace(/[\\[\]]/g, '\\$&')}](${encodeURI(name)})`);
   }
@@ -156,38 +155,18 @@ function retitle(block, title, heading) {
 }
 
 /**
- * Front matter, as a deck reads it (src/slides.js): fenced by dashes on the
- * first line, and every line in it `key: value`.
- */
-function frontMatter(lines) {
-  if (!MATTER.test(lines[0] ?? '')) return null;
-  const close = lines.findIndex((l, n) => n > 0 && MATTER.test(l));
-  if (close < 0) return null;
-  const inner = lines.slice(1, close);
-  if (!inner.every((l) => !l.trim() || META.test(l))) return null;
-  const meta = {};
-  for (const l of inner) {
-    const at = l.indexOf(':');
-    if (at > 0) meta[l.slice(0, at).trim().toLowerCase()] = l.slice(at + 1).trim().replace(/^(["'])(.*)\1$/, '$2');
-  }
-  return { start: 0, end: close + 1, meta };
-}
-
-/**
  * Each line as it reads outside notes: `null` inside a code fence, where
  * nothing is a heading or a break, and with any `<!-- -->` taken out.
  */
 function visible(lines, from) {
   const out = lines.map(() => '');
-  let fence = null;
+  const code = fenced();
   let note = false;
   for (let i = from; i < lines.length; i++) {
     const l = lines[i];
-    const f = FENCE.exec(l);
-    if (fence || (f && !note)) {
+    // A fence opens only outside a note.
+    if (!note && code(l)) {
       out[i] = null;
-      if (!fence) fence = f[1];
-      else if (f && f[1][0] === fence[0] && f[1].length >= fence.length && !l.trim().slice(f[1].length).trim()) fence = null;
       continue;
     }
     let text = '';

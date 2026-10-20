@@ -11,9 +11,7 @@ import { saveFirst, reloadFromDisk } from './saving.js';
 import { toast } from './status.js';
 import { loadTree } from './files.js';
 import { extract, slug } from './sections.js';
-import { dirOf, splitPath } from './versions.js';
-
-const join = (dir, name) => (dir ? `${dir}/${name}` : name);
+import { dirOf, splitPath, joinPath } from './versions.js';
 
 /** A name for each entry's file, from its title, that no file beside it has. */
 export function namesFor(entries) {
@@ -22,8 +20,8 @@ export function namesFor(entries) {
   return entries.map((e) => {
     const stem = slug(e.title);
     let name = `${stem}.md`;
-    for (let n = 2; taken.has(join(dir, name)); n++) name = `${stem}-${n}.md`;
-    taken.add(join(dir, name));
+    for (let n = 2; taken.has(joinPath(dir, name)); n++) name = `${stem}-${n}.md`;
+    taken.add(joinPath(dir, name));
     return name;
   });
 }
@@ -38,7 +36,7 @@ export async function extractEntries(entries, names) {
     const { text, files } = extract(before, entries, names.map((n) => (splitPath(n).ext ? n : `${n}.md`)));
     const dir = dirOf(p);
     const out = await api('POST', '/api/extract', {
-      path: p, text, baseMtime: state.mtime, files: files.map((f) => ({ path: join(dir, f.name), text: f.text })),
+      path: p, text, baseMtime: state.mtime, files: files.map((f) => ({ path: joinPath(dir, f.name), text: f.text })),
     });
     if (state.current?.path === p) await reloadFromDisk();
     await loadTree();

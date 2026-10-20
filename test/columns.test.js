@@ -10,10 +10,9 @@ import { columns } from '../src/columns.js';
 
 const options = { html: false, linkify: true, typographer: true, breaks: false };
 
-/** A document laid out in columns, or, with `layout: 'inline'`, its asides back in place. */
+/** A document laid out in columns. */
 function toHtml(src, opts = {}) {
-  if (opts.layout === 'inline') return new MarkdownIt(options).use(asides).render(src);
-  const md = new MarkdownIt(options).use(asides, { inline: false });
+  const md = new MarkdownIt(options).use(asides);
   const env = {};
   const tokens = md.parse(src, env);
   return columns(md, tokens, env, opts).body;
@@ -33,19 +32,6 @@ test('column headings come from front matter', () => {
   const html = toHtml('-----\nSpeaker: Dr Ellis\nListener: me\n-----\n\nhi\n\n~ ok\n');
   assert.match(html, /Dr Ellis/);
   assert.match(html, />me</);
-});
-
-test('--swap puts the listener first', () => {
-  const html = toHtml('a\n\n~ b\n', { swap: true });
-  const pair = html.split('<section class="gm-pair">')[1];
-  assert.ok(pair.indexOf('gm-asides') < pair.indexOf('gm-speaker'));
-});
-
-test('inline layout nests asides where they were written', () => {
-  const html = toHtml('* point\n  1. sub\n\n    ~ thought\n\n  2. next\n', { layout: 'inline' });
-  assert.match(html, /<aside class="gm-aside">/);
-  // the aside sits inside the list, and the list still has both items
-  assert.match(html, /sub[\s\S]*aside[\s\S]*next/);
 });
 
 test('aside bodies are markdown', () => {
