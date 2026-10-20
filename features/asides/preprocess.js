@@ -13,6 +13,7 @@
  */
 
 import { readEntry, makeKey, attribute, STYLES } from './key.js';
+import { OPEN, DIVIDER, CLOSE } from '../layout.js';
 
 const FENCE_RE = /^\s{0,3}(`{3,}|~{3,})/;
 const FRONT_MATTER_RE = /^-{3,}\s*$/;
@@ -48,8 +49,9 @@ function selection(written, style) {
 
 // Lines that begin a block the aside should not swallow as a lazy continuation:
 // markdown's own, and reader's `:::` styles, `+++` panes, `@` fields and
-// `!TERM:` definitions.
-const BLOCK_START_RE = /^[ \t]*(?:[*+-][ \t]|\d+[.)][ \t]|#{1,6}[ \t]|>|```|~{3,}|-{3,}\s*$|_{3,}\s*$|:{3}|\+{3,}(?:[ \t]|$)|@[ \t]|\\?![ \t]*[^\s[!:()][^:\n]*:(?:[ \t]|$))/;
+// `!TERM:` definitions; and a layout's lines, once the styles feature has
+// left them as marks of their own (features/layout.js).
+const BLOCK_START_RE = new RegExp(String.raw`^[ \t]*(?:[*+-][ \t]|\d+[.)][ \t]|#{1,6}[ \t]|>|${'```'}|~{3,}|-{3,}\s*$|_{3,}\s*$|:{3}|\+{3,}(?:[ \t]|$)|@[ \t]|\\?![ \t]*[^\s[!:()][^:\n]*:(?:[ \t]|$)|[${OPEN}${DIVIDER}${CLOSE}])`);
 
 // An HTML comment on lines of its own. The renderer takes no HTML, so it would
 // otherwise show as text; it's dropped instead, asides and all, which makes it

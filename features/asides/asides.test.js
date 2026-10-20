@@ -10,6 +10,7 @@ import MarkdownIt from 'markdown-it';
 import { asides } from './index.js';
 import { preprocess } from './preprocess.js';
 import { splitPairs } from './split.js';
+import { render } from '../../src/render.js';
 
 /** A document parsed for columns: its front matter, asides, and the rows they cut it into. */
 function parse(src) {
@@ -92,6 +93,11 @@ test("an aside doesn't swallow reader's own block lines", () => {
     assert.equal(asides[0].text, 'thought', next);
     assert.match(source, new RegExp(`^${next.replace(/[+()]/g, '\\$&')}$`, 'm'), next);
   }
+});
+
+test("an aside after a blank doesn't swallow the closing of the layout it's in", () => {
+  const { body } = render('::: tabs\n+++ A\nx\n+++ B\nPara.\n\n~ thought\n:::\n\nafter\n');
+  assert.match(body, /<\/div>\n<\/div>\n<\/div>\n<div class="gm-asides">[\s\S]*thought[\s\S]*<p>after<\/p>/);
 });
 
 test('an aside under a line of text leaves its paragraph whole', () => {
