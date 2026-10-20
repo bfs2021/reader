@@ -39,16 +39,42 @@ async function init() {
   go(rememberedDir(), null, { focus: false });
 
   // The file in the address, or the one last changed in the folder last shown.
-  // The address can name lines too, as a copied one does: `#notes/talk.md:13-18`.
-  const [, wanted, line, last] = decodeURIComponent(location.hash.slice(1)).match(/^(.*?)(?::(\d+)(?:-(\d+))?)?$/);
+  const { wanted, line, last } = fromHash();
   const under = state.files.filter((f) => dirOf(f.path) === state.dir);
   const first = state.files.find((f) => f.path === wanted)
     || under.find((f) => f.type === 'md') || state.files.find((f) => f.type === 'md') || state.files[0];
   if (first) {
     reveal(first.path);
     await open(first.path);
-    if (first.path === wanted && line) goToLines(Number(line), Number(last || line));
+    if (first.path === wanted && line) goToLines(line, last);
   } else showEmpty('No markdown files here yet. Press New to start one.');
+  window.addEventListener('hashchange', followHash);
+}
+
+/**
+ * The address can name a file and lines, as a copied one does: `#notes/talk.md:13-18`.
+ * One that doesn't decode names nothing.
+ */
+function fromHash() {
+  let hash;
+  try {
+    hash = decodeURIComponent(location.hash.slice(1));
+  } catch {
+    return {};
+  }
+  const [, wanted, line, last] = hash.match(/^(.*?)(?::(\d+)(?:-(\d+))?)?$/);
+  return { wanted, line: line && Number(line), last: Number(last || line) };
+}
+
+/** An address changed after loading, by a link or by hand: open what it names. */
+async function followHash() {
+  const { wanted, line, last } = fromHash();
+  if (!state.files.some((f) => f.path === wanted)) return;
+  if (wanted !== state.current?.path) {
+    reveal(wanted);
+    await open(wanted);
+  }
+  if (wanted === state.current?.path && line) goToLines(line, last);
 }
 
 function wire() {
