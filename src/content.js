@@ -302,20 +302,34 @@ export function createContent(rootDir) {
   function rename(moves) {
     if (!Array.isArray(moves) || !moves.length) throw new PathError('nothing to rename');
     const kind = (p) => (DOC_EXTS.has(path.extname(p).toLowerCase()) ? 'md' : path.extname(p).toLowerCase());
+    // By lower case, so that two names one filesystem tells apart and
+    // another doesn't are refused on both.
+    const sources = new Set();
     const targets = new Set();
     const planned = moves.map(({ from, to }) => {
       const { abs: fromAbs } = statFile(from);
       const toAbs = resolve(to);
+      if (sources.has(fromAbs)) throw new PathError(`${from} is named more than once`);
+      sources.add(fromAbs);
       if (!LISTED_EXTS.has(path.extname(toAbs).toLowerCase()) || kind(fromAbs) !== kind(toAbs)) {
         throw new PathError(`${to} would be a different kind of file than ${from}`);
       }
-      if (taken(fromAbs, toAbs) || targets.has(toAbs)) throw new ConflictError(`${to} already exists`);
-      targets.add(toAbs);
+      if (taken(fromAbs, toAbs) || targets.has(toAbs.toLowerCase())) throw new ConflictError(`${to} already exists`);
+      targets.add(toAbs.toLowerCase());
+      // Its folders must be folders: not a file that's there, nor another of the new names.
+      let dir = path.dirname(toAbs);
+      while (!fs.existsSync(dir)) dir = path.dirname(dir);
+      if (!fs.statSync(dir).isDirectory()) throw new PathError(`${toRel(dir)} isn't a folder`);
       // Before anything moves, so that none does.
       own(path.join(backupRoot, toRel(fromAbs)));
       own(path.join(backupRoot, toRel(toAbs)));
       return [fromAbs, toAbs];
     });
+    for (const [, toAbs] of planned) {
+      for (let dir = path.dirname(toAbs); dir !== root; dir = path.dirname(dir)) {
+        if (targets.has(dir.toLowerCase())) throw new PathError(`${toRel(dir)} can't be both a file and a folder`);
+      }
+    }
     return {
       moved: planned.map(([fromAbs, toAbs]) => {
         fs.mkdirSync(path.dirname(toAbs), { recursive: true });

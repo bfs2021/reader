@@ -249,3 +249,15 @@ test('rename changes only the case of a name, backups and all', () => {
   assert.ok(fs.readdirSync(content.backupRoot).includes('A.md'));
   assert.equal(fs.readdirSync(path.join(content.backupRoot, 'A.md')).length, 1);
 });
+
+test('rename refuses, moving nothing, a file named twice or a name under another', () => {
+  const { root, content } = fixture();
+  content.branch('a.md', 'a.arc1.md');
+  const before = () => fs.readdirSync(root).sort();
+  const was = before();
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.md', to: 'y.md' }]), PathError);
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.arc1.md', to: 'x.md/a.md' }]), PathError);
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.arc1.md', to: 'X.md' }]), ConflictError);
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.arc1.md', to: 'doc.pdf/a.md' }]), PathError);
+  assert.deepEqual(before(), was);
+});
