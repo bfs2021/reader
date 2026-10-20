@@ -243,14 +243,3 @@ test('a document with no asides is a single pair', () => {
   assert.equal(pairs[0].asides.length, 0);
 });
 
-// --- front matter pass-through --------------------------------------------
-
-test('matter is the front matter block exactly as written', () => {
-  const src = '-----\nTitle: A Talk\nAuthor: jz\n-----\n\nbody\n';
-  const { matter } = preprocess(src);
-  assert.equal(matter, '-----\nTitle: A Talk\nAuthor: jz\n-----');
-});
-
-test('matter is empty when there is no front matter', () => {
-  assert.equal(preprocess('body\n').matter, '');
-});

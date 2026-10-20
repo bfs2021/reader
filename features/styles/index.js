@@ -26,12 +26,11 @@
  */
 
 import fs from 'node:fs';
-import { beforeAsides } from '../source.js';
+import { beforeAsides, fenced } from '../source.js';
 import { LAYOUTS, OPEN as LAYOUT_OPEN, DIVIDER, CLOSE as LAYOUT_CLOSE } from '../layout.js';
 import { marking, markSpan } from '../marks/mark.js';
 
 const DIV = /^[ \t]{0,3}:::(?:[ \t]+([\w-]+(?:[ \t]+[\w-]+)*))?[ \t]*$/;
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 const NAMES = /^\{([\w-]+(?:[ \t]+[\w-]+)*)\}/;
 const OPEN = '\uE002';
 const CLOSE = '\uE003';
@@ -61,17 +60,9 @@ export function styles(md) {
 function lines(state) {
   if (state.inlineMode || state.env.__aside) return;
   const open = [];
-  let fence = null;
+  const code = fenced();
   state.src = state.src.split('\n').map((line) => {
-    const f = FENCE.exec(line);
-    if (fence) {
-      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null;
-      return line;
-    }
-    if (f) {
-      fence = f[1];
-      return line;
-    }
+    if (code(line)) return line;
     const div = DIV.exec(line);
     // A layout's marks keep the line's indent, to stay in a list item.
     const indent = /^[ \t]*/.exec(line)[0];

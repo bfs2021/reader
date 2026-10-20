@@ -25,7 +25,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, escapeHtml, escapeAttr } from '../source.js';
+import { beforeAsides, readLines, escapeHtml, escapeAttr, textToken } from '../source.js';
 
 // A term can't open with `[` (an image) and holds no colon or parentheses.
 // A name may hold a link, whose address is in parentheses of its own.
@@ -189,14 +189,14 @@ function uses(state) {
       for (const m of child.content.matchAll(find)) {
         const t = term(m[0].slice(1));
         if (!t) continue;
-        if (m.index > last) out.push(text(state, child.content.slice(last, m.index)));
+        if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
         const use = new state.Token('def_use', 'span', 0);
         use.meta = { text: m[0].slice(1), term: t, senses: known.get(t) };
         out.push(use);
         last = m.index + m[0].length;
       }
       if (last === 0) out.push(child);
-      else if (last < child.content.length) out.push(text(state, child.content.slice(last)));
+      else if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
     }
     block.children = out;
   }
@@ -241,21 +241,15 @@ function initials(state, block, term) {
     const out = [];
     let last = 0;
     for (const at of here) {
-      if (at > last) out.push(text(state, c.content.slice(last, at)));
+      if (at > last) out.push(textToken(state, c.content.slice(last, at)));
       const b = new state.Token('def_initial', 'b', 0);
       b.content = c.content[at];
       out.push(b);
       last = at + 1;
     }
-    if (last < c.content.length) out.push(text(state, c.content.slice(last)));
+    if (last < c.content.length) out.push(textToken(state, c.content.slice(last)));
     return out;
   });
-}
-
-function text(state, content) {
-  const t = new state.Token('text', '', 0);
-  t.content = content;
-  return t;
 }
 
 export default {

@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import { asideTokens, byChips, legend } from '../features/asides/index.js';
 import { about } from '../features/marks/index.js';
 import { splitPairs, tabOf } from '../features/asides/split.js';
+import { escapeHtml } from '../features/source.js';
 
 const CSS = fs.readFileSync(new URL('./columns.css', import.meta.url), 'utf8');
 
@@ -25,10 +26,6 @@ const UNSHOWN = new Set(['title', 'author', 'date', 'tags', 'speaker', 'listener
 /** The layout's stylesheet. */
 export function themeCss() {
   return CSS;
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
 function renderAsideCell(md, aside, env, showMark, tab) {

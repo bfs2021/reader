@@ -30,6 +30,7 @@
 
 import MarkdownIt from 'markdown-it';
 import { preprocess } from './preprocess.js';
+import { escapeHtml } from '../source.js';
 import { resolveInlineInsertions } from './split.js';
 
 const { Token } = MarkdownIt;
@@ -88,8 +89,6 @@ export function asideTokens(md, aside, env) {
   const inner = md.parse(aside.text, { ...env, asides: null, __aside: true });
   return [open, ...inner, close];
 }
-
-const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 /** An attributed aside's colour, its reviewer's: a style attribute, or ''. */
 export function byStyle(by) {

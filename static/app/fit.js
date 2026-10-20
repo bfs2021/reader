@@ -13,6 +13,7 @@
 import { el, state, RENDER_DELAY } from './state.js';
 import { api } from './api.js';
 import { baseFor, whenReady } from './render.js';
+import { goToLine } from './goto.js';
 
 const SMALL = 0.8;
 const ready = whenReady(el.measure);
@@ -129,23 +130,15 @@ function draw() {
     b.type = 'button';
     b.className = p.fits ? '' : 'over';
     b.textContent = `Slide ${p.n}, line ${p.line + 1}: ${p.fits ? `shrunk to ${percent(p.zoom)}` : "doesn't fit; it scrolls"}`;
-    b.addEventListener('click', () => goTo(p.line));
+    b.addEventListener('click', () => {
+      goToLine(p.line);
+      showPop(false);
+    });
     const li = document.createElement('li');
     li.append(b);
     list.append(li);
   }
   pop.append(list);
-}
-
-/** Puts the cursor at the start of line `n`, near the top of the editor. */
-function goTo(n) {
-  const lines = el.editor.value.split('\n');
-  const offset = lines.slice(0, n).reduce((sum, l) => sum + l.length + 1, 0);
-  el.editor.focus();
-  el.editor.setSelectionRange(offset, offset);
-  const share = n / Math.max(1, lines.length);
-  el.editor.scrollTop = Math.max(0, share * el.editor.scrollHeight - el.editor.clientHeight / 4);
-  showPop(false);
 }
 
 let hideTimer = 0;

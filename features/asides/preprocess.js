@@ -14,10 +14,9 @@
 
 import { readEntry, makeKey, attribute, STYLES } from './key.js';
 import { OPEN, DIVIDER, CLOSE } from '../layout.js';
+import { frontMatter, fenced } from '../source.js';
 
 const FENCE_RE = /^\s{0,3}(`{3,}|~{3,})/;
-const FRONT_MATTER_RE = /^-{3,}\s*$/;
-const META_RE = /^\s*([A-Za-z][A-Za-z0-9 _-]*?)\s*:\s*(.*)$/;
 
 // A `~` on its own, or followed by whitespace. `~~strike~~` and the `~~~` fence
 // are both excluded by requiring the next character not to be another tilde.
@@ -71,11 +70,9 @@ function indentOf(line) {
  * @param {object} [opts]
  * @param {Map} [opts.key] the aliases to use when `src` has no front matter
  *   declaring its own (a deck's slide, under the deck's)
- * @returns {{meta: object, matter: string, source: string, asides: Array<{anchor: number, text: string, line: number}>}}
+ * @returns {{meta: object, source: string, asides: Array<{anchor: number, text: string, line: number}>}}
+ *   `meta` is the front matter's (static/markdown.js);
  *   `source` is the document with front matter and aside lines removed;
- *   `matter` is the front matter block exactly as it was written, delimiters
- *   included, for consumers that would rather pass it through than re-serialize
- *   `meta` (`''` when there is none);
  *   `anchor` is an index into `source`'s lines -- the aside belongs immediately
  *   before that line; `line` is the aside's 0-based line in the original file.
  *   `lines` has, for each line of `source`, the 0-based line of the original
@@ -87,58 +84,26 @@ function indentOf(line) {
  */
 export function preprocess(src, opts = {}) {
   const lines = String(src).replace(/\r\n?/g, '\n').split('\n');
-  const meta = {};
-  let matter = '';
-  let i = 0;
-  const entries = [];
-
   // --- front matter -------------------------------------------------------
-  // Josh's convention uses `-----`, but any run of three or more dashes works,
-  // so ordinary YAML-style `---` fences are accepted too. It's taken only when
-  // every line in it reads as `key: value`, as a deck's is (src/slides.js),
-  // so a document that opens with a `---` rule isn't swallowed to the next.
-  if (lines.length && FRONT_MATTER_RE.test(lines[0])) {
-    let end = 1;
-    while (end < lines.length && !FRONT_MATTER_RE.test(lines[end])) end++;
-    const inner = lines.slice(1, end);
-    if (end < lines.length && inner.every((line) => !line.trim() || readEntry(line) || META_RE.test(line))) {
-      for (const line of lines.slice(1, end)) {
-        const entry = readEntry(line);
-        if (entry) {
-          entries.push(entry);
-          continue;
-        }
-        const m = META_RE.exec(line);
-        if (m) meta[m[1].trim().toLowerCase()] = m[2].trim();
-      }
-      matter = lines.slice(0, end + 1).join('\n');
-      i = end + 1;
-      while (i < lines.length && !lines[i].trim()) i++;
-    }
-  }
+  // Josh's convention uses `-----`, but `---` works too.
+  const matter = frontMatter(lines, { entry: readEntry });
+  const meta = matter?.meta ?? {};
+  let i = matter?.end ?? 0;
+  if (matter) while (i < lines.length && !lines[i].trim()) i++;
 
-  const key = entries.length ? makeKey(entries) : (opts.key || new Map());
+  const key = matter?.entries.length ? makeKey(matter.entries) : (opts.key || new Map());
 
   // --- asides -------------------------------------------------------------
   const out = [];
   const from = [];
   const asides = [];
-  let fence = null;
+  const code = fenced();
 
   while (i < lines.length) {
     const line = lines[i];
 
     // Never look inside fenced code.
-    const fm = FENCE_RE.exec(line);
-    if (fence) {
-      if (fm && fm[1][0] === fence[0] && fm[1].length >= fence.length) fence = null;
-      out.push(line);
-      from.push(i);
-      i++;
-      continue;
-    }
-    if (fm) {
-      fence = fm[1];
+    if (code(line)) {
       out.push(line);
       from.push(i);
       i++;
@@ -216,5 +181,5 @@ export function preprocess(src, opts = {}) {
     });
   }
 
-  return { meta, matter, source: out.join('\n'), asides, lines: from, key };
+  return { meta, source: out.join('\n'), asides, lines: from, key };
 }

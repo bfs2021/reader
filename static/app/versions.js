@@ -25,6 +25,8 @@ export function splitPath(p) {
 }
 
 export const dirOf = (p) => splitPath(p).dir;
+/** `name` in folder `dir`, `''` being the top. */
+export const joinPath = (dir, name) => (dir ? `${dir}/${name}` : name);
 const label = (f) => splitPath(f.path).name.replace(/\.(md|markdown)$/i, '');
 
 /** The name `stem` is a version of, or null. */

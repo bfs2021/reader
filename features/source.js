@@ -12,11 +12,9 @@
  * (`splitText`).
  */
 
-// A fence's opening line, after the `>` of any blockquotes it's in and the
-// markers of any list items; and the line that closes it.
-const FENCE = /^((?:[ \t]*>)*)([ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)*)(`{3,}|~{3,})/;
-const QUOTES = /^(?:[ \t]*>)*/;
-const CLOSING = /^[ \t]*(`{3,}|~{3,})[ \t]*$/;
+import { frontMatter, fenced } from '../static/markdown.js';
+
+export { frontMatter, fenced };
 
 /**
  * Adds `rule` to read the source before the asides come out, or after
@@ -57,37 +55,6 @@ export function readLines(state, fn) {
   state.src = lines.map((line, n) => (code(line) ? line : fn(line, base + n, lines, n))).join('\n');
 }
 
-/**
- * A reader of lines in turn, saying whether each is fenced code: a fence's
- * opening line, what's in it, or its closing line. A fence may be in a
- * blockquote or a list item, and ends with it: at a line with fewer `>`, or,
- * in a list item, at one indented less than the fence. A line indented as
- * code that reads as a fence is taken for one too, which it is, as code.
- */
-export function fenced() {
-  let fence = null;
-  return (line) => {
-    const quotes = (QUOTES.exec(line)[0].match(/>/g) ?? []).length;
-    if (fence) {
-      const rest = line.replace(QUOTES, '');
-      const indent = /^[ \t]*/.exec(rest)[0].length;
-      const out = quotes < fence.quotes || (fence.column != null && rest.trim() && indent < fence.column);
-      if (!out) {
-        const c = CLOSING.exec(rest);
-        if (c && quotes === fence.quotes && c[1][0] === fence.mark[0] && c[1].length >= fence.mark.length) fence = null;
-        return true;
-      }
-      fence = null;
-    }
-    const f = FENCE.exec(line);
-    if (!f) return false;
-    // Out of a list and not indented as code, a fence's lines may be indented less than it is.
-    const inList = f[2].length > 3 || /[-*+\d]/.test(f[2]);
-    fence = { mark: f[3], quotes, column: inList ? f[2].length : null };
-    return true;
-  };
-}
-
 /** The placeholder for item `k`, between `open` and `close`. */
 export const placeholder = (open, close, k) => `${open}${k}${close}`;
 
@@ -113,17 +80,18 @@ export function splitText(state, pattern, make) {
       for (const m of child.content.matchAll(pattern)) {
         const token = make(Number(m[1]), state);
         if (!token) continue;
-        if (m.index > last) out.push(text(state, child.content.slice(last, m.index)));
+        if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
         out.push(token);
         last = m.index + m[0].length;
       }
-      if (last < child.content.length) out.push(text(state, child.content.slice(last)));
+      if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
     }
     block.children = out;
   }
 }
 
-function text(state, content) {
+/** A text token saying `content`. */
+export function textToken(state, content) {
   const t = new state.Token('text', '', 0);
   t.content = content;
   return t;

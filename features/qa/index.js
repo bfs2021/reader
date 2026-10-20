@@ -36,14 +36,13 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, keepWritten, addClass, escapeAttr } from '../source.js';
+import { beforeAsides, keepWritten, addClass, escapeAttr, fenced } from '../source.js';
 
 // A name may hold a link, whose address is in parentheses of its own.
 const QA = /^\\?(Q|A|Good|Bad|Try)(?:[ \t]+\[([ xX])\])?(?:[ \t]*\(((?:[^()\n]|\([^()\n]*\))*)\))?:[ \t]+(?=\S)/;
 const VOTE = /^\+1(?:[ \t]*\(((?:[^()\n]|\([^()\n]*\))*)\))?(?::[ \t]+(?=\S)|:?[ \t]*$)/;
 const LABELS = { Good: 'G', Bad: 'B', Try: 'T', '+1': '+1' };
 const CARDS = new Set(['Good', 'Bad', 'Try']);
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 
 export function qa(md) {
   keepWritten(md);
@@ -84,15 +83,9 @@ function lines(state) {
   let open = null;
   // The question or card a vote is for.
   let head = null;
-  let fence = null;
+  const code = fenced();
   const out = state.src.split('\n').map((line, n) => {
-    const f = FENCE.exec(line);
-    if (fence) {
-      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null;
-      return line;
-    }
-    if (f) {
-      fence = f[1];
+    if (code(line)) {
       open = head = null;
       return line;
     }

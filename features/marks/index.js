@@ -31,7 +31,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { lastBlockBefore } from '../asides/split.js';
 import { markSpan } from './mark.js';
-import { escapeHtml } from '../source.js';
+import { escapeHtml, textToken } from '../source.js';
 
 export function marks(md) {
   md.core.ruler.push('marks', (state) => {
@@ -117,12 +117,12 @@ function split(state, content, from, to, cuts) {
     const cut = cuts[i];
     let j = i + 1;
     while (j < cuts.length && cuts[j].end <= cut.end) j++;
-    if (cut.start > at) out.push(text(state, content.slice(at, cut.start)));
+    if (cut.start > at) out.push(textToken(state, content.slice(at, cut.start)));
     out.push(cut.span, ...split(state, content, cut.start, cut.end, cuts.slice(i + 1, j)), new state.Token('style_span_close', 'span', -1));
     at = cut.end;
     i = j;
   }
-  if (at < to) out.push(text(state, content.slice(at, to)));
+  if (at < to) out.push(textToken(state, content.slice(at, to)));
   return out;
 }
 
@@ -172,12 +172,6 @@ function closeOf(children, i) {
     if (!depth) return k;
   }
   return children.length - 1;
-}
-
-function text(state, content) {
-  const t = new state.Token('text', '', 0);
-  t.content = content;
-  return t;
 }
 
 /** The words an aside chose, to set at its start: its link to the mark when the line can't be seen. */

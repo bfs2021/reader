@@ -23,7 +23,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { sections, escapeHtml, escapeAttr, addClass } from '../source.js';
+import { sections, escapeHtml, escapeAttr, addClass, textToken } from '../source.js';
 
 const KEY = /(?<![\p{L}\p{N}_])!(\p{L}[\p{L}\p{N}'’-]*)/gu;
 
@@ -152,19 +152,13 @@ function split(state, child, pattern, make) {
   for (const m of child.content.matchAll(pattern)) {
     const made = make(m);
     if (!made) continue;
-    if (m.index > last) out.push(text(state, child.content.slice(last, m.index)));
+    if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
     out.push(made);
     last = m.index + m[0].length;
   }
   if (!last) return [child];
-  if (last < child.content.length) out.push(text(state, child.content.slice(last)));
+  if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
   return out;
-}
-
-function text(state, content) {
-  const t = new state.Token('text', '', 0);
-  t.content = content;
-  return t;
 }
 
 export default {
