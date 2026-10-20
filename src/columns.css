@@ -120,6 +120,10 @@ body {
 .gm-speaker > *:last-child,
 .gm-aside-cell > *:last-child { margin-bottom: 0; }
 
+/* With those margins gone, rows are kept apart as paragraphs are -- unless
+ * the row goes on with a list or a quote from the row before. */
+.gm-pair + .gm-pair:not(:has(> .gm-speaker > .gm-cont:first-child)) { margin-top: 0.42rem; }
+
 /* Chunks that continue a list from the previous row must not re-indent or
  * re-mark; the list's own margins were already paid above. */
 .gm-speaker ul, .gm-speaker ol { margin: 0.3rem 0; padding-left: 1.35rem; }
