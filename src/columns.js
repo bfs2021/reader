@@ -109,7 +109,8 @@ function masthead(meta, docTitle, legendHtml = '') {
     if (tags) bits.push(tags);
   }
   const extras = Object.entries(meta)
-    .filter(([k]) => !UNSHOWN.has(k))
+    // A key holding others (`multibox:`) is a setting, not something said.
+    .filter(([k, v]) => !UNSHOWN.has(k) && typeof v === 'string')
     .map(([k, v]) => `<span>${escapeHtml(k)}: ${escapeHtml(v)}</span>`);
   bits.push(...extras);
 

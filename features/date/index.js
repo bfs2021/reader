@@ -84,7 +84,11 @@ export function dates(md) {
     };
     walk(state.tokens);
     const meta = state.env.frontMatter;
-    if (meta && !state.env.__aside) for (const key of Object.keys(meta)) meta[key] = typed(meta[key]);
+    const all = (o) => {
+      for (const key of Object.keys(o)) o[key] = typeof o[key] === 'object' ? all(o[key]) : typed(o[key]);
+      return o;
+    };
+    if (meta && !state.env.__aside) all(meta);
   });
 
   md.renderer.rules.date = (tokens, i) => {

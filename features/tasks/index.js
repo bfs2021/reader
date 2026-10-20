@@ -6,11 +6,12 @@
  * done; there's no radio button there.
  *
  * Boxes in a row, `- [x][ ][ ]`, are one box with stages: each click fills
- * the next, and once they're all filled the item is done. `phases: have,
- * prepped, used` on a line of its own names the stages of the boxes after
- * it, up to the next heading or `phases:`.
+ * the next, and once they're all filled the item is done. The front matter
+ * names the stages, for every staged box in the document:
  *
- *   phases: have, prepped, used
+ *   multibox:
+ *     stages: have, prepped, used
+ *
  *   - [x][x][ ] 1 small yellow onion, diced
  *
  * `reset:[]` is a button that clears every box in its section -- the
@@ -31,9 +32,7 @@ import { beforeAsides, keepWritten, readLines, placeholder, splitText, sections,
 import { schemeRule } from '../scheme.js';
 
 const TASK = /^([ \t]*(?:>[ \t]*|~(?![^\s~])[ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
-const PHASES = /^ {0,3}phases:[ \t]*(\S.*?)[ \t]*$/i;
 const NAMED = new Set(['count', 'ingredient_key', 'ingredient_use']);
-const ANY_HEADING = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const HEADING = /^( {0,3}#{1,6}[ \t]+)\[([ xX])\](?=[ \t]|$)/;
 const OPEN = '\uE000';
 const CLOSE = '\uE001';
@@ -43,14 +42,7 @@ const AT_HEAD = new RegExp(`^${OPEN}(\\d+)${CLOSE}[ \\t]?`);
 export function tasks(md) {
   beforeAsides(md, 'task_lines', (state) => {
     const boxes = [];
-    let phases = null;
     readLines(state, (line, n) => {
-      const named = PHASES.exec(line);
-      if (named) {
-        phases = named[1].split(',').map((p) => p.trim());
-        return '';
-      }
-      if (ANY_HEADING.test(line)) phases = null;
       const written = HEADING.test(line) ? HEADING : TASK;
       return line.replace(written, (m, lead, box, radio) => {
         const radioButton = box === undefined;
@@ -63,7 +55,7 @@ export function tasks(md) {
           const lines = marks.map((_, k) => at(k)).concat(at(marks.length));
           // The line as it's written, whatever order or case its marks are in.
           lines[stage] = line;
-          boxes.push({ line: n, staged: true, stage, checked: stage === marks.length, lines, phases });
+          boxes.push({ line: n, staged: true, stage, checked: stage === marks.length, lines });
         } else {
           const mark = marks[0];
           const checked = mark !== ' ';
@@ -163,8 +155,8 @@ export function tasks(md) {
     return `${reset} <button type="button" class="task-log" data-at="${log.at}" data-level="${log.level}"${by}>Log today</button>`;
   };
 
-  md.renderer.rules.task_box = (tokens, i) => {
-    if (tokens[i].meta.staged) return stageBox(tokens[i].meta);
+  md.renderer.rules.task_box = (tokens, i, options, env) => {
+    if (tokens[i].meta.staged) return stageBox({ ...tokens[i].meta, stages: stagesOf(env) });
     const { line, radio, checked, on, off, group, name } = tokens[i].meta;
     const lines = ` data-on="${escapeAttr(on)}" data-off="${escapeAttr(off)}"${name ? ` aria-label="${escapeAttr(name)}"` : ''}${checked ? ' checked' : ''}`;
     return radio
@@ -192,20 +184,29 @@ function logEnd(state, log) {
 }
 
 /**
- * A box with stages, drawn as a pip for each, those reached filled; its
- * stage named when the list's phases name it.
+ * The stages' names the front matter gives, `multibox: stages:`, or a
+ * slide's deck's; null when it gives none.
  */
-function stageBox({ line, stage, lines, phases, name }) {
+function stagesOf(env) {
+  const named = env.frontMatter?.multibox?.stages || env.matter?.multibox?.stages;
+  return typeof named === 'string' && named.trim() ? named.split(',').map((p) => p.trim()) : null;
+}
+
+/**
+ * A box with stages, drawn as a pip for each, those reached filled; its
+ * stage named when the front matter names it.
+ */
+function stageBox({ line, stage, lines, stages, name }) {
   const n = lines.length - 1;
-  const called = (k) => phases?.[k - 1] ?? `${k} of ${n}`;
+  const called = (k) => stages?.[k - 1] ?? `${k} of ${n}`;
   const now = stage ? called(stage) : 'not started';
-  const label = `${name ? `${name}: ` : ''}${now}${phases?.[stage - 1] ? ` (${stage} of ${n})` : ''}`;
+  const label = `${name ? `${name}: ` : ''}${now}${stages?.[stage - 1] ? ` (${stage} of ${n})` : ''}`;
   const next = stage < n ? `; next, ${called(stage + 1)}` : '';
   const pips = lines.slice(1).map((_, k) => `<i${k < stage ? ' class="on"' : ''}></i>`).join('');
-  const shown = phases?.[stage - 1] && stage < n ? ` <span class="stage-name">${escapeHtml(phases[stage - 1])}</span>` : '';
+  const shown = stages?.[stage - 1] && stage < n ? ` <span class="stage-name">${escapeHtml(stages[stage - 1])}</span>` : '';
   return `<button type="button" class="stage-box" role="checkbox" aria-checked="${stage === n ? 'true' : stage ? 'mixed' : 'false'}"`
     + ` aria-label="${escapeAttr(label)}" title="${escapeAttr(`${now}${next}`)}" data-line="${line}" data-stage="${stage}"`
-    + ` data-lines="${escapeAttr(JSON.stringify(lines))}"${phases ? ` data-phases="${escapeAttr(JSON.stringify(phases))}"` : ''}>${pips}</button>${shown} `;
+    + ` data-lines="${escapeAttr(JSON.stringify(lines))}">${pips}</button>${shown} `;
 }
 
 /**

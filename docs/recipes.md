@@ -1,5 +1,7 @@
 ---
 title: Recipes, and other steps to follow
+multibox:
+  stages: have, prepped, used
 ---
 
 ← [Contents](index.md)
@@ -51,18 +53,22 @@ multiplier:[]
 Boxes in a row, `- [ ][ ][ ]`, are **one box with stages**: each click fills
 the next, written back as `[x][x][ ]`, and once they're all filled the item
 goes gray. A click on a full box empties it, and a shift-click goes back a
-stage. `phases:` on a line of its own names the stages of the boxes after
-it, up to the next heading, and the stage reached shows beside the box:
+stage. `stages:` under `multibox:` in the front matter names the stages
+of every staged box in the document, and the stage reached shows beside
+the box. This page's front matter names them, for the sample:
 
 ::: tabs
 +++ Source
 ```markdown
-phases: have, prepped, used
+---
+multibox:
+  stages: have, prepped, used
+---
+
 * [x][x][ ] count:1 small yellow onion, diced
 * [x][ ][ ] count:2 cloves garlic, minced
 ```
 +++ Rendered
-phases: have, prepped, used
 * [x][x][ ] count:1 small yellow onion, diced
 * [x][ ][ ] count:2 cloves garlic, minced
 :::

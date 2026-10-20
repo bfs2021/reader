@@ -14,6 +14,17 @@ test('front matter is each key in lower case to its value, quotes taken off', ()
   assert.equal(m.end, 5);
 });
 
+test('a key with no value holds the indented keys under it, a level deep', () => {
+  const m = frontMatter(lines('---\ntitle: Akara\nMultibox:\n  Stages: "have, in place, used"\n\n  other: x\nauthor: Ana\n  indented: alone\nempty:\n---'));
+  assert.deepEqual(m.meta, {
+    title: 'Akara',
+    multibox: { stages: 'have, in place, used', other: 'x' },
+    author: 'Ana',
+    indented: 'alone',
+    empty: '',
+  });
+});
+
 test('a line an entry reader takes is an entry, not meta', () => {
   const m = frontMatter(lines('---\nauthor: Josh\nreviewer #: Josh, teal\n---'), { entry: readEntry });
   assert.deepEqual(m.meta, { author: 'Josh' });

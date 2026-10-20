@@ -66,7 +66,7 @@ export function slides(src, { file, read } = {}) {
     const own = liftBackground(lifted.notes);
     const moved = liftTransition(own.notes);
     const { notes, at, budget } = readNotes(moved.notes);
-    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta });
+    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, matter: meta });
     css ||= `${r.css}\n${CSS}`;
     out.push({ body: titled(unmast(r.body), lifted.body), notes, notesHtml: renderNotes(notes), line, at, budget, transition: moved.transition ?? leaving });
   }
@@ -93,7 +93,7 @@ export function pages(src, { file, read, lines = true, drawn, exported } = {}) {
     const lifted = lift(text);
     if (!lifted.body.trim()) continue;
     const own = liftBackground(lifted.notes);
-    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, lines, drawn, exported });
+    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, matter: meta, lines, drawn, exported });
     css ||= r.css;
     out.push({ body: unmast(r.body), line });
   }

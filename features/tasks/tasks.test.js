@@ -101,13 +101,25 @@ test('boxes in a row are one box with stages, knowing its line at each', () => {
   assert.deepEqual(lines(body)[1], ['- [ ][ ] garlic', '- [x][ ] garlic', '- [X][x] garlic']);
 });
 
-test('phases: names the stages of the boxes after it, up to a heading', () => {
-  const { body } = render('phases: have, prepped, used\n- [x][x][ ] onion\n- [ ][ ][ ] salt\n\n## Next\n- [x][ ][ ] other\n');
-  assert.doesNotMatch(body, /phases:/);
+test('the front matter names the stages of every staged box', () => {
+  const { body } = render('---\nmultibox:\n  stages: have, prepped, used\n---\n\n- [x][x][ ] onion\n- [ ][ ][ ] salt\n\n## Next\n- [x][ ][ ] other\n- [x][ ] two\n');
   assert.match(body, /aria-label="onion: prepped \(2 of 3\)" title="prepped; next, used"/);
   assert.match(body, /<\/button> <span class="stage-name">prepped<\/span> onion/);
   assert.match(body, /aria-label="salt: not started" title="not started; next, have"/);
-  assert.match(body, /aria-label="other: 1 of 3"/);
+  assert.match(body, /aria-label="other: have \(1 of 3\)"/);
+  // A setting, not something said in the byline.
+  assert.doesNotMatch(body, /multibox/);
+});
+
+test('a line starting Phases: is prose', () => {
+  const { body } = render('The project has three parts.\nPhases: discovery, design, delivery\n\n- [x][ ][ ] discovery\n');
+  assert.match(body, /Phases: discovery, design, delivery/);
+  assert.match(body, /aria-label="discovery: 1 of 3"/);
+});
+
+test('a slide takes its stages from the deck', () => {
+  const out = slides('---\ntype: slides\nmultibox:\n  stages: have, used\n---\n\n# One\n\n- [x][ ] onion\n');
+  assert.match(out.slides[0].body, /aria-label="onion: have \(1 of 2\)"/);
 });
 
 test('a staged box in code stays as typed', () => {

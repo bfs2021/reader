@@ -42,14 +42,16 @@ md.core.ruler.push('reader_lines', (state) => {
  * `background` is what's behind the page (see background.js) when it isn't
  * the front matter's to say: a slide's own, or its deck's, or null for none.
  * `fonts` is likewise the front matter that names the fonts (see fonts.js):
- * a slide's deck's. `drawn` is what the preview frame drew of the page, by
- * feature (`{ mermaid: { text: svg } }`), to set into it where the page will
- * have nothing to draw it (export.js). `exported` is for a page that will
+ * a slide's deck's. `matter` is the front matter of the document `src` is
+ * a part of, for the settings a slide takes from its deck (the names of a
+ * staged box's stages, features/tasks). `drawn` is what the preview frame
+ * drew of the page, by feature (`{ mermaid: { text: svg } }`), to set into
+ * it where the page will have nothing to draw it (export.js). `exported` is for a page that will
  * run no script of the app's, so draws nothing that would wait on one.
  */
-export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, drawn, exported = false } = {}) {
+export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, matter, drawn, exported = false } = {}) {
   const text = src || '';
-  const env = { lineBase: line, file, read, shared, asideKey, lines, drawn, exported };
+  const env = { lineBase: line, file, read, shared, asideKey, lines, matter, drawn, exported };
   const tokens = md.parse(text, env);
   const meta = env.frontMatter || {};
   const asides = env.asides || [];

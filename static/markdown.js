@@ -16,8 +16,14 @@ const ENTRY = /^[ \t]*([A-Za-z][\w -]*?(?:[ \t]+\S)?)[ \t]*:(.*)$/;
  * first line, and taken only when every line in it is blank or reads as
  * `key: value`, so a file that opens with a `---` rule isn't swallowed to
  * the next. `end` is the line after its closing dashes, and `meta` each key,
- * in lower case, to its value, quotes taken off. A line `entry` makes
- * something of (an aside's alias; see features/asides/key.js) goes on
+ * in lower case, to its value, quotes taken off. A key with no value and
+ * indented entries under it holds them, a level deep, as YAML does:
+ *
+ *   multibox:
+ *     stages: have, in place, used
+ *
+ * is `{ multibox: { stages: 'have, in place, used' } }`. A line `entry`
+ * makes something of (an aside's alias; see features/asides/key.js) goes on
  * `entries` instead.
  */
 export function frontMatter(lines, { entry } = {}) {
@@ -28,14 +34,26 @@ export function frontMatter(lines, { entry } = {}) {
   if (!inner.every((l) => !l.trim() || ENTRY.test(l))) return null;
   const meta = {};
   const entries = [];
+  // The key with no value that indented entries go under, if any.
+  let parent = null;
   for (const l of inner) {
+    if (!l.trim()) continue;
+    const m = ENTRY.exec(l);
+    if (parent && m && /^[ \t]/.test(l)) {
+      if (typeof meta[parent] !== 'object') meta[parent] = {};
+      meta[parent][m[1].trim().toLowerCase()] = unquote(m[2].trim());
+      continue;
+    }
+    parent = null;
     const e = entry?.(l);
     if (e) {
       entries.push(e);
       continue;
     }
-    const m = ENTRY.exec(l);
-    if (m) meta[m[1].trim().toLowerCase()] = unquote(m[2].trim());
+    if (!m) continue;
+    const key = m[1].trim().toLowerCase();
+    meta[key] = unquote(m[2].trim());
+    if (!meta[key] && !/^[ \t]/.test(l)) parent = key;
   }
   return { end: close + 1, meta, entries };
 }
