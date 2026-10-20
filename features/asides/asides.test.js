@@ -91,7 +91,7 @@ test("an aside doesn't swallow reader's own block lines", () => {
   for (const next of ['+++', '+++ Kotlin', ':::', '::: tabs', '@ Name: answer', '!SLAB (Venkat): layers']) {
     const { asides, source } = preprocess(`a\n\n~ thought\n${next}\n`);
     assert.equal(asides[0].text, 'thought', next);
-    assert.match(source, new RegExp(`^${next.replace(/[+()]/g, '\\$&')}$`, 'm'), next);
+    assert.match(source, new RegExp(`^${next.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'm'), next);
   }
 });
 

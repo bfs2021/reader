@@ -113,7 +113,7 @@ test('an exported page runs only its own script', async () => {
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
   assert.equal(scripts.length, 1);
   const hash = crypto.createHash('sha256').update(scripts[0]).digest('base64');
-  assert.match(policy, new RegExp(`script-src 'sha256-${hash.replace(/[+/]/g, '\\$&')}'`));
+  assert.match(policy, new RegExp(`script-src 'sha256-${hash.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
 });
 
 test('a document that is not a deck is saved whole', async () => {

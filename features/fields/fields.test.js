@@ -58,7 +58,7 @@ test('[@ ] in a sentence is a blank there, knowing where it is on its line', () 
   const line = 'I am from a [@ an item from childhood] and [@ a product: Tang].';
   const { body } = render(`# Me\n\n${line}\n`);
   const text = 'data-text="I am from a [@ an item from childhood] and [@ a product: Tang]."';
-  assert.match(body, new RegExp(`<p>I am from a <span class="field field-inline" data-line="2" ${text.replace(/[[\]().]/g, '\\$&')} data-head="\\[@ an item from childhood" data-start="12" data-end="38"><span class="field-value" data-value=""></span><span class="field-label">an item from childhood</span></span> and `));
+  assert.match(body, new RegExp(`<p>I am from a <span class="field field-inline" data-line="2" ${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} data-head="\\[@ an item from childhood" data-start="12" data-end="38"><span class="field-value" data-value=""></span><span class="field-label">an item from childhood</span></span> and `));
   assert.match(body, /data-head="\[@ a product" data-start="43" data-end="62"><span class="field-value" data-value="Tang">Tang<\/span><span class="field-label">a product<\/span><\/span>\.<\/p>/);
 });
 

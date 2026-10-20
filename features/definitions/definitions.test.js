@@ -58,7 +58,7 @@ test('the term written with a ! elsewhere shows its meaning on hover', () => {
   const { body } = render('!SLAB and SLAB, !slab, `!SLAB`, [!SLAB](x), !SLABS, \\!SLAB, wow!SLAB.\n\n!SLAB: similar layers of abstraction\n!sealed interface: closed\n\nA !Sealed interface, a sealed interface.\n\n~ !SLAB in an aside\n');
   const use = (n) => `<span class="def-use" tabindex="0" aria-describedby="def-pop-${n}">SLAB<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">SLAB</b> <span id="def-pop-${n}">similar layers of abstraction</span></span></span>`;
   assert.ok(body.includes(use(3)));
-  assert.match(body, new RegExp(`<p>${use(1).replace(/[()]/g, '\\$&')} and SLAB, !slab, <code>!SLAB</code>, <a href="x">!SLAB</a>, !SLABS, !SLAB, wow!SLAB\\.</p>`));
+  assert.match(body, new RegExp(`<p>${use(1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} and SLAB, !slab, <code>!SLAB</code>, <a href="x">!SLAB</a>, !SLABS, !SLAB, wow!SLAB\\.</p>`));
   assert.match(body, /A <span class="def-use" tabindex="0" aria-describedby="def-pop-2">Sealed interface<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">sealed interface<\/b> <span id="def-pop-2">closed<\/span><\/span><\/span>, a sealed interface\./);
 });
 
