@@ -32,6 +32,21 @@ test('export saves each document beside itself, its images inside it', async () 
   assert.match(fs.readFileSync(path.join(root, 'deck', 'b.html'), 'utf8'), /<title>b<\/title>/);
 });
 
+test('a link to a document saved with this one goes to its page, and others stay', async () => {
+  const root = dir({
+    'a.md': '[b](deck/b.md) [part](deck/b.md#x) [c](c.md) [web](https://example.com/d.md)\n',
+    'deck/b.md': '[back](../a.md)\n',
+    'c.md': '# C\n',
+  });
+  await reader(root, 'a.md', 'deck/b.md', '--no-draw');
+  const a = fs.readFileSync(path.join(root, 'a.html'), 'utf8');
+  assert.match(a, /href="deck\/b\.html">b</);
+  assert.match(a, /href="deck\/b\.html#x">part</);
+  assert.match(a, /href="c\.md">c</);
+  assert.match(a, /href="https:\/\/example\.com\/d\.md">web</);
+  assert.match(fs.readFileSync(path.join(root, 'deck', 'b.html'), 'utf8'), /href="\.\.\/a\.html">back</);
+});
+
 test('export says which images it could not find', async () => {
   const root = dir({ 'a.md': '![](gone.png)\n![](https://example.com/x.png)\n' });
   const { stderr } = await reader(root, 'a.md', '--out', 'elsewhere.html', '--no-draw');

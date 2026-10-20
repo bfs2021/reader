@@ -73,7 +73,8 @@ export async function main(argv) {
   try {
     for (const rel of files) {
       const drawn = draw ? await draw(rel) : undefined;
-      const { name, html, missing } = exportHtml(content, rel, drawn);
+      // Links between the documents saved together go from page to page.
+      const { name, html, missing } = exportHtml(content, rel, drawn, new Set(files));
       for (const image of missing) warn(`${rel}: no ${image}, so it's left as a link`);
       const out = opts.out ?? path.join(root, path.dirname(rel), name);
       save(out, html);

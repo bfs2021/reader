@@ -31,6 +31,7 @@ const IMAGE_TYPES = {
 };
 
 const IMG_SRC = /(<img\b[^>]*?\ssrc=")([^"]*)(")/g;
+const A_HREF = /(<a\b[^>]*?\shref=")([^"]*)(")/g;
 // The backdrop's image (background.js), its quotes escaped for the attribute.
 const BACKDROP_URL = /(background-image: url\(&quot;)(.*?)(&quot;\))/g;
 
@@ -88,15 +89,17 @@ const CSP = [
  * `{ name, html, missing }` for the document at `file`: the name to save it
  * under, the page, and the images it names from the directory that aren't
  * there, left as links. `content` is the content directory (content.js), and `drawn`
- * what the preview frame drew of the document, if it was asked.
+ * what the preview frame drew of the document, if it was asked. A link to
+ * one of `linked`, documents saved with this one, goes to its page.
  */
-export function exportHtml(content, file, drawn) {
+export function exportHtml(content, file, drawn, linked = new Set()) {
   const read = (rel) => content.read(rel).text;
   const text = content.read(file).text;
   const out = (isDeck(text) && deck(text, { file, read, drawn })) || render(text, { file, read, drawn, exported: true });
   const missing = [];
   const inline = (m, before, src, after) => `${before}${dataUrl(content, file, src, missing) ?? src}${after}`;
-  const body = out.body.replace(IMG_SRC, inline).replace(BACKDROP_URL, inline);
+  const page = (m, before, href, after) => `${before}${pageOf(file, href, linked) ?? href}${after}`;
+  const body = out.body.replace(IMG_SRC, inline).replace(BACKDROP_URL, inline).replace(A_HREF, page);
   const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -139,6 +142,25 @@ function deck(text, { file, read, drawn }) {
     body: list.map((p) => `<div class="gm-page">\n${p.body.trim()}\n</div>`).join('\n'),
     title: meta.title || path.basename(file, path.extname(file)),
   };
+}
+
+/**
+ * Where `href`, as written in the page of the document at `file`, goes once
+ * the documents `linked` are pages: the page's name in place of the
+ * document's, when it's one of them; or null, and it stays as it is.
+ */
+function pageOf(file, href, linked) {
+  const m = /^([^?#]*)([?#].*)?$/.exec(href.replace(/&amp;/g, '&'));
+  if (!m[1] || /^([a-z][a-z0-9+.-]*:|\/)/i.test(m[1])) return null;
+  let rel;
+  try {
+    rel = path.posix.normalize(path.posix.join(path.posix.dirname(file), decodeURIComponent(m[1])));
+  } catch {
+    return null;
+  }
+  if (!linked.has(rel)) return null;
+  const ext = path.posix.extname(m[1]);
+  return escapeAttr(`${m[1].slice(0, -ext.length)}.html${m[2] ?? ''}`);
 }
 
 /**

@@ -1232,7 +1232,8 @@ It reads from the current directory. A diagram is drawn by Chrome or
 Chromium, run headless: the one at `CHROME_PATH`, or one installed where it
 usually is. Without one, or with `--no-draw`, a diagram is left as its text.
 An image the document names that isn't in the directory is left as a link,
-and said so.
+and said so. A link to another of the documents saved with it goes to that
+one's `.html`, so a folder of them saved together still links up.
 
 ### Keeping the HTML in step, on GitHub
 
