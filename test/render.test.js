@@ -40,3 +40,8 @@ test('with lines, each block names the line of the file it came from', () => {
   assert.match(body, /<div class="gm-aside-cell">\n<p><span class="gm-mark">~<\/span>an aside<\/p>/);
   assert.doesNotMatch(render(src).body, /data-line/);
 });
+
+test('with lines, an image alone in a paragraph is still a figure, on its line', () => {
+  const { body } = render('para\n\n![a cat](cat.jpg "Ginger")\n', { lines: true });
+  assert.match(body, /<figure data-line="2"><img src="cat\.jpg" alt="a cat" title="Ginger"><figcaption>Ginger<\/figcaption><\/figure>/);
+});

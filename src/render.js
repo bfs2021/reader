@@ -142,18 +142,19 @@ export function rfcLink(num, anchor, label) {
 
 
 
-const FIGURE = /<p>(<img src="[^"]*" alt="([^"]*)"(?: title="([^"]*)")?(?: style="[^"]*")?>)<\/p>/g;
+const FIGURE = /<p((?: data-line="\d+")?)>(<img src="[^"]*" alt="([^"]*)"(?: title="([^"]*)")?(?: style="[^"]*")?>)<\/p>/g;
 
 /**
  * An image alone in its paragraph becomes a figure, captioned by its title,
- * or failing that its alt text: `![a cat](cat.jpg "Ginger, 2019")`.
+ * or failing that its alt text: `![a cat](cat.jpg "Ginger, 2019")`. The
+ * figure keeps its paragraph's line, when it was marked with one.
  */
 export function figures(html) {
-  return html.replace(FIGURE, (m, img, alt, title) => {
+  return html.replace(FIGURE, (m, line, img, alt, title) => {
     const caption = title || alt;
     return caption
-      ? `<figure>${img}<figcaption>${caption}</figcaption></figure>`
-      : `<figure>${img}</figure>`;
+      ? `<figure${line}>${img}<figcaption>${caption}</figcaption></figure>`
+      : `<figure${line}>${img}</figure>`;
   });
 }
 
