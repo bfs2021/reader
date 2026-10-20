@@ -64,3 +64,13 @@ test('an aside in a ::: block keeps its mark', () => {
 test('the stylesheet comes with the feature', () => {
   assert.match(render('x\n').css, /\.font \{ font-family: var\(--font\), var\(--gm-serif\); \}/);
 });
+
+test('a line in a ::: block can open with bold or italics around punctuation', () => {
+  const { body } = render('::: gray\n**[a](b)** x\n\n**"quoted"** y\n\n*(aside)* z\n\n- **[c](d)** w\n\n| **[e](f)** |\n|---|\n:::\n');
+  assert.match(body, /<p style="color: gray"><strong><a href="b">a<\/a><\/strong> x<\/p>/);
+  assert.match(body, /<p style="color: gray"><strong>“quoted”<\/strong> y<\/p>/);
+  assert.match(body, /<p style="color: gray"><em>\(aside\)<\/em> z<\/p>/);
+  assert.match(body, /<li style="color: gray"><strong><a href="d">c<\/a><\/strong> w<\/li>/);
+  assert.match(body, /<th style="color: gray"><strong><a href="f">e<\/a><\/strong><\/th>/);
+  assert.doesNotMatch(body, /\*|[\uE000-\uE007]/);
+});

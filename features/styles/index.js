@@ -15,8 +15,9 @@
  * blocks are parsed: its fence lines read as blank, and each line inside
  * gets a marker naming the styles, after whatever opens its block (`>`, `~`,
  * a bullet, `#`) and after each table pipe, so it lands in the paragraph,
- * heading, list item or cell that line belongs to. Once parsed, the markers
- * come out and that block takes the styles. Blocks nest; the innermost's
+ * heading, list item or cell that line belongs to. Once the blocks are
+ * parsed, the markers come out, before the inline rules can take them for
+ * letters, and that block takes the styles. Blocks nest; the innermost's
  * font leads and its color wins.
  *
  * `columns`, `tabs` and `compare` are not styles but layouts: a block named
@@ -48,6 +49,7 @@ const PLUS = /^[ \t]{0,3}\+{3,}(?:[ \t]+(.*?))?[ \t]*$/;
 export function styles(md) {
   beforeAsides(md, 'style_lines', lines);
   md.inline.ruler.before('link', 'style_span', span);
+  md.core.ruler.before('inline', 'style_unmark', unmark);
   // Before other features look at the text: a marker isn't theirs to see.
   // A class they add to the block then comes after this one's.
   md.core.ruler.after('text_join', 'style_blocks', blocks);
@@ -108,7 +110,25 @@ function mark(line, names) {
 }
 
 /**
- * Takes the markers out of the text, styling the block each was in: its
+ * Takes the markers out of each block's inline source, keeping the styles
+ * they name for its block. Left in, a marker reads as a letter before the
+ * line's first character, so `**[a](b)**` or `*(aside)*` wouldn't open
+ * emphasis, nor `"` a quote.
+ */
+function unmark(state) {
+  for (const t of state.tokens) {
+    if (t.type !== 'inline' || !t.content.includes(OPEN)) continue;
+    let names = null;
+    t.content = t.content.replace(MARK, (m, n) => {
+      names ??= n;
+      return '';
+    });
+    t.meta = { ...t.meta, styles: names };
+  }
+}
+
+/**
+ * Takes any markers left out of the text, styling the block each was in: its
  * paragraph, heading or cell, or, in a tight list where paragraphs aren't
  * shown, its list item. In code they just go.
  */
@@ -121,7 +141,7 @@ function blocks(state) {
       continue;
     }
     if (t.type !== 'inline' || !t.children) continue;
-    let names = null;
+    let names = t.meta?.styles ?? null;
     for (const c of t.children) {
       if (c.type !== 'text' && c.type !== 'code_inline') continue;
       c.content = c.content.replace(MARK, (m, n) => {
