@@ -50,7 +50,6 @@ export function findBrowser() {
  * resolves once it has.
  */
 export async function openBrowser(browser, url) {
-  if (typeof WebSocket === 'undefined') throw new Error('drawing needs Node 22 or later');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'reader-browser-'));
   const args = [
     '--headless=new',

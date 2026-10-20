@@ -6,7 +6,7 @@ title: Install and run
 
 ## Install
 
-Node 20.19+.
+Node 22.13+.
 
 ```console
 $ git clone https://github.com/jzheaux/reader && cd reader
