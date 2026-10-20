@@ -106,6 +106,44 @@ test('a body over 20MB is answered with a 413, whether its length is given or no
   assert.equal(status, 413);
 });
 
+test('a body, a field or an address that makes no sense is a 400, not a 500', async () => {
+  const raw = (method, url, body) => fetch(base + url, { method, headers: { 'Content-Type': 'application/json' }, body });
+  for (const body of ['null', '[]', '"text"', '42']) {
+    assert.equal((await raw('POST', '/api/render', body)).status, 400, body);
+  }
+  const bad = [
+    ['POST', '/api/render', { text: 42 }],
+    ['POST', '/api/render', { text: '# a', path: 42 }],
+    ['POST', '/api/render', { text: '# a', pages: true, path: {} }],
+    ['POST', '/api/slides', { text: ['# a'] }],
+    ['PUT', '/api/file', { path: 'note.md', text: 'x', baseMtime: 'yesterday' }],
+    ['POST', '/api/new', { name: 42 }],
+    ['POST', '/api/rename', { moves: [null] }],
+    ['POST', '/api/extract', { path: 'note.md', text: '', files: [null] }],
+    ['POST', '/api/unextract', { path: 'note.md', text: '', mtime: 'then' }],
+  ];
+  for (const [method, url, body] of bad) {
+    const res = await json(method, url, body);
+    assert.equal(res.status, 400, `${url} ${JSON.stringify(body)}`);
+    assert.equal(typeof (await res.json()).error, 'string');
+  }
+  for (const url of ['/content/%E0%A4%A', '/content/%', '/%E0%A4%A']) {
+    assert.equal((await fetch(base + url)).status, 400, url);
+  }
+  const net = await import('node:net');
+  for (const target of ['http://[', '//%zz', '/a%zz']) {
+    const reply = await new Promise((resolve, reject) => {
+      const socket = net.connect(server.address().port, '127.0.0.1');
+      let got = '';
+      socket.on('data', (c) => (got += c));
+      socket.on('end', () => resolve(got));
+      socket.on('error', reject);
+      socket.end(`GET ${target} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n`);
+    });
+    assert.match(reply, /^HTTP\/1\.1 400 /, target);
+  }
+});
+
 test('exports a document as one HTML file, its images inside it', async () => {
   fs.writeFileSync(path.join(root, 'dot.png'), Buffer.from('iVBORw0KGgo=', 'base64'));
   fs.writeFileSync(path.join(root, 'out.md'), '---\ntitle: Out & about\nbackground: dot.png navy\n---\n\n![a dot](dot.png)\n\n![far](https://example.com/far.png)\n');

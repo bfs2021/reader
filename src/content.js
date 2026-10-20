@@ -235,6 +235,7 @@ export function createContent(rootDir) {
 
   /** Create a new markdown file; defaults to today's date, like a journal. */
   function create(name) {
+    if (name != null && typeof name !== 'string') throw new PathError('name must be a string');
     let rel = (name || '').trim() || `${today()}.md`;
     // `release 1.2` is a name with a dot in it, not a `.2` file.
     if (!LISTED_EXTS.has(path.extname(rel).toLowerCase())) rel += '.md';
@@ -307,7 +308,8 @@ export function createContent(rootDir) {
     // another doesn't are refused on both.
     const sources = new Set();
     const targets = new Set();
-    const planned = moves.map(({ from, to }) => {
+    const planned = moves.map((m) => {
+      const { from, to } = m ?? {};
       const { abs: fromAbs } = statFile(from);
       const toAbs = resolve(to);
       if (sources.has(fromAbs)) throw new PathError(`${from} is named more than once`);
@@ -375,7 +377,7 @@ export function createContent(rootDir) {
     if (!Array.isArray(files) || !files.length) throw new PathError('nothing to extract');
     const planned = new Set();
     const targets = files.map((f) => {
-      const abs = resolve(f.path);
+      const abs = resolve(f?.path);
       if (!DOC_EXTS.has(path.extname(abs).toLowerCase())) throw new PathError(`new files must be markdown: ${f.path}`);
       if (typeof f.text !== 'string') throw new PathError('text must be a string');
       if (fs.existsSync(abs) || planned.has(abs)) throw new ConflictError(`${toRel(abs)} already exists`);
