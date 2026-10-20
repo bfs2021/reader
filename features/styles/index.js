@@ -162,6 +162,8 @@ function holder(tokens, i) {
   const open = tokens[i - 1];
   if (!open) return null;
   if (['heading_open', 'th_open', 'td_open'].includes(open.type)) return open;
+  // A definition's meaning: its entry, the term with it (features/definitions).
+  if (open.type === 'def_meaning_open') return tokens.findLast((t, k) => k < i && t.type === 'def_open') ?? null;
   if (open.type !== 'paragraph_open') return null;
   if (!open.hidden) return open;
   for (let k = i - 2; k >= 0; k--) {
