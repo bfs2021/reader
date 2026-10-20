@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeAsides, keepWritten, readLines, placeholder, splitText, sections, escapeHtml, escapeAttr, addClass } from '../source.js';
 import { schemeRule } from '../scheme.js';
 
-const TASK = /^([ \t]*(?:[>~][ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
+const TASK = /^([ \t]*(?:>[ \t]*|~(?![^\s~])[ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
 const PHASES = /^ {0,3}phases:[ \t]*(\S.*?)[ \t]*$/i;
 const NAMED = new Set(['count', 'ingredient_key', 'ingredient_use']);
 const ANY_HEADING = /^ {0,3}#{1,6}(?:[ \t]|$)/;

@@ -17,6 +17,12 @@ test('a task box knows its line checked and unchecked, as written', () => {
   assert.match(body, /data-line="2" data-on="- \(x\) red" data-off="- \( \) red" aria-label="red">/);
 });
 
+test('a long run of > and ~ before a line is read in a moment', () => {
+  const start = performance.now();
+  render(`${'~>\t'.repeat(40)}x\n`);
+  assert.ok(performance.now() - start < 1000);
+});
+
 test('a box is named by the words beside it, for a screen reader', () => {
   const { body } = render('- [ ] call [mom](https://example.com) about `code`\n- ( ) Sat AM\n');
   assert.match(body, /class="task-box" [^>]*aria-label="call mom about code"/);
