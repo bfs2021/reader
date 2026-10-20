@@ -1,0 +1,81 @@
+name: Release
+
+# Tags main as vX.Y.Z and publishes a GitHub release whose notes list the
+# issues it addresses: those closed in the version's milestone, and those a
+# commit since the last tag says it closes. Run by hand once the milestone's
+# review is done.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, as its milestone is titled (e.g. 0.0.1)
+        required: true
+
+permissions:
+  contents: read
+
+# One release at a time.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check the version
+        run: |
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$VERSION' isn't a version like 0.0.1"; exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::v$VERSION is already tagged"; exit 1
+          fi
+          open=$(gh issue list --milestone "$VERSION" --state open --json number --jq length)
+          if [ "$open" != 0 ]; then
+            echo "::error::milestone $VERSION has $open open issue(s)"; exit 1
+          fi
+
+      - name: Write the notes
+        run: |
+          previous=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          range=${previous:+$previous..}HEAD
+          {
+            gh issue list --milestone "$VERSION" --state closed --limit 500 \
+              --json number,labels --jq '.[] | select(all(.labels[]; .name != "review")) | .number'
+            git log --format=%B "$range" | grep -oiE 'closes gh-[0-9]+' | grep -oE '[0-9]+' || true
+          } | sort -un > issues.txt
+
+          {
+            echo "## Issues"
+            echo
+            while read -r n; do
+              gh issue view "$n" --json number,title,state,url \
+                --jq 'select(.state == "CLOSED") | "- \(.title) ([#\(.number)](\(.url)))"' 2>/dev/null || true
+            done < issues.txt
+            echo
+            if [ -n "$previous" ]; then
+              echo "**Full changelog**: https://github.com/$GH_REPO/compare/$previous...v$VERSION"
+            else
+              echo "**Full changelog**: https://github.com/$GH_REPO/commits/v$VERSION"
+            fi
+          } > notes.md
+          cat notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tag and release
+        run: |
+          gh release create "v$VERSION" --target "$GITHUB_SHA" \
+            --title "$VERSION" --notes-file notes.md

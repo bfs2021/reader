@@ -49,3 +49,16 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | `static/speaker.html` | the speaker view for a deck being presented |
 
 PDF.js is vendored in `static/vendor/`, Mermaid in `features/mermaid/vendor/`, and the sites' marks in `features/social/icons/`; their versions and licenses are noted there.
+
+## Releasing
+
+Each version has a milestone, titled with the version (`0.0.1`), that closes
+with a review. Once its issues are closed, run the
+[Release](.github/workflows/release.yml) workflow on `main` with that version:
+
+```console
+$ gh workflow run release.yml -f version=0.0.1
+```
+
+It tags `main` as `v0.0.1` and publishes a release listing the issues it
+addresses: the milestone's, and those a commit since the last tag closes.
