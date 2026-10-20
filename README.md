@@ -5,7 +5,7 @@ it's rendered on the left and editable on the right, and the left side follows
 you as you type.
 
 ```console
-$ reader ~/Documents/self/therapy/journal
+$ reader ~/Documents/notes
 ```
 
 Opens <http://127.0.0.1:8734/>. `Ctrl-C` stops it. Nothing leaves your machine.
@@ -22,9 +22,9 @@ doesn't change the shape of what it's written in: a list stays one list
 with an aside between its items.
 
 ```markdown
-I continue to mourn things that I loved being in the stream of.
+The speaker said most teams adopt a tool long before they agree on how to use it.
 
-~ Maybe a post about the music; go towards the music
+~ True of us too; worth a post on our own conventions
 ```
 
 An aside can also say **who** it's from and **what** it's about, for
@@ -206,10 +206,10 @@ it stays inline:
 | `.:` `inf` | ∴ ∞ |
 
 ```markdown
-math:[recognition >> judgment]
+math:[readability >> cleverness]
 ```
 
-A `-` joining two words (`self-worth`) stays a hyphen.
+A `-` joining two words (`well-known`) stays a hyphen.
 
 `Q:` and `A:` at the start of a line make an exchange, set apart from the
 notes around it: the question in italics, the answer upright. A name in
@@ -237,7 +237,7 @@ under a card or a question is a vote for it, named or not, with a comment
 after a colon or not; the card shows how many votes it has:
 
 ```markdown
-Bad (Josh): We were surprised by the Join deadline
+Bad (Josh): We were surprised by the release deadline
 +1 (Rob)
 +1 (Joe): same, I found out the day of
 A (Rob): Would like to see those planned relative to the calendar.
@@ -297,16 +297,16 @@ A blank can also sit inside a sentence, filled in the way a madlib is:
 `[@ ` and what goes there, which shows small under the blank.
 
 ```markdown
-I am from a [@ a specific ordinary item from childhood] and [@ a product name].
+The [@ an animal] jumped over the [@ a piece of furniture].
 ```
 
 shows as
 
-> I am from a \_\_\_\_\_\_\_\_\_\_\_\_ and \_\_\_\_\_\_\_\_.<br>
-> <sub>&emsp;&emsp;&emsp;&emsp;&emsp;a specific ordinary item from childhood&emsp;&emsp;a product name</sub>
+> The \_\_\_\_\_\_\_\_\_\_\_\_ jumped over the \_\_\_\_\_\_\_\_\_\_\_\_.<br>
+> <sub>&emsp;&emsp;&emsp;&ensp;an animal&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;a piece of furniture</sub>
 
 It's filled in as a field is, and the answer is written after a colon,
-`[@ a product name: Tang]`, and shown bold, to stand apart from the
+`[@ an animal: walrus]`, and shown bold, to stand apart from the
 sentence. Square brackets typed into it are written as round ones, so they
 don't end it early. One followed by `(` is a link, as `[text](url)` is, and a backslash
 (`\[@ `) keeps it as typed.
@@ -441,10 +441,10 @@ and marks the words they differ by, as a diff does:
 
 ```markdown
 ::: compare
-+++ NIV
-LORD, you are my God; I will exalt you and praise your name
-+++ KJV
-O LORD, thou art my God; I will exalt thee, I will praise thy name
++++ Draft
+The service retries a failed request three times before giving up
++++ Final
+The service retries each failed request up to three times, then gives up
 :::
 ```
 
@@ -563,7 +563,7 @@ A few GitHub conventions show as they do there:
   E B E L I E V E X
   H O N E S T Q R P
   ...
-  words: ABLE, BELIEVE, HOLY GHOST, HONEST
+  words: ABLE, BELIEVE, ICE CREAM, HONEST
   found: BELIEVE r1c2-r1c8, HONEST r2c1-r2c6
   marks: NEST r2c3-r2c6
   ```
@@ -685,9 +685,9 @@ paper's name, the headline, and who wrote it and when.
 
 ````markdown
 ```headline
-Sam Altman Says "Code Is Free," Then Hires 400 Engineers
+City Library Will Stay Open Until Midnight, "For the Night Owls"
 
-The company says the two facts are unrelated.
+The board says the late hours are a trial through spring.
 agency: The New York Times
 by: A. Reporter
 date: October 3, 2026
@@ -863,7 +863,7 @@ be, with nothing of its notes. It opens on the page the cursor was on.
 - Under the page are **Back** and **Next**, and a dot for each page: click
   one to go to that page. `⌥←` and `⌥→` turn the page too, as does a swipe.
 - A page is done, and its dot filled, when its opening heading's checkbox is
-  checked (`# [x] Gratitude`). A page whose heading has no checkbox is done
+  checked (`# [x] Warm-up`). A page whose heading has no checkbox is done
   when every task on it is ticked and every radio list has a choice. A page
   with nothing to tick doesn't count either way.
 
@@ -966,7 +966,7 @@ ACT 2 (16 min). Clock should read about 0:12.
 
 <!--
 time: 1.5m
-The Spolsky gloss is yours, not Kirsch's.
+Skip the second demo if running long.
 -->
 ```
 
@@ -1317,7 +1317,7 @@ in front of it.
 Node 18+.
 
 ```console
-$ cd ~/code/jzheaux/reader
+$ git clone https://github.com/jzheaux/reader && cd reader
 $ npm install
 $ npm link          # puts `reader` on your PATH
 $ npm test
