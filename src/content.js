@@ -385,9 +385,12 @@ export function createContent(rootDir) {
     const current = fs.statSync(resolve(rel)).mtimeMs;
     if (baseMtime != null && current !== baseMtime) throw new ConflictError(`${rel} changed on disk`, current);
     const made = [];
+    // Each folder made for them, from the outermost one that wasn't there.
+    const folders = [];
     try {
       for (const t of targets) {
-        fs.mkdirSync(path.dirname(t.abs), { recursive: true });
+        const first = fs.mkdirSync(path.dirname(t.abs), { recursive: true });
+        if (first) folders.push([first, path.dirname(t.abs)]);
         fs.writeFileSync(t.abs, t.text, { encoding: 'utf8', flag: 'wx' });
         made.push(t.abs);
       }
@@ -395,6 +398,11 @@ export function createContent(rootDir) {
       return { path: rel, mtime: out.mtime, files: made.map((abs) => ({ path: toRel(abs), mtime: fs.statSync(abs).mtimeMs })) };
     } catch (err) {
       for (const abs of made) fs.rmSync(abs, { force: true });
+      for (const [first, last] of folders.reverse()) {
+        for (let dir = last; dir.startsWith(first); dir = path.dirname(dir)) {
+          if (fs.existsSync(dir) && !fs.readdirSync(dir).length) fs.rmdirSync(dir);
+        }
+      }
       throw err;
     }
   }
@@ -407,9 +415,16 @@ export function createContent(rootDir) {
   function unextract(rel, { text, mtime, files } = {}) {
     const changed = (p, at) => statFile(p).stat.mtimeMs !== at;
     if (changed(rel, mtime)) throw new ConflictError(`${rel} has changed since, so it's left as it is`);
+    if (files != null && !Array.isArray(files)) throw new PathError('files must be a list');
+    // All of it before anything is written, so that it all goes back or none of it does.
+    const seen = new Set([resolve(rel)]);
     for (const f of files || []) {
+      const abs = resolve(f?.path);
+      if (seen.has(abs)) throw new PathError(`${f.path} is named more than once`);
+      seen.add(abs);
       if (changed(f.path, f.mtime)) throw new ConflictError(`${f.path} has changed since, so it's left as it is`);
     }
+    if (files?.length) own(trashRoot);
     const out = write(rel, text, { baseMtime: mtime, explicit: true });
     for (const f of files || []) trash(f.path);
     return { path: rel, mtime: out.mtime };
