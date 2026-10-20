@@ -1314,7 +1314,7 @@ in front of it.
 
 ## Install
 
-Node 18+.
+Node 20.19+.
 
 ```console
 $ git clone https://github.com/jzheaux/reader && cd reader
