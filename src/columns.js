@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import { asideTokens, byChips, legend } from '../features/asides/index.js';
 import { about } from '../features/marks/index.js';
-import { splitPairs } from '../features/asides/split.js';
+import { splitPairs, tabOf } from '../features/asides/split.js';
 
 const CSS = fs.readFileSync(new URL('./columns.css', import.meta.url), 'utf8');
 
@@ -26,14 +26,15 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-function renderAsideCell(md, aside, env, showMark) {
+function renderAsideCell(md, aside, env, showMark, tab) {
   const html = md.renderer.render(asideTokens(md, aside, env).slice(1, -1), md.options, env);
   // The words it's about, if it chose some (features/marks), follow who
   // it's from and what it's about, or its `~`.
   const words = about(aside.mark);
   const tied = aside.mark?.id;
   const style = [aside.by?.who && `--by: ${escapeHtml(aside.by.who.color)}`, tied && aside.mark.color && `--mk: ${escapeHtml(aside.mark.color)}`].filter(Boolean).join('; ');
-  const attrs = `${style ? ` style="${style}"` : ''}${tied ? ` data-mark="${escapeHtml(tied)}"` : ''}`;
+  // Written in a tab, it shows while that tab does (features/tabs).
+  const attrs = `${style ? ` style="${style}"` : ''}${tied ? ` data-mark="${escapeHtml(tied)}"` : ''}${tab ? ` data-in-tab="${tab}"` : ''}`;
   // An attributed aside opens with who it's from and what it's about, at the
   // start of its first paragraph, or above it when it doesn't open with one.
   if (aside.by) {
@@ -86,7 +87,7 @@ export function columns(md, tokens, env, opts = {}) {
       const speakerHtml = pair.speaker.length
         ? md.renderer.render(pair.speaker, md.options, env)
         : '';
-      const asideHtml = pair.asides.map((a) => renderAsideCell(md, a, env, mark)).join('\n');
+      const asideHtml = pair.asides.map((a) => renderAsideCell(md, a, env, mark, tabOf(tokens, a.anchor))).join('\n');
       const cells = [
         `<div class="gm-speaker">\n${speakerHtml}</div>`,
         asideHtml ? `<div class="gm-asides">\n${asideHtml}\n</div>` : '<div></div>',

@@ -109,6 +109,8 @@
     if (records.some((r) => !r.target.closest?.('.mk-lines, .mk, .gm-aside-cell[data-mark]'))) later();
   }).observe(document.body, { attributes: true, attributeFilter: ['class', 'style', 'hidden'], subtree: true });
   document.addEventListener('transitionend', (e) => { if (!e.target.closest?.('.mk-lines')) later(); });
+  // A tab picked shows its asides and marks, and hides another's.
+  document.addEventListener('change', (e) => { if (e.target.matches?.('input.tab-pick')) later(); });
   window.addEventListener('preview:drawn', later);
   document.fonts?.ready.then(later);
   // Printing lays the page out again, at the paper's width, before a frame is drawn.

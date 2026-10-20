@@ -435,6 +435,8 @@ http { oauth2Login { } }
   Kotlin as it was.
 - On paper, every tab shows, one after another. In an exported file, each
   block still switches, but on its own.
+- An aside written in a tab sits beside the block, shows only while that
+  tab does, and marks words in it; one after the block is about all of it.
 
 A `:::` block named `compare` sets the versions **side by side** instead,
 and marks the words they differ by, as a diff does:

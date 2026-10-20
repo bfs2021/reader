@@ -9,7 +9,7 @@ const KEY = '-----\ntopic a: adjectives, circle\ntopic v: verbs, teal, highlight
 const marks = (body) => [...body.matchAll(/<span class="mk mk-(\w+)"(?: style="--mk: ([^"]+)")? data-mark="([^"]+)">([^<]*)/g)]
   .map(([, style, color, id, text]) => ({ id, style, color, text }));
 /** Each aside about words: the mark it's tied to and the words it set at its start. */
-const tied = (body) => [...body.matchAll(/<div class="gm-aside-cell[^"]*"(?: style="[^"]*")?(?: data-mark="([^"]+)")?>\n<p>(?:<span class="gm-by">.*?<\/span><\/span>|<span class="gm-mark">~<\/span>)?<q class="mk-about[^"]*"[^>]*>([^<]*)<\/q>/g)]
+const tied = (body) => [...body.matchAll(/<div class="gm-aside-cell[^"]*"(?: style="[^"]*")?(?: data-mark="([^"]+)")?(?: data-in-tab="\d+")?>\n<p>(?:<span class="gm-by">.*?<\/span><\/span>|<span class="gm-mark">~<\/span>)?<q class="mk-about[^"]*"[^>]*>([^<]*)<\/q>/g)]
   .map(([, id, words]) => ({ id, words }));
 
 test('an aside marks the words it names in the line above, in its topic\'s colour and style', () => {
@@ -103,4 +103,16 @@ test('marks are counted through a deck, so no two slides share one', () => {
   const deck = slides(`${KEY}# one\n\nthe fox\n~a[fox] here\n\n---\n\n# two\n\nthe fox\n~a[fox] again\n`);
   const ids = deck.slides.flatMap((s) => marks(s.body).map((m) => m.id));
   assert.equal(new Set(ids).size, 2);
+});
+
+test('an aside written in a tab marks its words there, and shows with that tab', () => {
+  const { body } = render(`${KEY}::: tabs\n+++ Source\n~~~markdown\nthe quick brown fox\n~a[quick] nice\n~~~\n+++ Rendered\nthe quick brown fox\n~a[quick] nice\n:::\n`);
+  assert.deepEqual(marks(body).map((m) => m.text), ['quick']);
+  assert.deepEqual(tied(body), [{ id: 'mk-1', words: 'quick' }]);
+  assert.match(body, /<div class="gm-aside-cell gm-attributed" style="[^"]*" data-mark="mk-1" data-in-tab="2">/);
+});
+
+test('an aside after a tabs block, or in none, is beside it whichever tab shows', () => {
+  const { body } = render(`${KEY}::: tabs\n+++ One\nthe quick brown fox\n:::\n~ all of it\n\nthe lazy dog\n~a[lazy] no tab\n`);
+  assert.doesNotMatch(body, /data-in-tab/);
 });

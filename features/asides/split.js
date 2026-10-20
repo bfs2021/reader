@@ -57,7 +57,7 @@ const CONTAINERS = new Set([
   'blockquote_open',
 ]);
 
-export function lastBlockBefore(tokens, anchor) {
+export function lastBlockBefore(tokens, anchor, { into = false } = {}) {
   let found = null;
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
@@ -69,10 +69,32 @@ export function lastBlockBefore(tokens, anchor) {
     if (CONTAINERS.has(t.type) || t.type === 'inline') continue;
     found = t;
     // What's laid out as one thing (columns) is one block, however much is
-    // in it: an aside is beside all of it, and never cuts it.
-    if (t.meta?.whole && t.nesting === 1) i = closeOf(tokens, i);
+    // in it: an aside is beside all of it, and never cuts it. Looking `into`
+    // it finds what in it was written last, as the words an aside names are.
+    if (t.meta?.whole && t.nesting === 1 && !into) i = closeOf(tokens, i);
   }
   return found;
+}
+
+/**
+ * Which tab an aside written at `anchor` is in, counted from 1, when it's
+ * in one: it's beside the whole `tabs` block, and shows with that tab.
+ */
+export function tabOf(tokens, anchor) {
+  // One written after the block's closing is about all of it.
+  const after = lastBlockBefore(tokens, anchor);
+  if (after?.meta?.whole && anchor >= after.map?.[1]) return null;
+  const block = lastBlockBefore(tokens, anchor, { into: true });
+  // For each `tabs` block open around a token, the tab it's in, or 0 between.
+  const open = [];
+  for (const t of tokens) {
+    if (t.type === 'tabs_open') open.push({ count: 0, tab: 0 });
+    else if (t.type === 'tabs_close') open.pop();
+    else if (t.type === 'tabs_pane_open') open.at(-1).tab = ++open.at(-1).count;
+    else if (t.type === 'tabs_pane_close') open.at(-1).tab = 0;
+    if (t === block) return open.at(-1)?.tab || null;
+  }
+  return null;
 }
 
 /** The index of the token that closes the one opened at `i`. */

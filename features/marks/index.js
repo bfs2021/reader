@@ -69,7 +69,7 @@ function choose(state, asides) {
     const color = topic?.color ?? aside.by?.who?.color ?? null;
     const found = { aside, span: null, color };
     out.push(found);
-    const block = lastBlockBefore(tokens, aside.anchor);
+    const block = lastBlockBefore(tokens, aside.anchor, { into: true });
     const inline = block && tokens[tokens.indexOf(block) + 1];
     if (inline?.type !== 'inline' || !inline.children) continue;
 
