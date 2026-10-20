@@ -62,3 +62,4 @@ $ gh workflow run release.yml -f version=0.0.1
 
 It tags `main` as `v0.0.1` and publishes a release listing the issues it
 addresses: the milestone's, and those a commit since the last tag closes.
+It refuses a version `package.json` doesn't have, so bump that first.
