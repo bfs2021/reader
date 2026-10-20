@@ -17,6 +17,11 @@ import { splitPairs, tabOf } from '../features/asides/split.js';
 
 const CSS = fs.readFileSync(new URL('./columns.css', import.meta.url), 'utf8');
 
+// Front matter that's said elsewhere on the page, or is a setting, not
+// something to read: how a deck is timed, moved through, paged and printed
+// (src/slides.js, export.js), and what kind of document it is.
+const UNSHOWN = new Set(['title', 'author', 'date', 'tags', 'speaker', 'listener', 'background', 'font', 'title-font', 'time', 'transition', 'paging', 'print', 'type']);
+
 /** The layout's stylesheet. */
 export function themeCss() {
   return CSS;
@@ -130,7 +135,7 @@ function masthead(meta, docTitle, legendHtml = '') {
     if (tags) bits.push(tags);
   }
   const extras = Object.entries(meta)
-    .filter(([k]) => !['title', 'author', 'date', 'tags', 'speaker', 'listener', 'background', 'font', 'title-font'].includes(k))
+    .filter(([k]) => !UNSHOWN.has(k))
     .map(([k, v]) => `<span>${escapeHtml(k)}: ${escapeHtml(v)}</span>`);
   bits.push(...extras);
 
