@@ -57,6 +57,8 @@ function split(state, i, at) {
   const tokens = state.tokens;
   const inline = tokens[i];
   const [open, close] = [tokens[i - 1], tokens[i + 1]];
+  // A line of the paragraph for each break before it.
+  const line = open.map && open.map[0] + inline.children.slice(0, at).filter((c) => c.type === 'softbreak' || c.type === 'hardbreak').length;
   // A soft break between them goes; a hard one stays, ending the paragraph.
   const soft = inline.children[at - 1].type === 'softbreak';
   const before = inline.children.slice(0, soft ? at - 1 : at);
@@ -71,6 +73,11 @@ function split(state, i, at) {
   const byOpen = copy(open);
   addClass(byOpen, 'quote-by');
   const byInline = copy(inline);
+  // Each on its own lines, the attribution on the one it's written on.
+  if (open.map) {
+    byOpen.map = byInline.map = [line, open.map[1]];
+    open.map = inline.map = [open.map[0], line];
+  }
   byInline.children = after;
   inline.children = before;
   tokens.splice(i + 1, 0, copy(close), byOpen, byInline);

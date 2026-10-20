@@ -76,3 +76,8 @@ test('a later slide knows the terms an earlier one defined', () => {
 test('the stylesheet comes with the feature', () => {
   assert.match(render('!x: y\n').css, /\.def-use \{/);
 });
+
+test('with lines, a glossary names the line it starts on', () => {
+  const { body } = render('para\n\n!slab: x\n!ok: y\n', { lines: true });
+  assert.match(body, /<dl class="defs" data-line="2">\n<div class="def" data-line="2">/);
+});

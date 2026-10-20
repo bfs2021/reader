@@ -50,9 +50,9 @@ export function definitions(md) {
   // one that isn't.
   md.core.ruler.before('text_join', 'definition_uses', uses);
 
-  md.renderer.rules.def_list_open = () => '<dl class="defs">\n';
+  md.renderer.rules.def_list_open = (tokens, i, opts, env, self) => `<dl${self.renderAttrs(tokens[i])}>\n`;
   md.renderer.rules.def_list_close = () => '</dl>\n';
-  // With what's been added to the entry: a `:::` block's styles, its line.
+  // With what's been added to them: a `:::` block's styles, their line.
   md.renderer.rules.def_open = (tokens, i, opts, env, self) => `<div${self.renderAttrs(tokens[i])}>\n`;
   md.renderer.rules.def_close = () => '</div>\n';
   md.renderer.rules.def_term = (tokens, i) => `<dt class="def-term">${escapeHtml(tokens[i].meta.term)}</dt>\n`;
@@ -127,6 +127,7 @@ function block(state, startLine, endLine, silent) {
 
   const open = state.push('def_list_open', 'dl', 1);
   open.map = [startLine, next];
+  open.attrSet('class', 'defs');
   for (let i = 0; i < run.length;) {
     let j = i + 1;
     while (j < run.length && run[j].d.term === run[i].d.term) j++;
