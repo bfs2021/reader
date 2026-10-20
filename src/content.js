@@ -236,7 +236,8 @@ export function createContent(rootDir) {
   /** Create a new markdown file; defaults to today's date, like a journal. */
   function create(name) {
     let rel = (name || '').trim() || `${today()}.md`;
-    if (!path.extname(rel)) rel += '.md';
+    // `release 1.2` is a name with a dot in it, not a `.2` file.
+    if (!LISTED_EXTS.has(path.extname(rel).toLowerCase())) rel += '.md';
     const abs = resolve(rel);
     if (!DOC_EXTS.has(path.extname(abs).toLowerCase())) {
       throw new PathError(`new files must be markdown: ${rel}`);

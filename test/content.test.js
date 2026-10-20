@@ -102,6 +102,11 @@ test('create defaults to today, adds .md, and does not clobber', () => {
   assert.equal(content.create('a.md').created, false);
   assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), 'keep\n');
   assert.throws(() => content.create('x.pdf'), PathError);
+
+  // A dot in a name is part of the name, unless what follows is a kind of file.
+  assert.equal(content.create('release 1.2').path, 'release 1.2.md');
+  assert.equal(content.create('sub/v2.0 notes').path, 'sub/v2.0 notes.md');
+  assert.equal(content.create('Notes.MARKDOWN').path, 'Notes.MARKDOWN');
 });
 
 test('branch copies a document to a new name, never over another', () => {
