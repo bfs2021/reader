@@ -1,5 +1,10 @@
 # reader
 
+[![CI](https://github.com/jzheaux/reader/actions/workflows/ci.yml/badge.svg)](https://github.com/jzheaux/reader/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/jzheaux/reader/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/jzheaux/reader/actions/workflows/github-code-scanning/codeql)
+[![Release](https://img.shields.io/github/v/release/jzheaux/reader)](https://github.com/jzheaux/reader/releases/latest)
+[![License](https://img.shields.io/github/license/jzheaux/reader)](LICENSE)
+
 A local, two-pane reader and editor for a directory of markdown. Pick a file:
 it's rendered on the left and editable on the right, and the left side follows
 you as you type.
