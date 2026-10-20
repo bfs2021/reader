@@ -107,6 +107,18 @@ test('puzzles are numbered across the whole deck', () => {
   assert.match(out.slides[1].body, /data-puzzle="1"/);
 });
 
+test("each page's tabs and choices have names of their own across the deck", () => {
+  const page = '::: tabs\n```java\na\n```\n\n```kotlin\nb\n```\n:::\n\n- ( ) yes\n- ( ) no\n';
+  const deck = `${page}\n---\n\n${page}`;
+  const names = (body) => [...new Set([...body.matchAll(/type="radio" class="(?:tab-pick|choice-box)" name="([^"]+)"/g)].map((m) => m[1]))];
+  for (const out of [slides(deck).slides, pages(deck).pages]) {
+    const [one, two] = out.map((s) => names(s.body));
+    assert.equal(one.length, 2);
+    assert.equal(two.length, 2);
+    assert.deepEqual(one.filter((n) => two.includes(n)), [], 'no name is used on two pages');
+  }
+});
+
 test('notes leave their lines behind, so a slide knows its lines in the file', () => {
   const { body } = lift('# Hi\n\n<!--\n  a note\n-->\n\n- [ ] task\n');
   assert.equal(body.split('\n').length, 8);

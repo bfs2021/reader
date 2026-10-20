@@ -73,18 +73,21 @@ export function tasks(md) {
         return `${lead}${placeholder(OPEN, CLOSE, boxes.length - 1)}`;
       });
     });
-    // Shared with the asides' own parses, which count lists on from here.
-    if (boxes.length) state.env.tasks = { boxes, lists: 0 };
+    // Shared with the asides' own parses.
+    if (boxes.length) state.env.tasks = { boxes };
   });
 
   md.core.ruler.push('task_tokens', (state) => {
     const tasks = state.env.tasks;
     if (!tasks) return;
     const tokens = state.tokens;
+    // Lists are counted through the whole document, a deck's slides and
+    // the asides' own parses, so each list's choices are a group of their own.
+    const count = state.env.shared ?? tasks;
     const lists = [];
     for (let i = 0; i < tokens.length; i++) {
       const t = tokens[i];
-      if (t.type === 'bullet_list_open' || t.type === 'ordered_list_open') lists.push(++tasks.lists);
+      if (t.type === 'bullet_list_open' || t.type === 'ordered_list_open') lists.push(count.taskLists = (count.taskLists ?? 0) + 1);
       else if (t.type === 'bullet_list_close' || t.type === 'ordered_list_close') lists.pop();
       else if (t.type === 'list_item_open' || t.type === 'heading_open') {
         const heading = t.type === 'heading_open';

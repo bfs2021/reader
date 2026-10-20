@@ -68,3 +68,9 @@ test('a document opening with a --- rule has no front matter', () => {
   assert.match(body, /<hr>\n<p>A paragraph between rules\.<\/p>\n<hr>\n<p>more<\/p>/);
   assert.equal(render('---\ntitle: Kept\n\n---\nbody\n').title, 'Kept');
 });
+
+test("a deck's settings stay out of its masthead, and the rest of its front matter shows", () => {
+  const { body } = render('---\ntitle: T\nauthor: Josh\ntime: 20m\ntransition: fade\nprint: landscape\ntype: slides\npaging: Slide %d of %d\nvenue: SpringOne\n---\n\n# One\n\n---\n\n# Two\n');
+  const byline = /<div class="gm-byline">([\s\S]*?)<\/div>/.exec(body)[1];
+  assert.equal(byline, '<span>Josh</span><span>venue: SpringOne</span>');
+});
