@@ -13,14 +13,21 @@ import { setPages } from './pages.js';
 // The frame says 'ready' when it loads, but it may have loaded before this
 // module ran and that message is gone. So also ask: a 'ping' is answered with
 // 'ready' by a frame that's already listening, and lost harmlessly by one
-// that isn't (it will announce itself when it loads).
-export function whenReady(frame) {
+// that isn't (it will announce itself when it loads). Its listeners go once
+// it's ready, or when `signal` gives up on a frame that never will be.
+export function whenReady(frame, { signal } = {}) {
   return new Promise((resolve) => {
-    window.addEventListener('message', (e) => {
-      if (e.source === frame.contentWindow && e.data?.type === 'ready') resolve();
-    });
+    const done = new AbortController();
+    const heard = (e) => {
+      if (e.source === frame.contentWindow && e.data?.type === 'ready') {
+        done.abort();
+        resolve();
+      }
+    };
     const ping = () => frame.contentWindow?.postMessage({ type: 'ping' }, '*');
-    frame.addEventListener('load', ping);
+    signal?.addEventListener('abort', () => done.abort(), { once: true });
+    window.addEventListener('message', heard, { signal: done.signal });
+    frame.addEventListener('load', ping, { signal: done.signal });
     ping();
   });
 }

@@ -94,6 +94,7 @@ async function draw({ css, body }, p) {
   frame.setAttribute('aria-hidden', 'true');
   frame.src = '/preview.html';
   let heard;
+  const gone = new AbortController();
   try {
     return await new Promise((resolve, reject) => {
       heard = (e) => {
@@ -102,13 +103,14 @@ async function draw({ css, body }, p) {
       window.addEventListener('message', heard);
       setTimeout(() => reject(new Error('its diagrams took too long to draw')), DRAW_TIMEOUT);
       document.body.append(frame);
-      whenReady(frame).then(() => {
+      whenReady(frame, { signal: gone.signal }).then(() => {
         frame.contentWindow.postMessage({ type: 'render', css, body, base: baseFor(p), resetScroll: true }, '*');
         frame.contentWindow.postMessage({ type: 'drawn' }, '*');
       });
     });
   } finally {
     window.removeEventListener('message', heard);
+    gone.abort();
     frame.remove();
   }
 }
