@@ -73,8 +73,10 @@ function rule(name) {
 
     const { end, panes: versions } = panes(state, startLine, endLine, name);
     open.map = [startLine, Math.min(end + 1, endLine)];
-    state.env.tabs = (state.env.tabs ?? 0) + 1;
-    const group = `${name}-${state.env.tabs}`;
+    // Counted through the whole document: a deck's slides, its asides.
+    const shared = state.env.shared ?? state.env;
+    shared.tabs = (shared.tabs ?? 0) + 1;
+    const group = `${name}-${shared.tabs}`;
     const tabs = versions.map((v, k) => {
       const label = v.label || named(v.tokens) || String(k + 1);
       return { group, label, key: label.toLowerCase(), checked: k === 0 };
