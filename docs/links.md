@@ -1,0 +1,137 @@
+---
+title: Links
+---
+
+← [Contents](index.md)
+
+A few kinds of link are written as a name, a colon and brackets, so a
+reference reads as itself in the file and links on the page. As with
+emoji, the file keeps what you typed.
+
+## Scripture
+
+`scripture:` makes a link to Blue Letter Bible, in the RSV unless a version
+follows a comma:
+
+| You write | Links to | Shows |
+| --- | --- | --- |
+| `scripture:[Isaiah 2:1-5]` | `blueletterbible.org/rsv/isaiah/2/1-5` | Isaiah 2:1-5 |
+| `scripture:[Isaiah 2:1-5, NIV]` | `blueletterbible.org/niv/isaiah/2/1-5` | Isaiah 2:1-5, NIV |
+| `scripture:isaiah/2/1-5[plowshares]` | `blueletterbible.org/rsv/isaiah/2/1-5` | plowshares |
+
+::: tabs
++++ Source
+```markdown
+Swords into scripture:isaiah/2/1-5[plowshares] (scripture:[Isaiah 2:1-5, NIV]).
+```
++++ Rendered
+Swords into scripture:isaiah/2/1-5[plowshares] (scripture:[Isaiah 2:1-5, NIV]).
+:::
+
+References in code, and bracketed text that doesn't read as
+`Book ch[:vs]`, are left as written.
+
+`scripture-lds:` does the same for any of the standard works -- Bible, Book
+of Mormon, Doctrine and Covenants, Pearl of Great Price -- on
+churchofjesuschrist.org. Books go by their full names or the usual short ones
+(`1 Ne`, `D&C`, `JS—H`, `A of F`):
+
+| You write | Links to | Shows |
+| --- | --- | --- |
+| `scripture-lds:[D&C 88:26]` | `…/dc-testament/dc/88?lang=eng&id=p26#p26` | D&C 88:26 |
+| `scripture-lds:[1 Nephi 3:7]` | `…/bofm/1-ne/3?lang=eng&id=p7#p7` | 1 Nephi 3:7 |
+| `scripture-lds:[Articles of Faith 13]` | `…/pgp/a-of-f/1?lang=eng&id=p13#p13` | Articles of Faith 13 |
+| `scripture-lds:dc/88/26[quickened]` | `…/dc-testament/dc/88?lang=eng&id=p26#p26` | quickened |
+
+## RFCs
+
+`rfc:` does the same for the RFC Editor. The brackets are required; left empty,
+they read as the RFC's name:
+
+| You write | Links to | Shows |
+| --- | --- | --- |
+| `rfc:9110[]` | `rfc-editor.org/rfc/rfc9110.html` | RFC 9110 |
+| `rfc:9110#section-15.5[]` | `rfc-editor.org/rfc/rfc9110.html#section-15.5` | RFC 9110 §15.5 |
+| `rfc:6749[OAuth 2.0]` | `rfc-editor.org/rfc/rfc6749.html` | OAuth 2.0 |
+
+::: tabs
++++ Source
+```markdown
+A 404 is in rfc:9110#section-15.5[], and the flows are in rfc:6749[OAuth 2.0].
+```
++++ Rendered
+A 404 is in rfc:9110#section-15.5[], and the flows are in rfc:6749[OAuth 2.0].
+:::
+
+## Searches
+
+`search:` makes a Google search, for something to look into later. It shows
+with a dotted underline and a ⌕. Spaces in the bracket become `+` in the
+query, so these two are the same search:
+
+| You write | Searches for | Shows |
+| --- | --- | --- |
+| `search:[commensality]` | commensality | commensality |
+| `search:[My Many Worded Term]` | My+Many+Worded+Term | My Many Worded Term |
+| `search:my+many+worded+term[My Many Worded Term]` | my+many+worded+term | My Many Worded Term |
+
+::: tabs
++++ Source
+```markdown
+Look into search:[commensality] later.
+```
++++ Rendered
+Look into search:[commensality] later.
+:::
+
+## Profiles
+
+`linkedin:`, `bluesky:`, `gh:`, `fb:`, `insta:` and `yt:` say where to
+find someone: a link to that profile, with the site's mark before it. Words
+in the brackets are shown instead of the address.
+
+| You write | Links to | Shows |
+| --- | --- | --- |
+| `linkedin:jzheaux[]` | `linkedin.com/in/jzheaux` | linkedin.com/in/jzheaux |
+| `linkedin:company/vmware[]` | `linkedin.com/company/vmware` | linkedin.com/company/vmware |
+| `bluesky:jzheaux[]` | `bsky.app/profile/jzheaux.bsky.social` | @jzheaux.bsky.social |
+| `bluesky:jzheaux.dev[]` | `bsky.app/profile/jzheaux.dev` | @jzheaux.dev |
+| `gh:jzheaux[]` | `github.com/jzheaux` | github.com/jzheaux |
+| `gh:jzheaux/reader#25[]` | `github.com/jzheaux/reader/issues/25` | jzheaux/reader#25 |
+| `gh:jzheaux/reader@f61f000[]` | `github.com/jzheaux/reader/commit/f61f000` | jzheaux/reader@f61f000 |
+| `fb:jzheaux[]` | `facebook.com/jzheaux` | facebook.com/jzheaux |
+| `insta:jzheaux[]` | `instagram.com/jzheaux` | @jzheaux |
+| `yt:jzheaux[]` | `youtube.com/@jzheaux` | @jzheaux |
+| `gh:jzheaux[my GitHub]` | `github.com/jzheaux` | my GitHub |
+
+::: tabs
++++ Source
+```markdown
+- gh:jzheaux[my GitHub], and gh:jzheaux/reader#25[]
+- bluesky:jzheaux[]
+- yt:jzheaux[]
+```
++++ Rendered
+- gh:jzheaux[my GitHub], and gh:jzheaux/reader#25[]
+- bluesky:jzheaux[]
+- yt:jzheaux[]
+:::
+
+## Other files
+
+A relative link to another markdown file opens it in reader, as a link
+does on the web. Images and links in a note resolve relative to that note,
+so `![](photo.jpg)` next to the file works.
+
+```markdown
+→ [Spring Security 7](spring-security-7.md)
+```
+
+## Images, on hover
+
+A link to an image (`.png`, `.jpg`, `.gif`, `.webp`, `.svg`, `.avif`) shows
+the image while you hover it, on a slide and in the rendered page:
+
+```markdown
+- Hi, I'm [Josh Cummings](images/bio-me.jpg)
+```
