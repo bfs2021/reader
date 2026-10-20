@@ -6,38 +6,24 @@
  *
  *   ~ Maybe a post about the music; go towards the music
  *
- *   md.use(asides)                   asides back in place, as <aside>s
- *   md.use(asides, { inline: false }) asides kept on env.asides, for a layout
- *
  * Adds two things to the parser:
  *   - `-----` front matter, exposed on `env.frontMatter`
  *   - `~ ...` asides, lifted out of the source before block parsing so they
- *     cannot disturb the document's structure, then re-inserted as
- *     `aside_open` / `inline` / `aside_close` tokens at the place they were
- *     written.
+ *     cannot disturb the document's structure, and kept on `env.asides` for
+ *     reader's two-column layout (src/columns.js), which wants the speaker's
+ *     stream unbroken so it can choose its own cut points.
  *
  * Taking both out shifts the lines the block parser sees, so token maps
  * count lines of what's left; `env.sourceLines[n]` is the line of the source
  * that line `n` of it came from.
  *
- * With `{ inline: false }` the asides are extracted and recorded on
- * `env.asides` but not re-inserted, which is what reader's two-column layout
- * (src/columns.js) wants -- it needs the speaker's stream unbroken so it can
- * choose its own cut points.
- *
  * Came from gutter-md, which reader grew out of.
  */
 
-import MarkdownIt from 'markdown-it';
 import { preprocess } from './preprocess.js';
 import { escapeHtml } from '../source.js';
-import { resolveInlineInsertions } from './split.js';
 
-const { Token } = MarkdownIt;
-
-export function asides(md, opts = {}) {
-  const inline = opts.inline !== false;
-
+export function asides(md) {
   md.core.ruler.after('normalize', 'aside_extract', (state) => {
     // `__aside` marks the recursive parse of an aside's own body; it has
     // already been stripped of its markers and must not be re-processed.
@@ -51,48 +37,14 @@ export function asides(md, opts = {}) {
     // Token maps count lines of what's left; this traces them back.
     state.env.sourceLines = lines;
   });
-
-  if (!inline) return;
-
-  md.core.ruler.push('aside_insert', (state) => {
-    // An aside's body is parsed with this same `md`. Without this guard it
-    // would inherit the outer document's aside list and re-insert it, forever.
-    if (state.env.__aside) return;
-    const asides = state.env.asides;
-    if (!asides || !asides.length) return;
-
-    const placed = resolveInlineInsertions(state.tokens, asides);
-    // Insert from the back so earlier indices stay valid.
-    for (const a of [...placed].sort((x, y) => y.at - x.at)) {
-      state.tokens.splice(a.at, 0, ...asideTokens(md, a, state.env));
-    }
-  });
-
-  md.renderer.rules.aside_open = (tokens, i) => {
-    const by = tokens[i].meta?.by;
-    return by ? `<aside class="gm-aside gm-attributed"${byStyle(by)}>${byChips(by)}` : '<aside class="gm-aside">';
-  };
-  md.renderer.rules.aside_close = () => '</aside>\n';
 }
 
-/** Build the token run for one aside's content. */
+/** The tokens of one aside's content. */
 export function asideTokens(md, aside, env) {
-  const open = new Token('aside_open', 'aside', 1);
-  open.block = true;
-  if (aside.by) open.meta = { by: aside.by };
-  const close = new Token('aside_close', 'aside', -1);
-  close.block = true;
-
   // Parse the aside body as markdown in its own right, so **emphasis**,
   // `code`, links and even nested lists work inside a thought. Link reference
   // definitions carry over; the aside bookkeeping deliberately does not.
-  const inner = md.parse(aside.text, { ...env, asides: null, __aside: true });
-  return [open, ...inner, close];
-}
-
-/** An attributed aside's colour, its reviewer's: a style attribute, or ''. */
-export function byStyle(by) {
-  return by.who ? ` style="--by: ${escapeHtml(by.who.color)}"` : '';
+  return md.parse(aside.text, { ...env, asides: null, __aside: true });
 }
 
 /**
@@ -128,7 +80,7 @@ export function legend(asides, key) {
 export default {
   name: 'asides',
   // reader lays the asides out in columns of their own.
-  plugin: (md) => asides(md, { inline: false }),
+  plugin: asides,
   // First of all: other features place what they read before the asides
   // come out (`aside_extract`), so it must be there to place them by.
   raw: true,

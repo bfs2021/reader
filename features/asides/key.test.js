@@ -5,8 +5,6 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import MarkdownIt from 'markdown-it';
-import { asides } from './index.js';
 import { preprocess } from './preprocess.js';
 import { readEntry, makeKey, attribute } from './key.js';
 import { render } from '../../src/render.js';
@@ -65,12 +63,6 @@ test('the columns show chips, the reviewer\'s colour, and a legend', () => {
   assert.match(body, /<div class="gm-legend"><span class="gm-who" style="--by: #b5523b">Josh <b>1<\/b><\/span><span class="gm-topic" style="--topic: #7a5c3e">Coherence <b>2<\/b><\/span><\/div>/);
   // The key isn't masthead meta.
   assert.doesNotMatch(body, /reviewer #/);
-});
-
-test('inline, an attributed aside opens with its chips', () => {
-  const md = new MarkdownIt().use(asides);
-  const html = md.render(`${KEY}One.\n\n~m Tighten.\n`);
-  assert.match(html, /<aside class="gm-aside gm-attributed" style="--by: teal"><span class="gm-by"><span class="gm-who">Maria<\/span><\/span><p>Tighten.<\/p>/);
 });
 
 test('a deck\'s key reaches each slide', () => {

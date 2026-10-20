@@ -37,8 +37,7 @@ export function marks(md) {
   md.core.ruler.push('marks', (state) => {
     if (state.inlineMode || state.env.__aside) return;
     const shared = state.env.shared ?? state.env;
-    // Asides put back in the text (not reader's layout) aren't chosen from.
-    const chosen = state.tokens.some((t) => t.type === 'aside_open') ? [] : choose(state, state.env.asides || []);
+    const chosen = choose(state, state.env.asides || []);
     for (const block of state.tokens) {
       if (block.type !== 'inline' || !block.children) continue;
       for (const c of block.children) {

@@ -14,7 +14,7 @@ import { render } from '../../src/render.js';
 
 /** A document parsed for columns: its front matter, asides, and the rows they cut it into. */
 function parse(src) {
-  const md = new MarkdownIt({ html: false, linkify: true, typographer: true, breaks: false }).use(asides, { inline: false });
+  const md = new MarkdownIt({ html: false, linkify: true, typographer: true, breaks: false }).use(asides);
   const env = {};
   const tokens = md.parse(src, env);
   const found = env.asides || [];

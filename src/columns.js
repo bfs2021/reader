@@ -4,9 +4,8 @@
  * written against; above them, the masthead from the front matter and, when
  * the document names its voices, the column headings.
  *
- * The asides feature (features/asides) parses with `{ inline: false }`, so
- * the speaker's tokens come unbroken and the asides wait on `env.asides`;
- * here the tokens are cut into rows (splitPairs) and each row is drawn
+ * The asides feature (features/asides) leaves the speaker's tokens
+ * unbroken, the asides waiting on `env.asides`; here the tokens are cut into rows (splitPairs) and each row is drawn
  * beside its asides. Came from gutter-md, which reader grew out of.
  */
 
@@ -28,8 +27,8 @@ export function themeCss() {
   return CSS;
 }
 
-function renderAsideCell(md, aside, env, showMark, tab) {
-  const html = md.renderer.render(asideTokens(md, aside, env).slice(1, -1), md.options, env);
+function renderAsideCell(md, aside, env, tab) {
+  const html = md.renderer.render(asideTokens(md, aside, env), md.options, env);
   // The words it's about, if it chose some (features/marks), follow who
   // it's from and what it's about, or its `~`.
   const words = about(aside.mark);
@@ -46,7 +45,7 @@ function renderAsideCell(md, aside, env, showMark, tab) {
   }
   // Slip the `~` in front of the first line of prose so the mark survives into
   // the printed page.
-  const lead = (showMark ? '<span class="gm-mark">~</span>' : '') + words;
+  const lead = `<span class="gm-mark">~</span>${words}`;
   const marked = /<p\b/.test(html) ? html.replace(/<p\b([^>]*)>/, `<p$1>${lead}`) : words ? `<p>${lead}</p>\n${html}` : html;
   return `<div class="gm-aside-cell"${attrs}>\n${marked}</div>`;
 }
@@ -60,23 +59,11 @@ function renderAsideCell(md, aside, env, showMark, tab) {
  * @param {Array} tokens
  * @param {object} env the env they were parsed with
  * @param {object} [opts]
- * @param {number} [opts.ratio=0.62] width of the aside column relative to the speaker's
- * @param {boolean} [opts.swap=false] put the asides in the left column
  * @param {boolean} [opts.headings=true] show the column headings
- * @param {boolean} [opts.mark=true] keep a visible `~` on each aside
- * @param {string} [opts.css] more CSS after the layout's own
  * @param {string} [opts.title]
  * @returns {{css: string, body: string, title: string}}
  */
-export function columns(md, tokens, env, opts = {}) {
-  const {
-    ratio = 0.62,
-    swap = false,
-    headings = true,
-    mark = true,
-    css = '',
-    title,
-  } = opts;
+export function columns(md, tokens, env, { headings = true, title } = {}) {
   const meta = env.frontMatter || {};
   const pairs = splitPairs(tokens, env.asides || []);
   const docTitle = title || meta.title || 'Notes';
@@ -89,32 +76,22 @@ export function columns(md, tokens, env, opts = {}) {
       const speakerHtml = pair.speaker.length
         ? md.renderer.render(pair.speaker, md.options, env)
         : '';
-      const asideHtml = pair.asides.map((a) => renderAsideCell(md, a, env, mark, tabOf(tokens, a.anchor))).join('\n');
+      const asideHtml = pair.asides.map((a) => renderAsideCell(md, a, env, tabOf(tokens, a.anchor))).join('\n');
       const cells = [
         `<div class="gm-speaker">\n${speakerHtml}</div>`,
         asideHtml ? `<div class="gm-asides">\n${asideHtml}\n</div>` : '<div></div>',
       ];
-      if (swap) cells.reverse();
       return `<section class="gm-pair">\n${cells.join('\n')}\n</section>`;
     })
     .join('\n');
 
   const colheads = headings
-    ? `<div class="gm-colheads">${
-        (swap
-          ? [`<div class="gm-h-aside">${escapeHtml(listenerLabel)}</div>`, `<div>${escapeHtml(speakerLabel)}</div>`]
-          : [`<div>${escapeHtml(speakerLabel)}</div>`, `<div class="gm-h-aside">${escapeHtml(listenerLabel)}</div>`]
-        ).join('')
-      }</div>`
+    ? `<div class="gm-colheads"><div>${escapeHtml(speakerLabel)}</div><div class="gm-h-aside">${escapeHtml(listenerLabel)}</div></div>`
     : '';
-
-  const vars = swap
-    ? `--gm-speaker-col: ${ratio}fr; --gm-aside-col: 1fr;`
-    : `--gm-speaker-col: 1fr; --gm-aside-col: ${ratio}fr;`;
 
   return {
     title: docTitle,
-    css: `${themeCss()}\n:root{${vars}}\n${css}`,
+    css: themeCss(),
     body: `<div class="gm-doc">\n${masthead(meta, docTitle, legend(env.asides || [], env.asideKey))}\n${colheads}\n${body}\n</div>`,
   };
 }
