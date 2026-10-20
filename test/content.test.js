@@ -102,6 +102,11 @@ test('create defaults to today, adds .md, and does not clobber', () => {
   assert.equal(content.create('a.md').created, false);
   assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), 'keep\n');
   assert.throws(() => content.create('x.pdf'), PathError);
+
+  // A dot in a name is part of the name, unless what follows is a kind of file.
+  assert.equal(content.create('release 1.2').path, 'release 1.2.md');
+  assert.equal(content.create('sub/v2.0 notes').path, 'sub/v2.0 notes.md');
+  assert.equal(content.create('Notes.MARKDOWN').path, 'Notes.MARKDOWN');
 });
 
 test('branch copies a document to a new name, never over another', () => {
@@ -237,4 +242,53 @@ test('unextract puts it back while neither file has changed, the new one in the 
   assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), '# a\n');
   assert.equal(fs.existsSync(path.join(root, 'one.md')), false);
   assert.equal(fs.readdirSync(content.trashRoot).length, 1);
+});
+
+test('rename changes only the case of a name, backups and all', () => {
+  const { root, content } = fixture();
+  content.write('a.md', '# a, changed\n', { explicit: true });
+  const out = content.rename([{ from: 'a.md', to: 'A.md' }]);
+  assert.deepEqual(out.moved, [{ from: 'a.md', to: 'A.md' }]);
+  assert.ok(fs.readdirSync(root).includes('A.md'));
+  assert.ok(!fs.readdirSync(root).includes('a.md'));
+  assert.ok(fs.readdirSync(content.backupRoot).includes('A.md'));
+  assert.equal(fs.readdirSync(path.join(content.backupRoot, 'A.md')).length, 1);
+});
+
+test('rename refuses, moving nothing, a file named twice or a name under another', () => {
+  const { root, content } = fixture();
+  content.branch('a.md', 'a.arc1.md');
+  const before = () => fs.readdirSync(root).sort();
+  const was = before();
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.md', to: 'y.md' }]), PathError);
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.arc1.md', to: 'x.md/a.md' }]), PathError);
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.arc1.md', to: 'X.md' }]), ConflictError);
+  assert.throws(() => content.rename([{ from: 'a.md', to: 'x.md' }, { from: 'a.arc1.md', to: 'doc.pdf/a.md' }]), PathError);
+  assert.deepEqual(before(), was);
+});
+
+test('extract takes away the folders it made, when it can\'t finish', () => {
+  const { root, content } = fixture();
+  const { mtime } = content.read('a.md');
+  const files = [{ path: 'new/deep/one.md', text: '# one\n' }, { path: 'sub/two.md', text: '# two\n' }];
+  assert.throws(() => content.extract('a.md', { text: 42, baseMtime: mtime, files }), PathError);
+  assert.equal(fs.existsSync(path.join(root, 'new')), false);
+  assert.equal(fs.existsSync(path.join(root, 'sub', 'two.md')), false);
+  assert.ok(fs.existsSync(path.join(root, 'sub', 'b.markdown')));
+});
+
+test('unextract checks every file before it changes any', () => {
+  const { root, content } = fixture();
+  const { mtime } = content.read('a.md');
+  const out = content.extract('a.md', { text: 'left\n', baseMtime: mtime, files: [{ path: 'one.md', text: 'one\n' }] });
+  const twice = { text: '# a\n', mtime: out.mtime, files: [out.files[0], out.files[0]] };
+  assert.throws(() => content.unextract('a.md', twice), PathError);
+  const itself = { text: '# a\n', mtime: out.mtime, files: [{ path: 'a.md', mtime: out.mtime }] };
+  assert.throws(() => content.unextract('a.md', itself), PathError);
+  assert.throws(() => content.unextract('a.md', { text: '# a\n', mtime: out.mtime, files: 'one.md' }), PathError);
+  fs.mkdirSync(path.join(root, 'elsewhere'));
+  fs.symlinkSync(path.join(root, 'elsewhere'), content.trashRoot);
+  assert.throws(() => content.unextract('a.md', { text: '# a\n', mtime: out.mtime, files: out.files }), PathError);
+  assert.equal(fs.readFileSync(path.join(root, 'a.md'), 'utf8'), 'left\n');
+  assert.ok(fs.existsSync(path.join(root, 'one.md')));
 });

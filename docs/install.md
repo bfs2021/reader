@@ -51,7 +51,8 @@ $ reader /data --no-browser --host 0.0.0.0 --allow-host my-nas
 
 `--host` is the address to listen on. `--allow-host` is a name or address a
 browser may ask for it by, and can be repeated; loopback names always work,
-and nothing else does unless named. There is no sign-in: whoever can reach
+as does a `--host` address other than `0.0.0.0` or `::`, and nothing else
+does unless named. There is no sign-in: whoever can reach
 the machine can read and write `dir`, so the network is the boundary. Keep
 it to one you trust, such as a tailnet, or put a proxy that signs people in
 in front of it.

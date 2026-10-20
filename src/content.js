@@ -75,6 +75,19 @@ export function createContent(rootDir) {
   }
 
   /**
+   * Whether `toAbs` is there already, as another file than `fromAbs`. On a
+   * filesystem that ignores case, `A.md` is there when `a.md` is, but as
+   * the same file, and renaming one to the other only changes its case.
+   */
+  function taken(fromAbs, toAbs) {
+    const to = fs.statSync(toAbs, { throwIfNoEntry: false });
+    if (!to) return false;
+    if (fromAbs.toLowerCase() !== toAbs.toLowerCase()) return true;
+    const from = fs.statSync(fromAbs, { throwIfNoEntry: false });
+    return !from || from.dev !== to.dev || from.ino !== to.ino;
+  }
+
+  /**
    * A path in reader's own .reader folder, refusing a symlink anywhere along
    * it: a folder that came with the files could point backups and the trash
    * anywhere, to be written, pruned and taken from.
@@ -222,8 +235,10 @@ export function createContent(rootDir) {
 
   /** Create a new markdown file; defaults to today's date, like a journal. */
   function create(name) {
+    if (name != null && typeof name !== 'string') throw new PathError('name must be a string');
     let rel = (name || '').trim() || `${today()}.md`;
-    if (!path.extname(rel)) rel += '.md';
+    // `release 1.2` is a name with a dot in it, not a `.2` file.
+    if (!LISTED_EXTS.has(path.extname(rel).toLowerCase())) rel += '.md';
     const abs = resolve(rel);
     if (!DOC_EXTS.has(path.extname(abs).toLowerCase())) {
       throw new PathError(`new files must be markdown: ${rel}`);
@@ -289,20 +304,35 @@ export function createContent(rootDir) {
   function rename(moves) {
     if (!Array.isArray(moves) || !moves.length) throw new PathError('nothing to rename');
     const kind = (p) => (DOC_EXTS.has(path.extname(p).toLowerCase()) ? 'md' : path.extname(p).toLowerCase());
+    // By lower case, so that two names one filesystem tells apart and
+    // another doesn't are refused on both.
+    const sources = new Set();
     const targets = new Set();
-    const planned = moves.map(({ from, to }) => {
+    const planned = moves.map((m) => {
+      const { from, to } = m ?? {};
       const { abs: fromAbs } = statFile(from);
       const toAbs = resolve(to);
+      if (sources.has(fromAbs)) throw new PathError(`${from} is named more than once`);
+      sources.add(fromAbs);
       if (!LISTED_EXTS.has(path.extname(toAbs).toLowerCase()) || kind(fromAbs) !== kind(toAbs)) {
         throw new PathError(`${to} would be a different kind of file than ${from}`);
       }
-      if (fs.existsSync(toAbs) || targets.has(toAbs)) throw new ConflictError(`${to} already exists`);
-      targets.add(toAbs);
+      if (taken(fromAbs, toAbs) || targets.has(toAbs.toLowerCase())) throw new ConflictError(`${to} already exists`);
+      targets.add(toAbs.toLowerCase());
+      // Its folders must be folders: not a file that's there, nor another of the new names.
+      let dir = path.dirname(toAbs);
+      while (!fs.existsSync(dir)) dir = path.dirname(dir);
+      if (!fs.statSync(dir).isDirectory()) throw new PathError(`${toRel(dir)} isn't a folder`);
       // Before anything moves, so that none does.
       own(path.join(backupRoot, toRel(fromAbs)));
       own(path.join(backupRoot, toRel(toAbs)));
       return [fromAbs, toAbs];
     });
+    for (const [, toAbs] of planned) {
+      for (let dir = path.dirname(toAbs); dir !== root; dir = path.dirname(dir)) {
+        if (targets.has(dir.toLowerCase())) throw new PathError(`${toRel(dir)} can't be both a file and a folder`);
+      }
+    }
     return {
       moved: planned.map(([fromAbs, toAbs]) => {
         fs.mkdirSync(path.dirname(toAbs), { recursive: true });
@@ -347,7 +377,7 @@ export function createContent(rootDir) {
     if (!Array.isArray(files) || !files.length) throw new PathError('nothing to extract');
     const planned = new Set();
     const targets = files.map((f) => {
-      const abs = resolve(f.path);
+      const abs = resolve(f?.path);
       if (!DOC_EXTS.has(path.extname(abs).toLowerCase())) throw new PathError(`new files must be markdown: ${f.path}`);
       if (typeof f.text !== 'string') throw new PathError('text must be a string');
       if (fs.existsSync(abs) || planned.has(abs)) throw new ConflictError(`${toRel(abs)} already exists`);
@@ -357,9 +387,12 @@ export function createContent(rootDir) {
     const current = fs.statSync(resolve(rel)).mtimeMs;
     if (baseMtime != null && current !== baseMtime) throw new ConflictError(`${rel} changed on disk`, current);
     const made = [];
+    // Each folder made for them, from the outermost one that wasn't there.
+    const folders = [];
     try {
       for (const t of targets) {
-        fs.mkdirSync(path.dirname(t.abs), { recursive: true });
+        const first = fs.mkdirSync(path.dirname(t.abs), { recursive: true });
+        if (first) folders.push([first, path.dirname(t.abs)]);
         fs.writeFileSync(t.abs, t.text, { encoding: 'utf8', flag: 'wx' });
         made.push(t.abs);
       }
@@ -367,6 +400,11 @@ export function createContent(rootDir) {
       return { path: rel, mtime: out.mtime, files: made.map((abs) => ({ path: toRel(abs), mtime: fs.statSync(abs).mtimeMs })) };
     } catch (err) {
       for (const abs of made) fs.rmSync(abs, { force: true });
+      for (const [first, last] of folders.reverse()) {
+        for (let dir = last; dir.startsWith(first); dir = path.dirname(dir)) {
+          if (fs.existsSync(dir) && !fs.readdirSync(dir).length) fs.rmdirSync(dir);
+        }
+      }
       throw err;
     }
   }
@@ -379,9 +417,16 @@ export function createContent(rootDir) {
   function unextract(rel, { text, mtime, files } = {}) {
     const changed = (p, at) => statFile(p).stat.mtimeMs !== at;
     if (changed(rel, mtime)) throw new ConflictError(`${rel} has changed since, so it's left as it is`);
+    if (files != null && !Array.isArray(files)) throw new PathError('files must be a list');
+    // All of it before anything is written, so that it all goes back or none of it does.
+    const seen = new Set([resolve(rel)]);
     for (const f of files || []) {
+      const abs = resolve(f?.path);
+      if (seen.has(abs)) throw new PathError(`${f.path} is named more than once`);
+      seen.add(abs);
       if (changed(f.path, f.mtime)) throw new ConflictError(`${f.path} has changed since, so it's left as it is`);
     }
+    if (files?.length) own(trashRoot);
     const out = write(rel, text, { baseMtime: mtime, explicit: true });
     for (const f of files || []) trash(f.path);
     return { path: rel, mtime: out.mtime };
@@ -392,12 +437,12 @@ export function createContent(rootDir) {
     const from = toRel(fromAbs);
     const to = toRel(toAbs);
     resolve(to);
-    if (fs.existsSync(toAbs)) throw new ConflictError(`${to} already exists`);
+    if (taken(fromAbs, toAbs)) throw new ConflictError(`${to} already exists`);
     const oldBackups = own(path.join(backupRoot, from));
     const newBackups = own(path.join(backupRoot, to));
     fs.renameSync(fromAbs, toAbs);
     if (fs.existsSync(oldBackups)) {
-      if (!fs.existsSync(newBackups)) {
+      if (!taken(oldBackups, newBackups)) {
         fs.mkdirSync(path.dirname(newBackups), { recursive: true });
         fs.renameSync(oldBackups, newBackups);
       } else {

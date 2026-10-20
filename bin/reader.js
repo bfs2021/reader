@@ -35,9 +35,9 @@ function parseArgs(argv) {
       process.stdout.write(USAGE);
       process.exit(0);
     } else if (a === '--port' || a === '-p') {
-      opts.port = Number(argv[++i]);
+      opts.port = portNumber(argv[++i]);
     } else if (a.startsWith('--port=')) {
-      opts.port = Number(a.slice('--port='.length));
+      opts.port = portNumber(a.slice('--port='.length));
     } else if (a === '--no-browser') {
       opts.browser = false;
     } else if (a === '--open') {
@@ -57,6 +57,11 @@ function parseArgs(argv) {
   }
   if (opts.port !== null && (!Number.isInteger(opts.port) || opts.port < 0 || opts.port > 65535)) fail('--port must be a number');
   return opts;
+}
+
+// Digits only: Number() takes '' and ' ' for 0, which is any free port.
+function portNumber(value) {
+  return /^\d+$/.test(value ?? '') ? Number(value) : NaN;
 }
 
 function fail(msg) {
@@ -85,12 +90,19 @@ if (process.argv[2] === 'export') {
 }
 
 const LOCAL = new Set(['127.0.0.1', 'localhost', '::1']);
+const EVERYWHERE = new Set(['0.0.0.0', '::']);
 
 const opts = parseArgs(process.argv.slice(2));
 const dir = path.resolve(opts.dir || '.');
 if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) fail(`not a directory: ${dir}`);
 
-const { server, content } = createServer({ root: dir, allowHosts: opts.allowHosts });
+// The address to print and open: the one listened on, or, listening on
+// every network, this machine's own. An address listened on is one the
+// browser may name, though it isn't loopback.
+const at = EVERYWHERE.has(opts.host) ? '127.0.0.1' : opts.host.includes(':') ? `[${opts.host}]` : opts.host;
+const allowHosts = LOCAL.has(opts.host) || EVERYWHERE.has(opts.host) ? opts.allowHosts : [...opts.allowHosts, at];
+
+const { server, content } = createServer({ root: dir, allowHosts });
 
 // Without --port, count up from 8734 so each directory gets its own instance
 // and the URLs stay about the same from run to run.
@@ -118,7 +130,7 @@ server.listen(port, opts.host);
 server.on('listening', () => {
   const { port } = server.address();
   const hash = opts.open ? `#${encodeURIComponent(opts.open)}` : '';
-  const url = `http://127.0.0.1:${port}/${hash}`;
+  const url = `http://${at}:${port}/${hash}`;
   const count = content.list().length;
   console.log(`\n  reader — ${content.root}`);
   console.log(`  ${count} file${count === 1 ? '' : 's'}`);
@@ -127,7 +139,9 @@ server.on('listening', () => {
   if (!LOCAL.has(opts.host)) {
     console.log(`\n  listening on ${opts.host} with no sign-in: anyone who can reach this`);
     console.log('  machine can read and write these files. Keep it to a network you trust.');
-    if (!opts.allowHosts.length) console.log('  Other devices are refused until their name for it is given with --allow-host.');
+    if (!opts.allowHosts.length && EVERYWHERE.has(opts.host)) {
+      console.log('  Other devices are refused until their name for it is given with --allow-host.');
+    }
   }
   console.log('  ctrl-c to stop\n');
   if (opts.browser) openBrowser(url);

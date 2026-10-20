@@ -85,6 +85,22 @@ const PREVIEW_SCRIPTS = served('preview').map(([src]) => `<script src="${src}"><
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 
+// What each field of a request's body must be, when it's there at all.
+const FIELDS = {
+  text: 'string', path: 'string', name: 'string', from: 'string', to: 'string', base: 'string', trash: 'string',
+  baseMtime: 'number', mtime: 'number',
+};
+
+const badRequest = (message) => Object.assign(new Error(message), { status: 400 });
+
+function decode(part) {
+  try {
+    return decodeURIComponent(part);
+  } catch {
+    throw badRequest('malformed address');
+  }
+}
+
 // What each page may load. Nothing inline runs anywhere: every script is a
 // file of the app's own. The preview may take inline styles, since the
 // rendered document brings its own (the theme, a ::: block's colors, an
@@ -192,7 +208,12 @@ export function createServer({ root, allowHosts = [] }) {
     const host = (req.headers.host || '').replace(/:\d+$/, '').toLowerCase();
     if (!hosts.has(host)) return send(res, 403, 'forbidden host', 'text/plain');
 
-    const url = new URL(req.url, 'http://localhost');
+    let url;
+    try {
+      url = new URL(req.url, 'http://localhost');
+    } catch {
+      throw badRequest('malformed address');
+    }
     const route = url.pathname;
     if (foreign(req, route)) return send(res, 403, 'cross-site request refused', 'text/plain');
 
@@ -205,7 +226,7 @@ export function createServer({ root, allowHosts = [] }) {
       if (route === '/api/export') return sendExport(res, url.searchParams.get('path') || '');
       if (FEATURE_SCRIPTS.has(route)) return sendFile(open(res), FEATURE_SCRIPTS.get(route));
       if (route.startsWith('/content/')) {
-        const rel = decodeURIComponent(route.slice('/content/'.length));
+        const rel = decode(route.slice('/content/'.length));
         const { abs } = content.statFile(rel);
         const ext = path.extname(abs).toLowerCase();
         const type = CONTENT_TYPES[ext] || 'application/octet-stream';
@@ -220,6 +241,9 @@ export function createServer({ root, allowHosts = [] }) {
       return send(res, 415, 'expected application/json', 'text/plain');
     }
     const body = await readJson(req);
+    for (const [field, type] of Object.entries(FIELDS)) {
+      if (body[field] != null && typeof body[field] !== type) throw badRequest(`${field} must be a ${type}`);
+    }
 
     if (route === '/api/render' && req.method === 'POST') {
       // A deck being worked through is drawn a page to a slide.
@@ -265,7 +289,7 @@ export function createServer({ root, allowHosts = [] }) {
   }
 
   function serveStatic(res, route) {
-    const rel = route === '/' ? 'index.html' : decodeURIComponent(route).replace(/^\/+/, '');
+    const rel = route === '/' ? 'index.html' : decode(route).replace(/^\/+/, '');
     const abs = path.resolve(STATIC_DIR, rel);
     if (!abs.startsWith(STATIC_DIR + path.sep) || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
       return send(res, 404, 'not found', 'text/plain');
@@ -331,11 +355,14 @@ function readJson(req) {
     });
     req.on('end', () => {
       if (size > MAX_BODY) return reject(Object.assign(new Error('request too large'), { status: 413 }));
+      let body;
       try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
+        body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
       } catch {
-        reject(Object.assign(new Error('bad json'), { status: 400 }));
+        return reject(badRequest('bad json'));
       }
+      if (!body || typeof body !== 'object' || Array.isArray(body)) return reject(badRequest('expected a JSON object'));
+      resolve(body);
     });
     req.on('error', reject);
   });
