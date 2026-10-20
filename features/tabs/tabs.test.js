@@ -80,3 +80,9 @@ test('a fence drawn as something other than code is left unmarked', () => {
   const html = speaker('::: compare\n```number\n15%\nup\n```\n\n```number\n26%\nup\n```\n:::\n');
   assert.doesNotMatch(html, /class="diff"/);
 });
+
+test('tabs in a list item stay in it', () => {
+  const html = render('1. item\n\n   ::: tabs\n   +++ One\n   first\n   +++ Two\n   second\n   :::\n2. next\n').body;
+  assert.match(html, /<ol>\n<li>\n<p>item<\/p>\n<div class="tabs"[\s\S]*first[\s\S]*second[\s\S]*<\/div>\n<\/li>\n<li>\n<p>next<\/p>/);
+  assert.doesNotMatch(html, /[\uE021-\uE023]/);
+});

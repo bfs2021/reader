@@ -144,6 +144,6 @@ export default {
   css: fs.readFileSync(new URL('./fields.css', import.meta.url), 'utf8'),
   // Drawn into the preview frame, to make it clickable.
   preview: fileURLToPath(new URL('./preview.js', import.meta.url)),
-  // Reads the file as written, before render.js's own source pass.
+  // Reads the file as written, before the features that don't.
   raw: true,
 };

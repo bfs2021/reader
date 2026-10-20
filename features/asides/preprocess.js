@@ -94,11 +94,14 @@ export function preprocess(src, opts = {}) {
 
   // --- front matter -------------------------------------------------------
   // Josh's convention uses `-----`, but any run of three or more dashes works,
-  // so ordinary YAML-style `---` fences are accepted too.
+  // so ordinary YAML-style `---` fences are accepted too. It's taken only when
+  // every line in it reads as `key: value`, as a deck's is (src/slides.js),
+  // so a document that opens with a `---` rule isn't swallowed to the next.
   if (lines.length && FRONT_MATTER_RE.test(lines[0])) {
     let end = 1;
     while (end < lines.length && !FRONT_MATTER_RE.test(lines[end])) end++;
-    if (end < lines.length) {
+    const inner = lines.slice(1, end);
+    if (end < lines.length && inner.every((line) => !line.trim() || readEntry(line) || META_RE.test(line))) {
       for (const line of lines.slice(1, end)) {
         const entry = readEntry(line);
         if (entry) {

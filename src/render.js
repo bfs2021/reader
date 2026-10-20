@@ -13,15 +13,18 @@ import { columns } from './columns.js';
 import { readBackground, backdrop, CSS as BACKGROUND_CSS } from './background.js';
 import { fontCss } from './fonts.js';
 import { FEATURES } from '../features/index.js';
+import { schemeLinks } from '../features/scheme.js';
 
-// Features that read the file as written (and asides) go before this file's
-// own source pass, `expand`; the rest after it.
+// Features that read the file as written (and asides) go before the rest.
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true, breaks: false });
 for (const f of FEATURES.filter((f) => f.plugin && f.raw)) md.use(f.plugin);
-md.core.ruler.before('aside_extract', 'reader_expand', (state) => {
-  if (!state.inlineMode && !state.env.__aside) state.src = expand(state.src);
-});
 for (const f of FEATURES.filter((f) => f.plugin && !f.raw)) md.use(f.plugin);
+schemeLinks(md, {
+  name: 'rfc',
+  scheme: 'rfc',
+  path: /\d{1,5}(?:#[\w.-]+)?/,
+  link: rfcLink,
+});
 md.core.ruler.push('reader_lines', (state) => {
   if (state.env.lines && !state.inlineMode && !state.env.__aside) markLines(state.tokens, state.env);
 });
@@ -91,45 +94,15 @@ function markLines(tokens, env) {
   }
 }
 
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
-const CODE_SPAN = /(`+)[^`][\s\S]*?\1|`+/g;
-
-const RFC = /(?<![\w\\])rfc:(\d{1,5})(?:#([\w.-]+))?\[([^\]\n]*)\]/g;
 const RFC_EDITOR = 'https://www.rfc-editor.org/rfc';
 
 /**
- * The source-level pass, run before markdown sees the text:
- *
- * - `rfc:9110[]` and `rfc:9110#section-15.5[]` -> links to the RFC Editor,
- *   labelled "RFC 9110" and "RFC 9110 §15.5" unless the brackets say otherwise.
- *
- * Like shortcodes, the source keeps what was typed, and code is left alone.
- * Line numbers are preserved. It runs as a markdown-it core rule, after the
- * features that read the file as written.
+ * `rfc:9110[]` and `rfc:9110#section-15.5[]` -> links to the RFC Editor,
+ * labelled "RFC 9110" and "RFC 9110 §15.5" unless the brackets say otherwise.
+ * `path` is what follows the colon: the number, then any `#anchor`.
  */
-export function expand(src) {
-  let fence = null;
-  const lines = src.split('\n');
-  return lines.map((line) => {
-    const f = FENCE.exec(line);
-    if (fence) {
-      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null;
-      return line;
-    }
-    if (f) {
-      fence = f[1];
-      return line;
-    }
-    return outsideCode(line, (text) => text
-      .replace(RFC, (m, num, anchor, label) => mdLink(rfcLink(num, anchor, label))));
-  }).join('\n');
-}
-
-function mdLink({ label, href }) {
-  return `[${label.replace(/[[\]\\]/g, '\\$&')}](${href})`;
-}
-
-export function rfcLink(num, anchor, label) {
+export function rfcLink(path, label) {
+  const [num, anchor] = path.split('#');
   const n = String(Number(num));
   const text = label.trim();
   const href = `${RFC_EDITOR}/rfc${n}.html${anchor ? `#${anchor}` : ''}`;
@@ -142,18 +115,19 @@ export function rfcLink(num, anchor, label) {
 
 
 
-const FIGURE = /<p>(<img src="[^"]*" alt="([^"]*)"(?: title="([^"]*)")?(?: style="[^"]*")?>)<\/p>/g;
+const FIGURE = /<p((?: data-line="\d+")?)>(<img src="[^"]*" alt="([^"]*)"(?: title="([^"]*)")?(?: style="[^"]*")?>)<\/p>/g;
 
 /**
  * An image alone in its paragraph becomes a figure, captioned by its title,
- * or failing that its alt text: `![a cat](cat.jpg "Ginger, 2019")`.
+ * or failing that its alt text: `![a cat](cat.jpg "Ginger, 2019")`. The
+ * figure keeps its paragraph's line, when it was marked with one.
  */
 export function figures(html) {
-  return html.replace(FIGURE, (m, img, alt, title) => {
+  return html.replace(FIGURE, (m, line, img, alt, title) => {
     const caption = title || alt;
     return caption
-      ? `<figure>${img}<figcaption>${caption}</figcaption></figure>`
-      : `<figure>${img}</figure>`;
+      ? `<figure${line}>${img}<figcaption>${caption}</figcaption></figure>`
+      : `<figure${line}>${img}</figure>`;
   });
 }
 
@@ -181,13 +155,3 @@ tbody tr:nth-child(even) td { background: #faf9f7; }
 
 
 `;
-
-function outsideCode(line, fn) {
-  let out = '';
-  let pos = 0;
-  for (const m of line.matchAll(CODE_SPAN)) {
-    out += fn(line.slice(pos, m.index)) + m[0];
-    pos = m.index + m[0].length;
-  }
-  return out + fn(line.slice(pos));
-}

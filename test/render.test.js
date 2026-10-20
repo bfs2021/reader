@@ -1,21 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { render, expand } from '../src/render.js';
+import { render } from '../src/render.js';
 
 test('rfc: links to the RFC Editor', () => {
-  assert.equal(expand('rfc:9110[]'), '[RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html)');
+  const link = (src) => render(src).body.match(/<p>([\s\S]*?)<\/p>/)[1];
+  assert.equal(link('rfc:9110[]'), '<a href="https://www.rfc-editor.org/rfc/rfc9110.html">RFC 9110</a>');
   assert.equal(
-    expand('rfc:9110#section-15.5[]'),
-    '[RFC 9110 §15.5](https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5)',
+    link('rfc:9110#section-15.5[]'),
+    '<a href="https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5">RFC 9110 §15.5</a>',
   );
   assert.equal(
-    expand('rfc:6749#appendix-A[]'),
-    '[RFC 6749 Appendix A](https://www.rfc-editor.org/rfc/rfc6749.html#appendix-A)',
+    link('rfc:6749#appendix-A[]'),
+    '<a href="https://www.rfc-editor.org/rfc/rfc6749.html#appendix-A">RFC 6749 Appendix A</a>',
   );
-  assert.equal(expand('rfc:6749[OAuth 2.0]'), '[OAuth 2.0](https://www.rfc-editor.org/rfc/rfc6749.html)');
-  for (const src of ['`rfc:9110[]`', 'rfc:9110 alone', 'xrfc:9110[]', '```\nrfc:9110[]\n```']) {
-    assert.equal(expand(src), src);
+  assert.equal(link('rfc:6749[OAuth *2.0*]'), '<a href="https://www.rfc-editor.org/rfc/rfc6749.html">OAuth <em>2.0</em></a>');
+  for (const src of ['`rfc:9110[]`', 'rfc:9110 alone', 'xrfc:9110[]', '\\rfc:9110[]']) {
+    assert.doesNotMatch(render(src).body, /rfc-editor/);
   }
+  assert.doesNotMatch(render('```\nrfc:9110[]\n```\n').body, /rfc-editor/);
 });
 
 test('an image alone in a paragraph is a captioned figure', () => {
@@ -39,4 +41,30 @@ test('with lines, each block names the line of the file it came from', () => {
   assert.match(body, /<ul data-line="9">\n<li data-line="9">one<\/li>\n<li data-line="10">two<\/li>/);
   assert.match(body, /<div class="gm-aside-cell">\n<p><span class="gm-mark">~<\/span>an aside<\/p>/);
   assert.doesNotMatch(render(src).body, /data-line/);
+});
+
+test('with lines, an image alone in a paragraph is still a figure, on its line', () => {
+  const { body } = render('para\n\n![a cat](cat.jpg "Ginger")\n', { lines: true });
+  assert.match(body, /<figure data-line="2"><img src="cat\.jpg" alt="a cat" title="Ginger"><figcaption>Ginger<\/figcaption><\/figure>/);
+});
+
+test('code fenced in a blockquote or a deep list is left as written', () => {
+  const code = '[@ what: answer] rfc:9110[] ![](x.png =10x)';
+  const shown = '<code>[@ what: answer] rfc:9110[] ![](x.png =10x)\n</code>';
+  assert.ok(render(`> \`\`\`\n> ${code}\n> \`\`\`\n`).body.includes(shown));
+  assert.ok(render(`- a\n  - b\n    - c\n\n      \`\`\`\n      ${code}\n      \`\`\`\n`).body.includes(shown));
+  assert.ok(render(`1. a\n   > ~~~\n   > ${code}\n   > ~~~\n`).body.includes(shown));
+});
+
+test('code fenced in a blockquote ends with it', () => {
+  const { body } = render('> ```\n> code\n\nrfc:9110[] and ![](x.png =10x)\n');
+  assert.match(body, /<a href="https:\/\/www\.rfc-editor\.org\/rfc\/rfc9110\.html">RFC 9110<\/a>/);
+  assert.match(body, /<img src="x\.png" alt="" style="width: 10px">/);
+});
+
+test('a document opening with a --- rule has no front matter', () => {
+  const { body, title } = render('---\n\nA paragraph between rules.\n\n---\n\nmore\n', { file: 'notes.md' });
+  assert.equal(title, 'notes');
+  assert.match(body, /<hr>\n<p>A paragraph between rules\.<\/p>\n<hr>\n<p>more<\/p>/);
+  assert.equal(render('---\ntitle: Kept\n\n---\nbody\n').title, 'Kept');
 });

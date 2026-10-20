@@ -31,3 +31,10 @@ test('a shortcode in the masthead, a caption or a field shows too', () => {
   assert.match(body, /alt="a :cake: cake"><figcaption>a 🍰 cake<\/figcaption>/);
   assert.match(body, /data-value=":smile:">😄<\/span>/);
 });
+
+test('a shortcode in a line kept for click-to-edit stays as written', () => {
+  const { body } = render('- [ ] a > b :tada:\n\n@ Mood: c > d :smile:\n');
+  assert.match(body, /data-off="- \[ \] a &gt; b :tada:"/);
+  assert.match(body, /data-text="@ Mood: c &gt; d :smile:"/);
+  assert.doesNotMatch(body, /="[^"]*(🎉|😄)/);
+});

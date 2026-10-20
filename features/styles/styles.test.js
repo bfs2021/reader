@@ -74,3 +74,12 @@ test('a line in a ::: block can open with bold or italics around punctuation', (
   assert.match(body, /<th style="color: gray"><strong><a href="f">e<\/a><\/strong><\/th>/);
   assert.doesNotMatch(body, /\*|[\uE000-\uE007]/);
 });
+
+test('inside a ::: block, a glossary, displayed math and callouts are still themselves', () => {
+  const { body } = render('::: red\n!slab: similar layers of abstraction\n!OK: fine\n\nmath:[a >> b]\n\n```\na <1>\n```\n<1> the first\n:::\n');
+  assert.doesNotMatch(body, /[\uE000-\uF8FF]/);
+  assert.match(body, /<div class="def" style="color: red">\n<dt class="def-term">slab<\/dt>\n<dd class="def-meaning">similar layers of abstraction<\/dd>/);
+  assert.match(body, /<div class="def" style="color: red">\n<dt class="def-term">OK<\/dt>/);
+  assert.match(body, /<p class="math-display" style="color: red">/);
+  assert.match(body, /<ol class="callout-notes">\n<li data-callout="1"[^>]*><span class="callout" data-n="1"><\/span><span>the first<\/span><\/li>/);
+});

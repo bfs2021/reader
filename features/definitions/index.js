@@ -32,7 +32,9 @@ import { beforeAsides, readLines, escapeHtml, escapeAttr } from '../source.js';
 const DEF = /^\\?![ \t]*([^\s[!:()][^:()\n]*?)[ \t]*(?:\(((?:[^()\n]|\([^()\n]*\))*)\)[ \t]*)?:(?:[ \t]+(.*?))?[ \t]*$/;
 const OPEN = '\uE030';
 const CLOSE = '\uE031';
-const PLACED = new RegExp(`^${OPEN}(\\d+)${CLOSE}`);
+// A `:::` block's marker (features/styles) may come before the placeholder.
+const STYLED = '\uE002[^\uE003]*\uE003';
+const PLACED = new RegExp(`^(${STYLED})?${OPEN}(\\d+)${CLOSE}`);
 
 // Words an acronym skips, unless it needs their letter.
 const SMALL = new Set(['a', 'an', 'and', 'as', 'at', 'by', 'for', 'from', 'in', 'into', 'of', 'on', 'or', 'the', 'to', 'with']);
@@ -48,9 +50,10 @@ export function definitions(md) {
   // one that isn't.
   md.core.ruler.before('text_join', 'definition_uses', uses);
 
-  md.renderer.rules.def_list_open = () => '<dl class="defs">\n';
+  md.renderer.rules.def_list_open = (tokens, i, opts, env, self) => `<dl${self.renderAttrs(tokens[i])}>\n`;
   md.renderer.rules.def_list_close = () => '</dl>\n';
-  md.renderer.rules.def_open = (tokens, i) => `<div class="def${tokens[i].meta.senses > 1 ? ' def-senses' : ''}">\n`;
+  // With what's been added to them: a `:::` block's styles, their line.
+  md.renderer.rules.def_open = (tokens, i, opts, env, self) => `<div${self.renderAttrs(tokens[i])}>\n`;
   md.renderer.rules.def_close = () => '</div>\n';
   md.renderer.rules.def_term = (tokens, i) => `<dt class="def-term">${escapeHtml(tokens[i].meta.term)}</dt>\n`;
   md.renderer.rules.def_meaning_open = () => '<dd class="def-meaning">';
@@ -113,7 +116,7 @@ function block(state, startLine, endLine, silent) {
   if (!found || state.sCount[startLine] - state.blkIndent >= 4) return false;
   const at = (n) => {
     const m = PLACED.exec(state.src.slice(state.bMarks[n] + state.tShift[n], state.eMarks[n]));
-    return m && found[Number(m[1])] ? { d: found[Number(m[1])], skip: m[0].length } : null;
+    return m && found[Number(m[2])] ? { d: found[Number(m[2])], skip: m[0].length, styled: m[1] ?? '' } : null;
   };
   if (!at(startLine)) return false;
   if (silent) return true;
@@ -124,19 +127,22 @@ function block(state, startLine, endLine, silent) {
 
   const open = state.push('def_list_open', 'dl', 1);
   open.map = [startLine, next];
+  open.attrSet('class', 'defs');
   for (let i = 0; i < run.length;) {
     let j = i + 1;
     while (j < run.length && run[j].d.term === run[i].d.term) j++;
     const def = state.push('def_open', 'div', 1);
     def.map = [run[i].n, run[j - 1].n + 1];
     def.meta = { senses: j - i };
+    def.attrSet('class', j - i > 1 ? 'def def-senses' : 'def');
     state.push('def_term', 'dt', 0).meta = { term: run[i].d.term };
-    for (const { n, d, skip } of run.slice(i, j)) {
+    for (const { n, d, skip, styled } of run.slice(i, j)) {
       const dd = state.push('def_meaning_open', 'dd', 1);
       dd.map = [n, n + 1];
       if (d.meaning) {
+        // The marker stays with the meaning, for its entry to take the styles.
         const inline = state.push('inline', '', 0);
-        inline.content = state.src.slice(state.bMarks[n] + state.tShift[n] + skip, state.eMarks[n]).trim();
+        inline.content = styled + state.src.slice(state.bMarks[n] + state.tShift[n] + skip, state.eMarks[n]).trim();
         inline.map = [n, n + 1];
         inline.children = [];
         inline.meta = { definition: d };
@@ -257,6 +263,6 @@ export default {
   plugin: definitions,
   css: fs.readFileSync(new URL('./definitions.css', import.meta.url), 'utf8'),
   preview: fileURLToPath(new URL('./preview.js', import.meta.url)),
-  // Reads the file as written, before render.js's own source pass.
+  // Reads the file as written, before the features that don't.
   raw: true,
 };

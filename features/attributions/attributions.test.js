@@ -16,3 +16,8 @@ test('an attribution split off a styled paragraph keeps its style; in an aside t
   assert.match(body, /<p class="font" style="color: red; --font: 'georgia'">quoted<\/p>\n<p class="font quote-by" style="color: red; --font: 'georgia'">Author<\/p>/);
   assert.match(body, /<p><span class="gm-mark">~<\/span>-- Me<\/p>/);
 });
+
+test('with lines, a split attribution names its own line', () => {
+  const { body } = render('para\n\n> The road\n> of excess\n> -- Blake\n', { lines: true });
+  assert.match(body, /<p data-line="2">The road\nof excess<\/p>\n<p class="quote-by" data-line="4">Blake<\/p>/);
+});

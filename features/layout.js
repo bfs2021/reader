@@ -31,9 +31,12 @@ export const OPEN = '\uE021';
 export const DIVIDER = '\uE022';
 export const CLOSE = '\uE023';
 
+/** A line of the source, after its indent. */
+const text = (state, n) => state.src.slice(state.bMarks[n] + state.tShift[n], state.eMarks[n]);
+
 /** Whether `line` of the source opens a `name` layout. */
 export function opens(state, line, name) {
-  return state.src.slice(state.bMarks[line], state.eMarks[line]) === OPEN + name;
+  return text(state, line) === OPEN + name;
 }
 
 /**
@@ -44,14 +47,12 @@ export function opens(state, line, name) {
  * wrap in a pane of its own.
  */
 export function panes(state, startLine, endLine, name) {
-  const text = (n) => state.src.slice(state.bMarks[n], state.eMarks[n]);
-
   // To the closing that's this block's own, past any block inside it.
   const cuts = [];
   let depth = 0;
   let end = startLine + 1;
   for (; end < endLine; end++) {
-    const line = text(end);
+    const line = text(state, end);
     if (line.startsWith(OPEN)) depth++;
     else if (line === CLOSE && !depth--) break;
     else if (line.startsWith(DIVIDER) && !depth) cuts.push(end);
@@ -69,7 +70,7 @@ export function panes(state, startLine, endLine, name) {
     state.level -= 1;
     // With `+++` lines, what's between two is a pane; without, each block is.
     const inner = state.tokens.splice(from);
-    const label = k ? text(edges[k]).slice(DIVIDER.length).trim() : '';
+    const label = k ? text(state, edges[k]).slice(DIVIDER.length).trim() : '';
     for (const tokens of cuts.length ? [inner] : each(inner)) {
       if (!tokens.length) continue;
       out.push({ label, tokens, map: [tokens[0].map?.[0] ?? edges[k] + 1, edges[k + 1]] });
