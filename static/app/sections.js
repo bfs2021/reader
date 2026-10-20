@@ -141,7 +141,7 @@ export function extract(src, entries, names) {
     const body = lines.slice(a, b).join('\n');
     const head = matter ? `${retitle(lines.slice(matter.start, matter.end), matter.meta.title, e.title).join('\n')}\n\n` : '';
     files.unshift({ name, text: `${head}${body}\n` });
-    lines.splice(a, b - a, `→ [${e.title.replace(/[[\]]/g, '\\$&')}](${encodeURI(name)})`);
+    lines.splice(a, b - a, `→ [${e.title.replace(/[\\[\]]/g, '\\$&')}](${encodeURI(name)})`);
   }
   return { text: lines.join('\n'), files };
 }

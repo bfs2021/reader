@@ -121,3 +121,10 @@ test('extract takes several at once, each leaving its link', () => {
   assert.equal(text, '# Ideas\n\n→ [One](one.md)\n\n→ [Two](two.md)\n');
   assert.deepEqual(files, [{ name: 'one.md', text: '## One\n\nfirst\n' }, { name: 'two.md', text: '## Two\n\nsecond\n' }]);
 });
+
+test('extract escapes a title\'s brackets and backslashes in its link', () => {
+  const src = '# Ideas\n\n## [draft] C:\\\n\ntext\n';
+  const [ideas] = outline(src).entries;
+  const { text } = extract(src, ideas.children, ['draft.md']);
+  assert.equal(text, '# Ideas\n\n→ [\\[draft\\] C:\\\\](draft.md)\n');
+});
