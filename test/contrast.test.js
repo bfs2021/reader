@@ -27,7 +27,7 @@ const readable = (ink, ground, what) =>
   assert.ok(contrast(ink, ground) >= 4.5, `${what}: ${ink} on ${ground} is ${contrast(ink, ground).toFixed(2)}:1`);
 
 /** The custom properties set in a block of CSS. */
-const tokens = (css) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2]]));
+const tokens = (css) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3}(?:[0-9a-f]{3})?)\b/gi)].map((m) => [m[1], m[2].length === 4 ? '#' + [...m[2].slice(1)].map((c) => c + c).join('') : m[2]]));
 const light = tokens(style.slice(0, style.indexOf('@media')));
 const dark = { ...light, ...tokens(style.slice(style.indexOf('@media'), style.indexOf('* {'))) };
 
@@ -54,7 +54,24 @@ test("the version, at the foot of the list, is in the soft ink or the ink", () =
 });
 
 test("the deck's foot reads on its white", () => {
-  readable(style.match(/\.deck-foot \{[^}]*?[\s;]color: (#\w+)/)[1], '#ffffff', 'deck foot');
+  const [, ink, ground] = style.match(/\.deck-foot \{[^}]*?[\s;]color: var\(--([\w-]+)\); background: var\(--([\w-]+)\)/);
+  for (const t of [light, dark]) readable(t[ink], t[ground], 'deck foot');
+});
+
+test("the app's ok and warn read where they're drawn, and the toast's ink on warn", () => {
+  for (const [theme, t] of [['light', light], ['dark', dark]]) {
+    for (const ground of ['bg', 'panel', 'line-soft']) {
+      readable(t.ok, t[ground], `${theme} ok on --${ground}`);
+      readable(t.warn, t[ground], `${theme} warn on --${ground}`);
+    }
+    readable(t.warn, mix(t.warn, 0.14, t.bg), `${theme} trash, hovered`);
+    readable(t['on-warn'], t.warn, `${theme} toast`);
+  }
+});
+
+test("the speaker view's pace reads on its ground", () => {
+  const s = tokens(speaker);
+  for (const ink of ['ahead', 'on-pace', 'behind', 'warn']) for (const ground of ['bg', 'panel']) readable(s[ink], s[ground], `${ink} on --${ground}`);
 });
 
 test("code's comments read on every ground code is drawn on", () => {

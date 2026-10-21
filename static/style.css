@@ -1,5 +1,12 @@
 /* Text is never fainter than --ink-soft, 4.5:1 or better on every panel and
- * row it sits on, picked ones too; --ink-faint is for rules and borders. */
+ * row it sits on, picked ones too; --ink-faint is for rules and borders.
+ *
+ * Every colour the app draws with is named here, light and dark, and
+ * nowhere else. --ok and --warn are the document's green and red
+ * (src/columns.css), deeper here to read on the app's warmer panels; they
+ * stay apart for the colour-blind, green going grey and red going ochre.
+ * The paper is the document's, under the preview and the deck, and stays
+ * white either way. */
 :root {
   --bg: #efeae1;
   --panel: #fffdf9;
@@ -10,8 +17,11 @@
   --line-soft: #efe9dd;
   --accent: #7a5c3e;
   --accent-ink: #fffdf9;
-  --ok: #217a42;
-  --warn: #b3123c;
+  --ok: #006b5f;
+  --warn: #9d3106;
+  --on-warn: #fff;
+  --paper: #fff;
+  --paper-ink-soft: #645b52;
   --bar-h: 46px;
   --side-w: 230px;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
@@ -30,8 +40,9 @@
     --line-soft: #2a2723;
     --accent: #c9a476;
     --accent-ink: #1d1b18;
-    --ok: #5fbf8a;
-    --warn: #ef7d99;
+    --ok: #81cfc2;
+    --warn: #f8926a;
+    --on-warn: #1d1b18;
   }
 }
 
@@ -132,7 +143,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .split.work-mode .view-pane { border-right: 0; }
 
 .pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-.view-pane { background: #fff; border-right: 1px solid var(--line); position: relative; }
+.view-pane { background: var(--paper); border-right: 1px solid var(--line); position: relative; }
 .write-pane { background: var(--panel); }
 
 /* a workbook's pages, under the one showing: back, a dot each, next */
@@ -166,7 +177,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .page-count { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pages button:disabled { opacity: .35; cursor: default; }
 
-#preview { flex: 1; width: 100%; border: 0; background: #fff; }
+#preview { flex: 1; width: 100%; border: 0; background: var(--paper); }
 
 .empty {
   margin: auto; padding: 24px; max-width: 36ch; text-align: center;
@@ -300,7 +311,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 
 .pdf-view { flex: 1; overflow: auto; background: var(--bg); padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .pdf-page {
-  flex: none; background: #fff;
+  flex: none; background: var(--paper);
   box-shadow: 0 2px 6px rgba(0,0,0,.10), 0 10px 28px rgba(0,0,0,.12);
 }
 .pdf-page canvas { display: block; width: 100%; height: 100%; }
@@ -376,9 +387,9 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .deck {
   position: fixed; inset: 0; z-index: 10;
   display: flex; flex-direction: column;
-  background: #fff; outline: none; cursor: pointer;
+  background: var(--paper); outline: none; cursor: pointer;
 }
-#stage { flex: 1; width: 100%; border: 0; background: #fff; }
+#stage { flex: 1; width: 100%; border: 0; background: var(--paper); }
 .deck-notes {
   max-height: 28vh; overflow: auto; cursor: auto;
   padding: 12px clamp(16px, 6vw, 80px);
@@ -392,7 +403,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .deck-notes code { font-family: var(--mono); font-size: 0.9em; }
 .deck-foot {
   display: flex; justify-content: space-between; gap: 16px;
-  padding: 6px 14px; font-size: 12px; color: #645b52; background: #fff; cursor: auto;
+  padding: 6px 14px; font-size: 12px; color: var(--paper-ink-soft); background: var(--paper); cursor: auto;
   font-variant-numeric: tabular-nums;
 }
 /* out of the room's sight, but for a moment as the deck opens, on hover,
@@ -410,7 +421,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   box-shadow: 0 6px 24px rgba(0,0,0,.22); z-index: 20;
   animation: rise .18s ease-out; max-width: 78vw; text-align: center;
 }
-.toast.err { background: var(--warn); color: #fff; }
+.toast.err { background: var(--warn); color: var(--on-warn); }
 .toast button {
   margin-left: 8px; padding: 0; border: 0; background: none;
   font: inherit; font-weight: 600; color: inherit; text-decoration: underline; cursor: pointer;
