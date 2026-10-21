@@ -56,3 +56,14 @@ test("code's comments read on every ground code is drawn on", () => {
   for (const ground of ['#f7f6f3', '#f0ebde', '#eef1f5', '#dfe6ef']) readable(comment, ground, 'comment');
 });
 
+test("a retro card's label reads on light paper and on dark", () => {
+  const qa = read('features/qa/qa.css');
+  for (const card of ['good', 'bad', 'try']) {
+    const [, onLight] = qa.match(new RegExp(`li\\.qa-${card} \\{ --qa-card: (#\\w+)`));
+    const [, onDark] = qa.match(new RegExp(`\\.gm-dark li\\.qa-${card} \\{ --qa-card: (#\\w+)`));
+    readable(onLight, '#ffffff', `${card} label`);
+    readable('#ffffff', onLight, `${card} label, done`);
+    readable(onDark, '#22252b', `${card} label, dark`);
+    readable('#22252b', onDark, `${card} label, done, dark`);
+  }
+});

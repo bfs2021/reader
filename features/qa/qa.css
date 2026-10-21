@@ -38,18 +38,21 @@ li.qa-a > .qa-label, li.qa-a > p:first-child > .qa-label {
   margin-right: 0.45em;
 }
 
-/* A retro's cards: the label outlined in the card's colour, as a question's is. */
-li.qa-good > .qa-label, li.qa-good > p:first-child > .qa-label { border-color: #4f9a62; color: #4f9a62; }
-li.qa-bad > .qa-label, li.qa-bad > p:first-child > .qa-label { border-color: #c4574d; color: #c4574d; }
-li.qa-try > .qa-label, li.qa-try > p:first-child > .qa-label { border-color: #c9a227; color: #b08c1a; }
+/* A retro's cards: the label outlined in the card's colour, as a question's is;
+ * deep enough to read on the paper, and lighter on a dark one, 4.5:1 or better
+ * either way, and the paper as well on it once it's filled in. */
+li.qa-good { --qa-card: #2e7d45; }
+li.qa-bad { --qa-card: #b4413a; }
+li.qa-try { --qa-card: #8a6a00; }
+.gm-dark li.qa-good { --qa-card: #6fbf85; }
+.gm-dark li.qa-bad { --qa-card: #e88a80; }
+.gm-dark li.qa-try { --qa-card: #d9b440; }
+li.qa-card > .qa-label, li.qa-card > p:first-child > .qa-label { border-color: var(--qa-card); color: var(--qa-card); }
 /* Discussed: the card's label filled in, and the card and what's said under
  * it faded, in a softer ink rather than see-through, so it's still read. */
 .qa-toggle { cursor: pointer; }
 li.qa-done { color: var(--gm-ink-soft); --gm-accent: var(--gm-ink-soft); }
-li.qa-card.qa-done > .qa-label, li.qa-card.qa-done > p:first-child > .qa-label { color: var(--gm-paper); }
-li.qa-good.qa-done > .qa-label, li.qa-good.qa-done > p:first-child > .qa-label { background: #4f9a62; }
-li.qa-bad.qa-done > .qa-label, li.qa-bad.qa-done > p:first-child > .qa-label { background: #c4574d; }
-li.qa-try.qa-done > .qa-label, li.qa-try.qa-done > p:first-child > .qa-label { background: #c9a227; }
+li.qa-card.qa-done > .qa-label, li.qa-card.qa-done > p:first-child > .qa-label { color: var(--gm-paper); background: var(--qa-card); }
 .qa-tally {
   float: right;
   margin-left: 0.6em;
