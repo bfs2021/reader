@@ -15,7 +15,7 @@ Documentation: <https://jzheaux.github.io/reader/>.
 ## Run
 
 ```console
-$ docker run --rm -p 8734:8734 -v ~/notes:/docs jzheaux/reader
+$ docker run --rm -p 127.0.0.1:8734:8734 -v ~/notes:/docs jzheaux/reader
 ```
 
 Then open <http://localhost:8734/>. `Ctrl-C` stops it.
@@ -24,17 +24,20 @@ Then open <http://localhost:8734/>. `Ctrl-C` stops it.
   backups and trash in `/docs/.reader`. Without a mount it's a volume of
   Docker's own.
 - **Port 8734** is the one it listens on in the container. Publish it on
-  whichever port you like: `-p 9000:8734` for <http://localhost:9000/>.
+  whichever port you like: `-p 127.0.0.1:9000:8734` for
+  <http://localhost:9000/>. Leaving out `127.0.0.1:` publishes it on every
+  address the machine has, so other devices can reach it too.
 - **The user** is `node`, uid 1000, not root. A directory mounted from the
   host has to be writable by 1000, or the container run as its owner:
   `--user "$(id -u):$(id -g)"`.
 
 ## From another device
 
-Inside its container reader listens on every address, but it answers only
-requests addressed to `localhost` or `127.0.0.1` unless it's told the names
-other devices reach it by. Reaching the NAS as `nas.local`, or by its
-address, name each after the image:
+To reach it from other devices, publish the port on every address (`-p
+8734:8734`). reader also answers only requests addressed to `localhost` or
+`127.0.0.1` unless it's told the names other devices reach it by; that guards
+against other web sites, not other devices. Reaching the NAS as `nas.local`,
+or by its address, name each after the image:
 
 ```console
 $ docker run -d --name reader -p 8734:8734 -v /volume1/notes:/docs \

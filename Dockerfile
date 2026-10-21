@@ -1,6 +1,6 @@
 # reader, serving the directory mounted at /docs:
 #
-#   docker run -p 8734:8734 -v ~/notes:/docs jzheaux/reader
+#   docker run -p 127.0.0.1:8734:8734 -v ~/notes:/docs jzheaux/reader
 #
 # Options given after the image name are added to the ones here, so
 # `... jzheaux/reader --allow-host nas.local` lets the NAS be reached by name.
