@@ -68,6 +68,13 @@ test('--help says how to use it, and that is all', () => {
   assert.equal(run('-h').stdout, out.stdout);
 });
 
+test('--version says the version the app shows', async () => {
+  const out = run('--version');
+  assert.equal(out.status, 0);
+  const { version } = await import('../src/version.js');
+  assert.equal(out.stdout, `${version().label}\n`);
+});
+
 test('an argument it doesn\'t know is refused, saying which', () => {
   const root = dir();
   const cases = [

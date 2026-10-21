@@ -25,6 +25,7 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | | |
 | --- | --- |
 | `bin/reader.js` | CLI |
+| `src/version.js` | which reader this is, from `package.json` (and the commit, in a checkout past its release): for `--version` and the foot of the file list |
 | `src/export-cli.js`, `src/browser.js` | `reader export`, and the headless browser it draws with |
 | `src/export.js` | a document as one HTML file, to keep, send or print: its stylesheet and images inside it, a deck as its pages |
 | `action.yml` | the GitHub Action |
@@ -68,4 +69,5 @@ $ gh workflow run release.yml -f version=0.0.1
 
 It tags `main` as `v0.0.1` and publishes a release listing the issues it
 addresses: the milestone's, and those a commit since the last tag closes.
-It refuses a version `package.json` doesn't have, so bump that first.
+It refuses a version `package.json` doesn't have, so bump that first; it's
+the version the app and `reader --version` show.

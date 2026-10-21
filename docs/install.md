@@ -32,6 +32,7 @@ exactly.
 $ reader [dir] [--port 8734] [--no-browser] [--open <file>]
          [--host <address>] [--allow-host <name>]...
 $ reader export <file>... [--out <file>] [--no-draw]
+$ reader --version
 ```
 
 `dir` defaults to the current directory. By default the server listens
@@ -40,6 +41,10 @@ only on `127.0.0.1` and rejects requests addressed to any other host name;
 any path that would leave `dir`, including through symlinks.
 
 `reader export` saves documents as HTML; see [Export and print](exporting.md).
+
+`reader --version` prints which reader this is, as the foot of the file list
+shows it, linked to its release notes: `v0.0.2`, or, run from a checkout
+that has moved past that release, `v0.0.2+abc1234`, linked to that commit.
 
 ## From another device
 
