@@ -3,7 +3,7 @@
  * worked on is lit, once any is done or one is clicked. It's the first
  * not done, or the one clicked; marking it done lights the next not done
  * after it. `j` and `k` light the next and the one before, and `x` marks
- * the lit one done, when the page has the keys. What's lit is only the
+ * the lit one done, or not, when the page has the keys. What's lit is only the
  * page's, not the file's, and holds across renders.
  *
  * While steps are under way -- begun and not all done -- the page around

@@ -86,8 +86,8 @@ Present or present the file; after that, it's measured again as you edit.
 
 | | |
 | --- | --- |
-| `n` `→` `↓` `Space` `PageDown`, or click | next step; after the last one, the next slide |
-| `p` `←` `↑` `PageUp`, or click the left third | back one step; before the first, the previous slide whole |
+| `n` `→` `↓` `Space` `Enter` `PageDown`, or click | next step; after the last one, the next slide |
+| `p` `←` `↑` `⌫` `PageUp`, or click the left third | back one step; before the first, the previous slide whole |
 | `N` | the rest of this slide; if it's all showing, the next slide whole |
 | `P` | back to the start of this slide; if it's already there, the start of the previous slide |
 | `Home` / `End` | the first slide / the last slide whole |
