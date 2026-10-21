@@ -317,6 +317,8 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 
 /* the editor, and the numbers of its lines beside it (app/lines.js) */
 .editor-wrap { flex: 1; min-height: 0; display: flex; }
+/* the editor having the keyboard is shown by more than its caret */
+.editor-wrap:has(#editor:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
 .gutter {
   flex: none; position: relative; overflow: hidden;
   font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
