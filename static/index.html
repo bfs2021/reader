@@ -11,7 +11,7 @@
 
 <header class="bar" id="bar">
   <div class="bar-left">
-    <button class="ghost icon" id="sidebarToggle" title="Toggle file list (⌘\)" aria-label="Toggle file list">☰</button>
+    <button class="ghost icon" id="sidebarToggle" title="Toggle file list (⌘\)" aria-label="Toggle file list" aria-controls="sidebar" aria-expanded="true">☰</button>
     <span class="mark" id="rootName">reader</span>
     <span class="crumb" id="crumb"></span>
     <button class="ghost icon copy-path" id="copyPath" title="Copy the file's path" aria-label="Copy the file's path" hidden>⧉</button>
@@ -23,18 +23,18 @@
       <div class="fit-pop" id="fitPop" hidden></div>
     </span>
     <button class="ghost small" id="workBtn" title="Work through it without editing (⌘.)">Work</button>
-    <button class="ghost small" id="helpToggle">Formatting</button>
+    <button class="ghost small" id="helpToggle" aria-controls="help" aria-expanded="false">Formatting</button>
   </div>
 </header>
 
 <main class="split" id="split">
-  <nav class="sidebar" id="sidebar">
+  <nav class="sidebar" id="sidebar" aria-label="Files">
     <div class="side-head">
       <input id="filter" type="search" placeholder="Filter…" autocomplete="off" spellcheck="false">
       <button class="ghost small" id="newBtn" title="New file">New</button>
     </div>
     <form class="new-form" id="newForm" hidden>
-      <input id="newName" autocomplete="off" spellcheck="false">
+      <input id="newName" autocomplete="off" spellcheck="false" aria-label="New file's name">
       <button class="primary small" type="submit">Create</button>
     </form>
     <div class="crumbs" id="crumbs" hidden></div>
@@ -75,19 +75,19 @@
 
     <div class="editor-wrap">
       <div class="gutter" id="gutter" title="Click a number to copy the file and line" hidden></div>
-      <textarea id="editor" spellcheck="true" disabled aria-describedby="editorKeys"
+      <textarea id="editor" spellcheck="true" disabled aria-label="Editor" aria-describedby="editorKeys"
         placeholder="Write here — it renders on the left as you type."></textarea>
       <span class="vh" id="editorKeys">Tab indents. Esc, then Tab, moves on.</span>
     </div>
 
     <footer class="write-foot">
       <div class="foot-info">
-        <span class="dot" id="dirtyDot" hidden>●</span>
+        <span class="dot" id="dirtyDot" hidden><span aria-hidden="true">●</span><span class="vh">Not saved</span></span>
         <span id="counts"></span>
         <span id="cursor"></span>
       </div>
       <span class="foot-right">
-        <button class="ghost small" id="gutterToggle" title="Line numbers on / off" aria-pressed="true">#</button>
+        <button class="ghost small" id="gutterToggle" title="Line numbers on / off" aria-label="Line numbers" aria-pressed="true">#</button>
       </span>
     </footer>
   </section>

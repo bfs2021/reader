@@ -12,7 +12,7 @@ import { whenReady, showEmpty } from './render.js';
 import { save, saveFirst, saveOnLeave, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
-import { toggleSidebar, toggleDrawer, wireDrawer, restoreLayout, setWorking } from './modes.js';
+import { toggleSidebar, toggleDrawer, toggleHelp, wireDrawer, restoreLayout, setWorking } from './modes.js';
 import { wirePages, paged, turn } from './pages.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
 import { wireFit } from './fit.js';
@@ -148,7 +148,7 @@ function wire() {
 
   el.sidebarToggle.addEventListener('click', () => toggleSidebar());
   el.helpToggle.addEventListener('click', () => {
-    el.help.hidden = !el.help.hidden;
+    toggleHelp();
     try { localStorage.setItem('reader:help', el.help.hidden ? 'hidden' : 'shown'); } catch { /* ignore */ }
   });
 
