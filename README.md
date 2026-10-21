@@ -38,6 +38,19 @@ The speaker said most teams adopt a tool long before they agree on how to use it
 ~ True of us too; worth a post on our own conventions
 ```
 
+## Docker
+
+Without Node, or on a NAS, there's an image for `linux/amd64` and
+`linux/arm64`, serving whatever is mounted at `/docs`:
+
+```console
+$ docker run --rm -p 8734:8734 -v ~/notes:/docs jzheaux/reader
+```
+
+Reaching it from other devices, a `compose.yaml` and the rest are in
+[Run it in Docker](docs/docker.md), which is also its page on
+[Docker Hub](https://hub.docker.com/r/jzheaux/reader).
+
 The rest is in the [documentation](https://jzheaux.github.io/reader/), or
 its source in [`docs/`](docs/). To work on reader itself, see
 [CONTRIBUTING.md](CONTRIBUTING.md).

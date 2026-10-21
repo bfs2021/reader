@@ -16,3 +16,12 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+
+  # The Dockerfile's Node image.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

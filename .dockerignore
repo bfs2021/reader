@@ -1,0 +1,9 @@
+# Only what the server runs: the rest stays out of the image.
+*
+!package.json
+!package-lock.json
+!bin/
+!src/
+!static/
+!features/
+**/*.test.js

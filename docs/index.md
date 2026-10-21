@@ -25,6 +25,7 @@ play, a recipe's multiplier) shows here as it's written, not as it works.
 ## Getting started
 
 - [Install and run](install.md): getting reader, starting it, and its options
+- [Run it in Docker](docker.md): the image, for a NAS or to try it without Node
 
 ## Writing
 

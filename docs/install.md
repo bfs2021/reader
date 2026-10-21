@@ -14,6 +14,8 @@ $ npm install
 $ npm link          # puts `reader` on your PATH
 ```
 
+Or run it in Docker, without Node: see [Run it in Docker](docker.md).
+
 ## Run
 
 ```console
