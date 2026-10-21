@@ -9,11 +9,14 @@
  *   run(window, ...files) runs reader's scripts in the page, as its <script>s would
  *   frame(html)           a page in a frame: `posted` is what it sends the page
  *                         around it, `send` sends it something from there
+ *   preview()             the preview frame as the server serves it, every feature's
+ *                         script in it: `show(body)` draws a render, as the app sends one
  *   globals(window)       makes the page this test's own, for the app's modules
  */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { Window } from 'happy-dom';
+import { FEATURES } from '../features/index.js';
 
 const ROOT = new URL('../', import.meta.url);
 const read = (path) => fs.readFileSync(new URL(path, ROOT), 'utf8');
@@ -26,6 +29,7 @@ export function page(html = '', { url = 'http://localhost:8734/' } = {}) {
       disableCSSFileLoading: true,
       disableIframePageLoading: true,
       handleDisabledFileLoadingAsSuccess: true,
+      navigation: { disableMainFrameNavigation: true, disableChildFrameNavigation: true, disableChildPageNavigation: true },
     },
   });
   if (/^\s*<!doctype/i.test(html)) window.document.write(html);
@@ -47,6 +51,13 @@ export function frame(html, opts) {
   Object.defineProperty(window, 'parent', { value: parent, configurable: true });
   const send = (data) => window.dispatchEvent(new window.MessageEvent('message', { data, source: parent }));
   return { window, document: window.document, posted, send };
+}
+
+export function preview(opts = {}) {
+  const f = frame(read('static/preview.html'), { url: 'http://localhost:8734/preview.html', ...opts });
+  run(f.window, 'static/preview-api.js', ...FEATURES.flatMap((x) => [x.preview ?? []].flat()), 'static/preview.js');
+  const show = (body, m = {}) => f.send({ type: 'render', css: '', body, ...m });
+  return { ...f, show };
 }
 
 // Node's own are kept: its timers, for one, are what `mock.timers` mocks.
