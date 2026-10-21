@@ -1,5 +1,7 @@
 /* Text is never fainter than --ink-soft, 4.5:1 or better on every panel and
- * row it sits on, picked ones too; --ink-faint is for rules and borders.
+ * row it sits on, picked ones too, and 7:1 when the system asks for more
+ * contrast; --ink-faint and --line are for rules and borders, and --row is
+ * the ground of the row that's open or picked out.
  *
  * Every colour the app draws with is named here, light and dark, and
  * nowhere else. --ok and --warn are the document's green and red
@@ -15,6 +17,7 @@
   --ink-faint: #a2988a;
   --line: #e3dccf;
   --line-soft: #efe9dd;
+  --row: #e3dccf;
   --accent: #7a5c3e;
   --accent-ink: #fffdf9;
   --ok: #006b5f;
@@ -40,6 +43,7 @@
   --ink-faint: #756c60;
   --line: #34302b;
   --line-soft: #2a2723;
+  --row: #34302b;
   --accent: #c9a476;
   --accent-ink: #1d1b18;
   --ok: #81cfc2;
@@ -48,6 +52,32 @@
   --paper: #22252b;
   --paper-ink-soft: #cfcbc3;
   color-scheme: dark;
+}
+
+/* More contrast, as the system asks (prefers-contrast: more): text 7:1 or
+ * better on every panel and row, picked ones too; rules and borders 3:1 on
+ * the panels, and what a faint tint said said by an outline too (at the
+ * end). The same hues, deeper in the light and brighter in the dark. */
+@media (prefers-contrast: more) {
+  :root {
+    --ink: #000;
+    --ink-soft: #49423c;
+    --ink-faint: #6e675e;
+    --line: #848078;
+    --line-soft: #e3dccf;
+    --accent: #4f3c28;
+    --ok: #004840;
+    --warn: #712304;
+    --paper-ink-soft: #49423c;
+  }
+  :root[data-theme="dark"] {
+    --ink: #fff;
+    --ink-soft: #d3cec7;
+    --ink-faint: #8e867d;
+    --line: #716e6b;
+    --accent: #d0b088;
+    --warn: #f99f7c;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -167,7 +197,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 }
 .page-dot:hover::before { border-color: var(--ink); }
 .page-dot.done::before { background: var(--accent); border-color: var(--accent); }
-.page-dot.now::before { box-shadow: 0 0 0 3px var(--line); border-color: var(--ink); }
+.page-dot.now::before { box-shadow: 0 0 0 3px var(--row); border-color: var(--ink); }
 .page-dot.now.done::before { border-color: var(--accent); }
 .page-dots li { display: flex; align-items: center; }
 /* ten pages at once, in a long workbook: filled as far as they're done */
@@ -241,7 +271,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 /* at the end of a row, when it's hovered, focused or open: what can be done to it */
 .files li { display: flex; align-items: center; gap: 2px; margin: 1px 0; border-radius: 6px; }
 .files li:hover { background: var(--line-soft); }
-.files li:has(.now) { background: var(--line); }
+.files li:has(.now) { background: var(--row); }
 .files li .file, .files li .folder { flex: 1; min-width: 0; margin: 0; }
 .actions { display: none; align-items: center; gap: 1px; }
 .files li:hover .actions, .files li:focus-within .actions, .files li:has(.now) .actions { display: flex; }
@@ -279,7 +309,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .entry.part, .entry.section { color: var(--ink); }
 .entry:hover { color: var(--ink); }
 .entry:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.files li:has(.entry.at) { background: var(--line); }
+.files li:has(.entry.at) { background: var(--row); }
 .entry.at { color: var(--ink); }
 .files li.picked { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .files li.picked .entry { color: var(--ink); }
@@ -308,7 +338,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 }
 .goto-list li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goto-list li .sub { font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
-.goto-list li.on { background: var(--line); color: var(--ink); }
+.goto-list li.on { background: var(--row); color: var(--ink); }
 .goto-list li.none { color: var(--ink-soft); cursor: default; }
 
 /* ---------------------------------------------------------------- pdf -- */
@@ -459,4 +489,14 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   .bar { flex-wrap: wrap; gap: 6px; padding: 6px 8px; min-height: var(--bar-h); }
   .bar-left, .bar-right { gap: 6px; }
   .bar-right { margin-left: auto; }
+}
+
+/* ----------------------------------------------------- more contrast -- */
+
+/* What a faint ground alone said is said by an outline too. */
+@media (prefers-contrast: more) {
+  .files li:has(.now), .files li:has(.entry.at), .goto-list li.on { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .files li.picked { outline: 2px dashed var(--accent); outline-offset: -2px; }
+  .page-dot.now::before { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
+  .help code { border-color: var(--ink-faint); }
 }

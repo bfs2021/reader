@@ -16,6 +16,14 @@
   --ahead: #305dba; --on-pace: #006b5f; --behind: #8a5000;
   color-scheme: light;
 }
+/* more contrast, as the system asks: text 7:1 or better (style.css) */
+@media (prefers-contrast: more) {
+  :root { --ink: #fff; --ink-soft: #cec9c2; --line: #716e6b; --accent: #d0b088; --warn: #f99f7c; }
+  :root[data-chosen="light"] {
+    --ink: #000; --ink-bright: #000; --ink-soft: #49423c; --line: #848078; --accent: #4f3c28; --warn: #712304;
+    --ahead: #264993; --on-pace: #004840; --behind: #704100;
+  }
+}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }

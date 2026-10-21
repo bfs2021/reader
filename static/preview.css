@@ -19,6 +19,8 @@
 [data-step] { transition: opacity .18s, visibility .18s; }
 .step-hidden { visibility: hidden; opacity: 0; }
 .step-dim { opacity: .25; }
+/* with more contrast asked for, still faint, but to be read */
+@media (prefers-contrast: more) { .step-dim { opacity: .5; } }
 
 /* one slide giving way to the next (preview.js sets data-transition): the
  * way named is the way both move. A fade is the browser's own. */

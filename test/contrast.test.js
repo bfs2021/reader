@@ -26,11 +26,18 @@ const contrast = (a, b) => {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 };
-const readable = (ink, ground, what) =>
-  assert.ok(contrast(ink, ground) >= 4.5, `${what}: ${ink} on ${ground} is ${contrast(ink, ground).toFixed(2)}:1`);
+const readable = (ink, ground, what, least = 4.5) =>
+  assert.ok(contrast(ink, ground) >= least, `${what}: ${ink} on ${ground} is ${contrast(ink, ground).toFixed(2)}:1`);
+/** With more contrast asked for (prefers-contrast: more): 7:1. */
+const clear = (ink, ground, what) => readable(ink, ground, what, 7);
 
 /** The custom properties set in a block of CSS, as written. */
 const declared = (css) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
+/** `css` from `mark` on. */
+const after = (css, mark) => {
+  assert.ok(css.includes(mark), mark);
+  return css.slice(css.indexOf(mark));
+};
 /** The block of CSS after `head`, to its closing brace. */
 const block = (css, head) => {
   const at = css.indexOf(head);
@@ -64,9 +71,24 @@ const appLight = declared(block(style, ':root {'));
 const light = resolve(appLight);
 const dark = resolve({ ...appLight, ...declared(block(style, ':root[data-theme="dark"] {')) });
 const speakerDark = declared(block(speaker, ':root {'));
+const speakerLight = declared(block(speaker, ':root[data-chosen="light"] {'));
 const speakers = {
   dark: resolve(speakerDark),
-  light: resolve({ ...speakerDark, ...declared(block(speaker, ':root[data-chosen="light"] {')) }),
+  light: resolve({ ...speakerDark, ...speakerLight }),
+};
+
+// and with more contrast asked for: the light block's over the light, and
+// the dark's over the dark, which the light's doesn't reach (`:root` is
+// outweighed by `:root[data-theme]`)
+const MORE = '@media (prefers-contrast: more)';
+const appDark = declared(block(style, ':root[data-theme="dark"] {'));
+const appMore = {
+  light: resolve({ ...appLight, ...declared(block(after(style, MORE), ':root {')) }),
+  dark: resolve({ ...appLight, ...declared(block(after(style, MORE), ':root {')), ...appDark, ...declared(block(after(style, MORE), ':root[data-theme="dark"] {')) }),
+};
+const speakerMore = {
+  dark: resolve({ ...speakerDark, ...declared(block(after(speaker, MORE), ':root {')) }),
+  light: resolve({ ...speakerDark, ...declared(block(after(speaker, MORE), ':root {')), ...speakerLight, ...declared(block(after(speaker, MORE), ':root[data-chosen="light"] {')) }),
 };
 
 // the document's: the light set, the dark over it, and what each is for
@@ -75,6 +97,11 @@ const lightSet = declared(block(columns, '/* colours, light */'));
 const doc = {
   light: resolve({ ...lightSet, ...meaning }),
   dark: resolve({ ...lightSet, ...declared(block(columns, '/* colours, dark */')), ...meaning }),
+};
+const moreLight = declared(block(after(columns, '/* colours, more contrast */'), ':root {'));
+const docMore = {
+  light: resolve({ ...lightSet, ...moreLight, ...meaning }),
+  dark: resolve({ ...lightSet, ...moreLight, ...declared(block(columns, '/* colours, dark */')), ...declared(block(after(columns, '/* colours, more contrast */'), ':root.gm-dark {')), ...meaning }),
 };
 const FAMILY = ['red', 'amber', 'moss', 'green', 'blue', 'violet', 'rose', 'slate'];
 
@@ -197,7 +224,8 @@ const apart = (a, b, matrix) => Math.hypot(...oklab(a, matrix).map((v, i) => v -
 test('Good, Bad and Try, and ok and warn, stay apart under deuteranopia and protanopia', () => {
   const pairs = [];
   for (const [theme, t] of Object.entries(doc)) pairs.push([theme, t['gm-good'], t['gm-bad'], t['gm-try']]);
-  for (const [theme, t] of [['app light', light], ['app dark', dark]]) pairs.push([theme, t.ok, t.warn]);
+  for (const [theme, t] of Object.entries(docMore)) pairs.push([`${theme}, more contrast`, t['gm-good'], t['gm-bad'], t['gm-try']]);
+  for (const [theme, t] of [['app light', light], ['app dark', dark], ['app light, more contrast', appMore.light], ['app dark, more contrast', appMore.dark]]) pairs.push([theme, t.ok, t.warn]);
   for (const [theme, ...set] of pairs) {
     for (const [name, matrix] of Object.entries(CVD)) {
       for (let i = 0; i < set.length; i++) for (let j = i + 1; j < set.length; j++) {
@@ -213,7 +241,7 @@ test('no colour is written outside the blocks that name them', () => {
   const blocks = [
     [style, /^ *:root[^{]*\{[^}]*\}/gm],
     [speaker, /^ *:root[^{]*\{[^}]*\}/gm],
-    [columns, /^\/\* colours, (light|dark) \*\/\n:root(\.gm-dark)? \{[^}]*\}/gm],
+    [columns, /^\/\* colours, [^*]+\*\/\n(?::root[^{]*\{[^}]*\}|@media[^{]*\{(?:\s*:root[^{]*\{[^}]*\})+\s*\})/gm],
   ];
   const named = new Map(blocks.map(([css, re]) => [css, css.replace(re, '')]));
   const files = [];
@@ -232,3 +260,49 @@ test('no colour is written outside the blocks that name them', () => {
     assert.doesNotMatch(left, /#[0-9a-f]{3,8}\b(?![\w-])/i, path);
   }
 });
+
+test("with more contrast asked for, the app's text reads at 7:1 on every panel and row, and its rules at 3:1", () => {
+  for (const [theme, t] of Object.entries(appMore)) {
+    for (const ground of ['bg', 'panel', 'row', 'line-soft']) {
+      for (const ink of ['ink', 'ink-soft']) clear(t[ink], t[ground], `${theme} --${ink} on --${ground}`);
+    }
+    clear(t['ink-soft'], mix(t.accent, 0.18, t.panel), `${theme} picked row`);
+    for (const ground of ['bg', 'panel', 'line-soft']) {
+      clear(t.ok, t[ground], `${theme} ok on --${ground}`);
+      clear(t.warn, t[ground], `${theme} warn on --${ground}`);
+    }
+    clear(t.warn, mix(t.warn, 0.14, t.bg), `${theme} trash, hovered`);
+    clear(t['on-warn'], t.warn, `${theme} toast`);
+    clear(t['accent-ink'], t.accent, `${theme} a primary button`);
+    clear(t['paper-ink-soft'], t.paper, `${theme} the deck's foot`);
+    for (const ground of ['bg', 'panel']) {
+      for (const rule of ['line', 'ink-faint']) readable(t[rule], t[ground], `${theme} --${rule} on --${ground}`, 3);
+    }
+  }
+  for (const [theme, s] of Object.entries(speakerMore)) {
+    for (const ink of ['ink-soft', 'ahead', 'on-pace', 'behind', 'warn', 'accent']) for (const ground of ['bg', 'panel']) clear(s[ink], s[ground], `speaker view, ${theme}, ${ink} on --${ground}`);
+  }
+});
+
+test("with more contrast asked for, the document's inks, its family, cards and code read at 7:1", () => {
+  for (const [theme, t] of Object.entries(docMore)) {
+    for (const ground of ['paper', 'wash', 'well', 'th', 'stripe', 'lit']) {
+      for (const ink of ['ink', 'ink-soft', 'aside-ink', 'accent']) clear(t[`gm-${ink}`], t[`gm-${ground}`], `${theme} --gm-${ink} on --gm-${ground}`);
+    }
+    for (const hue of [...FAMILY, 'good', 'bad', 'try']) {
+      for (const ground of ['paper', 'well']) clear(t[`gm-${hue}`], t[`gm-${ground}`], `${theme} --gm-${hue} on --gm-${ground}`);
+      clear(t['gm-paper'], t[`gm-${hue}`], `${theme} the paper on --gm-${hue}`);
+    }
+    const inks = Object.keys(t).filter((k) => k.startsWith('gm-code-'));
+    for (const ink of inks) for (const ground of ['well', 'lit', 'output', 'output-lit']) clear(t[ink], t[`gm-${ground}`], `${theme} --${ink} on --gm-${ground}`);
+    clear(t['gm-amber'], mix(t['gm-amber'], 0.12, t['gm-paper']), `${theme} in no step`);
+    for (const ground of ['clip-paper', 'clip-white']) for (const ink of ['clip-ink', 'clip-ink-soft']) clear(t[`gm-${ink}`], t[`gm-${ground}`], `${theme} ${ink} on ${ground}`);
+    clear(t['gm-brand-atlantic'], t['gm-clip-white'], `${theme} atlantic`);
+    clear(t['gm-on-brand'], t['gm-brand-slashdot'], `${theme} slashdot`);
+  }
+  // the light set's rules, against the paper and a fence (the dark's are the paper's white, half through)
+  for (const rule of ['rule', 'rule-strong', 'aside-rule', 'ink-faint']) {
+    for (const ground of ['paper', 'well']) readable(docMore.light[`gm-${rule}`], docMore.light[`gm-${ground}`], `--gm-${rule} on --gm-${ground}`, 3);
+  }
+});
+

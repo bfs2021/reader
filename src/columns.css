@@ -26,7 +26,10 @@
  * colour of its own; a feature takes one of these, or mixes two.
  *
  * Text is 4.5:1 or better on what it sits on, in either set; the faint ink
- * and the rules are for lines and marks, never text.
+ * and the rules are for lines and marks, never text. When the system asks
+ * for more contrast (prefers-contrast: more), a third block takes the inks
+ * and the family to 7:1 or better, deeper in the light and brighter in the
+ * dark, and the rules to 3:1.
  *
  * The hues are one family, picked in OKLCH at one lightness and about one
  * chroma (L 0.50-0.53 in the light, 0.76-0.80 in the dark), so they sit
@@ -134,6 +137,50 @@
   --gm-brand-facebook: #5b9bff;
   --gm-brand-instagram: #f06f88;
   --gm-brand-youtube: #ff5252;
+}
+
+/* colours, more contrast */
+@media (prefers-contrast: more) {
+  :root {
+    --gm-ink: #000;
+    --gm-ink-soft: #4c4c4c;
+    --gm-ink-faint: #726f6a;
+    --gm-aside-ink: #404d62;
+    --gm-rule: #8b8985;
+    --gm-rule-strong: #716e6a;
+    --gm-aside-rule: #858d99;
+    --gm-red: #882e05;
+    --gm-amber: #704100;
+    --gm-moss: #38540f;
+    --gm-green: #19554b;
+    --gm-blue: #264993;
+    --gm-violet: #5d3e7d;
+    --gm-rose: #783457;
+    --gm-slate: #414d5f;
+    --gm-code-comment: #4b4944;
+    --gm-clip-ink-soft: #565656;
+    --gm-brand-atlantic: #b00e14;
+    --gm-brand-slashdot: #016260;
+  }
+  :root.gm-dark {
+    --gm-ink: #fff;
+    --gm-ink-soft: #d0cdc5;
+    --gm-ink-faint: #94989e;
+    --gm-rule: rgba(255, 255, 255, .5);
+    --gm-rule-strong: rgba(255, 255, 255, .7);
+    --gm-aside-rule: rgba(205, 214, 228, .75);
+    --gm-red: #fcbf94;
+    --gm-amber: #f2c691;
+    --gm-moss: #b9d798;
+    --gm-green: #9ce0d7;
+    --gm-blue: #9ec7fe;
+    --gm-violet: #dcc3fa;
+    --gm-rose: #f9bdd9;
+    --gm-slate: #c4cedd;
+    --gm-code-comment: #d8d5d0;
+    --gm-output-lit: #303c4b;
+    --gm-brand-atlantic: #ff867d;
+  }
 }
 
 /* What each colour is for: the same in either set, as they're named from

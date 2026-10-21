@@ -87,6 +87,8 @@ pre .callout { margin-left: 1.2ch; }
 .callout-notes > li > .callout { padding-top: .15em; }
 /* a note whose line stands out, while stepping through them */
 .callout-notes > li.hl { background: var(--callout-hover); }
+/* with more contrast asked for, ruled at its edge too, as a line is */
+@media (prefers-contrast: more) { .callout-notes > li.hl { box-shadow: inset 2px 0 var(--gm-accent); } }
 
 /* a fence's output, attached under it: tinted, bold, and labelled */
 pre.output {

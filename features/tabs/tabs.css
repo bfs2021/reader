@@ -32,6 +32,12 @@
 .compare-pane { min-width: 0; }
 .compare-pane > .tab { margin-bottom: .5em; }
 .diff { border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* A word's tint alone says it differs; with more contrast asked for, or the
+ * system's own colours, it's underlined, and struck through where it's gone. */
+.tabs, .compare { --diff-added-line: none; --diff-removed-line: none; }
+@media (prefers-contrast: more), (forced-colors: active) {
+  .tabs, .compare { --diff-added-line: underline 0.12em; --diff-removed-line: line-through 0.1em; }
+}
 
 /* on paper, every tab's pane, one after another, each under its name */
 @media print {
