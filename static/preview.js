@@ -250,6 +250,9 @@
       page.innerHTML = m.body;
       withinContent(page.content);
       document.body.replaceChildren(page.content);
+      // The document is the page's main part, and its title the page's.
+      document.querySelector('.gm-doc')?.setAttribute('role', 'main');
+      document.title = m.title || 'Rendered document';
       // Steps to come are hidden before anything measures the page (a
       // puzzle drawing itself, the background's color being read, the
       // fit below): a step first seen showing would fade out, flashing

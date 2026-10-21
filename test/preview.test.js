@@ -61,3 +61,14 @@ test('on a slide, a link isn\'t followed: the deck shouldn\'t give way to anothe
   const p = showing('[next](next.md)', { deck: true });
   assert.deepEqual(click(p, p.link('next')).followed, []);
 });
+
+test('the document is the frame\'s main part, and its title the frame\'s', () => {
+  const { document, show } = preview();
+  assert.equal(document.title, 'Rendered document');
+  const out = render('---\ntitle: Notes on things\n---\n\nHello\n');
+  show(out.body, { title: out.title });
+  assert.equal(document.title, 'Notes on things');
+  assert.equal(document.querySelector('.gm-doc').getAttribute('role'), 'main');
+  show(render('Hi\n').body);
+  assert.equal(document.title, 'Rendered document');
+});

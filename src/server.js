@@ -13,8 +13,8 @@
  *   POST /api/restore          { trash } -> { path }: and back
  *   GET  /api/export?path=     the document as one HTML file, to save
  *   POST /api/export           { path, drawn? } -> the same, with what the preview frame drew set into it
- *   POST /api/render           { text, path? } -> { css, body, deck }
- *                              { text, path?, pages: true } -> for a deck, { css, deck, pages: [{ body, line }] }
+ *   POST /api/render           { text, path? } -> { css, body, title, deck }
+ *                              { text, path?, pages: true } -> for a deck, { css, title, deck, pages: [{ body, line }] }
  *   POST /api/slides           { text, path? } -> { css, title, slides: [{ body, notes, notesHtml, line, at, budget, plan, transition }], end }
  *   GET  /content/<path>       raw bytes (PDFs, images a note links to)
  *
@@ -248,8 +248,8 @@ export function createServer({ root, allowHosts = [] }) {
     if (route === '/api/render' && req.method === 'POST') {
       // A deck being worked through is drawn a page to a slide.
       if (body.pages && isDeck(body.text)) {
-        const { css, pages: list } = pages(body.text, { file: body.path, read });
-        if (list.length) return sendJson(res, { css, pages: list, deck: true });
+        const { css, meta, pages: list } = pages(body.text, { file: body.path, read });
+        if (list.length) return sendJson(res, { css, title: meta.title, pages: list, deck: true });
       }
       return sendJson(res, { ...render(body.text, { file: body.path, read, lines: true }), deck: isDeck(body.text) });
     }
