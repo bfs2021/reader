@@ -104,9 +104,10 @@
   </footer>
 </div>
 
-<div class="goto" id="goto" hidden>
-  <input id="gotoInput" autocomplete="off" spellcheck="false" aria-label="Go to">
-  <ol class="goto-list" id="gotoList"></ol>
+<div class="goto" id="goto" role="dialog" aria-label="Go to" hidden>
+  <input id="gotoInput" autocomplete="off" spellcheck="false" aria-label="Go to"
+    role="combobox" aria-autocomplete="list" aria-controls="gotoList" aria-expanded="false">
+  <ol class="goto-list" id="gotoList" role="listbox" aria-label="Places"></ol>
 </div>
 
 <div class="toast" id="toast" role="status" hidden></div>
