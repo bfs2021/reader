@@ -67,7 +67,8 @@ background: images/paper.jpg
 ```
 
 - A color is a CSS color name or a `#hex`. On a dark one the text turns
-  light.
+  light. It wins over the [theme](look.md): a light one stays light in
+  Dark.
 - An image is a path from the note, or a URL, ending in `.png`, `.jpg`,
   `.gif`, `.webp`, `.svg` or `.avif`. It covers the page. reader can't see
   whether an image is dark, so say so with a color, which also shows while

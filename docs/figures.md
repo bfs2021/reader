@@ -10,7 +10,8 @@ A `mermaid` fence is drawn as a [Mermaid](https://mermaid.js.org/) diagram:
 a flowchart, a sequence, a state machine, a timeline and so on. While you
 type, the diagram keeps its last good drawing until the text reads again,
 and says under it what's wrong. In a file opened anywhere else, the fence
-is still its source.
+is still its source. On a dark page, in the [Dark theme](look.md) or on a
+dark background, it's drawn in Mermaid's dark theme.
 
 A screen reader hears the diagram as an image, named by an `accTitle:` line
 if it has one (`accTitle: How a post is published`), and then its source.
