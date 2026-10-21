@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { render } from '../../src/render.js';
-import { frame, run } from '../../test/dom.js';
+import { frame, run, preview } from '../../test/dom.js';
 
 /**
  * The fields of `markdown` as rendered, in a page with preview.js loaded:
@@ -120,4 +120,18 @@ test('the keyboard reaching a blank opens it, and Enter writes it and leaves the
   const blank = fields[1].querySelector('.field-value');
   blank.focus();
   assert.equal(blank.querySelector('textarea').getAttribute('aria-label'), 'REPL');
+});
+
+test('a blank written keeps the keyboard through the render that follows', () => {
+  const p = preview();
+  p.show(render('@ Name: Josh\n').body);
+  p.document.querySelector('.field-value').focus();
+  const input = p.document.querySelector('.field-value textarea');
+  input.value = 'Ann';
+  input.dispatchEvent(new p.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  p.show(render('@ Name: Ann\n').body);
+  const slot = p.document.querySelector('.field-value');
+  assert.equal(slot.textContent, 'Ann');
+  assert.equal(p.document.activeElement, slot);
+  assert.equal(slot.querySelector('textarea'), null);
 });

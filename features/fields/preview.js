@@ -17,6 +17,8 @@
   const fieldLabel = (f) => f.querySelector('.field-label')?.textContent ?? '';
   const fieldAt = (line, label, start) => [...document.querySelectorAll('.field')]
     .find((f) => f.dataset.line === String(line) && fieldLabel(f) === label && f.dataset.start === start);
+  /** Where `field` is, to find it again after a re-render. */
+  const placeOf = (field) => ({ line: field.dataset.line, label: fieldLabel(field), at: field.dataset.start });
 
   /** `field`'s line as written with `value` in it, the fields beside it told where they are now. */
   function written(field, value) {
@@ -87,10 +89,7 @@
     const keep = () => {
       done = true;
       editing = null;
-      return {
-        line: field.dataset.line, label: fieldLabel(field), at: field.dataset.start,
-        value: input.value, start: input.selectionStart, end: input.selectionEnd,
-      };
+      return { ...placeOf(field), value: input.value, start: input.selectionStart, end: input.selectionEnd };
     };
     editing = { input, close, keep };
 
@@ -137,13 +136,18 @@
   });
 
   // A field being filled in stays open through a re-render, with what's
-  // been typed so far.
+  // been typed so far; one just written keeps the keyboard, as written
+  // ones bring a render.
   Preview.register({
-    keep: () => editing?.keep(),
+    keep: () => editing?.keep()
+      ?? (resting && document.activeElement === resting ? { ...placeOf(resting.closest('.field')), resting: true } : undefined),
     restore: (root, filling) => {
       if (!filling) return;
       const field = fieldAt(filling.line, filling.label, filling.at);
-      if (field) openField(field, filling);
+      if (!field) return;
+      if (!filling.resting) return openField(field, filling);
+      resting = field.querySelector('.field-value');
+      resting?.focus({ preventScroll: true });
     },
   });
 })();
