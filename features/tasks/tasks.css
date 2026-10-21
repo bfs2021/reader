@@ -25,6 +25,9 @@ li.task > .choice-box, li.task > p > .choice-box {
   background: none;
   cursor: pointer;
 }
+/* It takes a click a little above and below it, 24px tall in all. */
+.stage-box { position: relative; }
+.stage-box::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, 24px); transform: translateY(-50%); }
 .task-heading > .stage-box { margin: 0 0.3em 0 0; }
 /* in the margin, ending where a checkbox does, so the words line up */
 li.staged { position: relative; }
