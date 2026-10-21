@@ -34,9 +34,10 @@ $ reader [dir] [--port 8734] [--no-browser] [--open <file>]
 $ reader export <file>... [--out <file>] [--no-draw]
 ```
 
-`dir` defaults to the current directory. The server only listens on
-`127.0.0.1`. It rejects requests addressed to any other host name, and any
-path that would leave `dir`, including through symlinks.
+`dir` defaults to the current directory. By default the server listens
+only on `127.0.0.1` and rejects requests addressed to any other host name;
+`--host` and `--allow-host` open it to other devices (below). It rejects
+any path that would leave `dir`, including through symlinks.
 
 `reader export` saves documents as HTML; see [Export and print](exporting.md).
 

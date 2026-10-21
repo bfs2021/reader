@@ -86,7 +86,7 @@ images have to be committed for the runner to put them inside the page.
 ## A folder of pages, on GitHub Pages
 
 With `commit: false`, the HTML can go to GitHub Pages instead of the
-repository. These pages are made that way, from the `docs` folder:
+repository, here from a `docs` folder:
 
 ```yaml
 - uses: jzheaux/reader@main
@@ -94,8 +94,12 @@ repository. These pages are made that way, from the `docs` folder:
     files: docs/*.md
     commit: false
 - run: mkdir _site && cp docs/*.html _site/
-- uses: actions/upload-pages-artifact@v3
-- uses: actions/deploy-pages@v4
+- uses: actions/configure-pages@v6
+- uses: actions/upload-pages-artifact@v5
+- uses: actions/deploy-pages@v5
 ```
+
+These pages are published much the same way, though with `reader export`
+run in place of the Action, so they're drawn by the reader they document.
 
 A folder's `index.md` is its `index.html`, the page Pages opens first.

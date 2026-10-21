@@ -19,6 +19,6 @@ Fixes go to `main` and the latest release.
 
 reader has no sign-in: whoever can reach the server can read and write the
 directory it serves, so the network it listens on is the boundary (see
-[Options](README.md#options)). That alone isn't a vulnerability. Reaching
+[Options](docs/install.md#options)). That alone isn't a vulnerability. Reaching
 files outside that directory, running script from a document someone else
 wrote, or a page on another site reading or changing your files are.

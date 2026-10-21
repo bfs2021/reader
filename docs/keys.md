@@ -28,8 +28,18 @@ title: Keys
 | | |
 | --- | --- |
 | `⌘.` | work mode on / off |
+| `Esc` | in work mode, back to editing |
 | `⌥←` / `⌥→` | in work mode, a deck's page before / next page |
 | `⌘⇧.` | present as slides |
+
+## On the page
+
+With the rendered page clicked into, in a recipe's [steps to follow](recipes.md):
+
+| | |
+| --- | --- |
+| `j` / `k` | light the next step / the one before |
+| `x` | mark the lit step done, or not done again |
 
 The keys while presenting are under [Work and present](presenting.md), and
 each puzzle's under [Puzzles](puzzles.md); `?` on a puzzle shows them too.

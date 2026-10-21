@@ -1,35 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parse, HTMLElement } from 'node-html-parser';
 import { slides } from '../src/slides.js';
+import { file, globals } from './dom.js';
 
-// deck.js is the app's, for the browser: it's loaded here on just enough
-// of a page, and node-html-parser stands in for the browser's DOMParser.
-const kebab = (key) => key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-Object.defineProperty(HTMLElement.prototype, 'dataset', {
-  get() {
-    return new Proxy({}, {
-      get: (_, key) => this.getAttribute(`data-${kebab(key)}`),
-      set: (_, key, value) => {
-        this.setAttribute(`data-${kebab(key)}`, String(value));
-        return true;
-      },
-    });
-  },
-});
-// A <pre>'s insides are elements, as a browser reads them, not raw text.
-const read = (html) => parse(html, { blockTextElements: { script: true, style: true } });
-globalThis.DOMParser = class {
-  parseFromString(html) {
-    const root = read(html);
-    return Object.assign(root, { body: root.querySelector('body') });
-  }
-};
-const node = () => ({ dataset: {}, style: {}, addEventListener() {}, setAttribute() {}, classList: { toggle() {} } });
-const elements = {};
-globalThis.document = { getElementById: (id) => (elements[id] ??= node()), addEventListener() {} };
-globalThis.window = { addEventListener() {} };
-globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
+// deck.js is the app's, for the browser: it's loaded here on the app's page.
+const window = globals(file('static/index.html'));
+const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
 const { deck } = await import('../static/app/state.js');
 const { paging, steps } = await import('../static/app/deck.js');
@@ -37,7 +13,7 @@ const { paging, steps } = await import('../static/app/deck.js');
 /** Each thing a slide's steps show, by the step it shows with: [step, its text]. */
 function stepped(body) {
   const out = steps(body);
-  const shown = read(out.body).querySelectorAll('[data-step]').map((e) => [Number(e.getAttribute('data-step')), e.text.trim().replace(/\s+/g, ' ')]);
+  const shown = [...read(out.body).querySelectorAll('[data-step]')].map((e) => [Number(e.getAttribute('data-step')), e.textContent.trim().replace(/\s+/g, ' ')]);
   return { steps: out.steps, shown };
 }
 

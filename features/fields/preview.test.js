@@ -1,43 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import vm from 'node:vm';
-import { parse } from 'node-html-parser';
 import { render } from '../../src/render.js';
-
-const SCRIPT = fs.readFileSync(new URL('./preview.js', import.meta.url), 'utf8');
-
-/** Just enough of an element for preview.js: its data, its children, its listeners. */
-class Element {
-  constructor(tag, { dataset = {}, text = '', children = [] } = {}) {
-    Object.assign(this, { tagName: tag.toUpperCase(), dataset, text, children, listeners: {}, style: {} });
-  }
-  get textContent() { return this.text; }
-  set textContent(text) {
-    this.text = text;
-    this.children = [];
-  }
-  querySelector(sel) {
-    if (sel === 'textarea') return this.children.find((c) => c instanceof TextArea) ?? null;
-    return this.children.find((c) => c.className === sel.slice(1)) ?? null;
-  }
-  replaceChildren(...children) { this.children = children; }
-  addEventListener(type, fn) { this.listeners[type] = fn; }
-  setAttribute() {}
-  closest() { return this; }
-}
-
-class TextArea extends Element {
-  constructor() {
-    super('textarea');
-    this.value = '';
-    this.scrollHeight = 20;
-  }
-  focus() {}
-  setSelectionRange(start, end) { Object.assign(this, { selectionStart: start, selectionEnd: end }); }
-}
-
-const camel = (name) => name.slice(5).replace(/-(\w)/g, (_, c) => c.toUpperCase());
+import { frame, run } from '../../test/dom.js';
 
 /**
  * The fields of `markdown` as rendered, in a page with preview.js loaded:
@@ -45,39 +9,28 @@ const camel = (name) => name.slice(5).replace(/-(\w)/g, (_, c) => c.toUpperCase(
  * `edits` is what it asked to be written.
  */
 function page(markdown) {
-  const fields = parse(render(markdown).body).querySelectorAll('.field').map((f) => {
-    const dataset = Object.fromEntries(Object.entries(f.attributes).filter(([k]) => k.startsWith('data-')).map(([k, v]) => [camel(k), v]));
-    const part = (cls) => f.querySelector(`.${cls}`);
-    const label = Object.assign(new Element('span', { text: part('field-label').text }), { className: 'field-label' });
-    const value = Object.assign(new Element('span', { dataset: { value: part('field-value').getAttribute('data-value') } }), { className: 'field-value' });
-    return new Element('span', { dataset, children: [label, value] });
-  });
-  const listeners = {};
-  const document = {
-    addEventListener: (type, fn) => { listeners[type] = fn; },
-    createElement: () => new TextArea(),
-    querySelectorAll(sel) {
-      const line = /data-line="(\d+)"\]\[data-start\]$/.exec(sel)?.[1];
-      if (line) return fields.filter((f) => f.dataset.line === line && f.dataset.start !== undefined);
-      if (sel === '.field:not([data-choices])') return fields.filter((f) => f.dataset.choices === undefined);
-      return fields;
-    },
-  };
+  const { window, document, posted } = frame(render(markdown).body);
+  run(window, 'static/preview-api.js', 'features/fields/preview.js');
+  const fields = [...document.querySelectorAll('.field')];
+  // What it asked to be written, as it went up to the page around it.
   const edits = [];
-  // Made in the script's own context, so kept as plain values.
-  const Preview = { deck: false, register() {}, edit: (changes) => edits.push(...JSON.parse(JSON.stringify(changes))) };
-  vm.runInNewContext(SCRIPT, { document, Preview, HTMLTextAreaElement: TextArea });
+  const heard = () => edits.splice(0, Infinity, ...posted.filter((m) => m.type === 'edit').flatMap((m) => m.edits));
 
   const open = (i) => {
-    listeners.click({ target: fields[i] });
-    return fields[i].querySelector('.field-value').querySelector('textarea');
+    fields[i].click();
+    return fields[i].querySelector('.field-value textarea');
   };
   const fill = (i, value) => {
     const input = open(i);
     input.value = value;
-    input.listeners.blur();
+    input.blur();
+    heard();
   };
-  return { fields, edits, open, fill };
+  const press = (input, key) => {
+    input.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    heard();
+  };
+  return { fields, edits, open, fill, press };
 }
 
 const lines = (edits) => edits.map((e) => e.after[0]);
@@ -114,12 +67,12 @@ test('what\'s typed is written on one line, and nothing is written when it\'s th
 });
 
 test('Esc puts a field back as it was, and writes nothing', () => {
-  const { fields, edits, open } = page('@ Name: Josh\n');
+  const { fields, edits, open, press } = page('@ Name: Josh\n');
   const input = open(0);
   input.value = 'Ann';
-  input.listeners.keydown({ key: 'Escape', preventDefault() {}, stopPropagation() {} });
+  press(input, 'Escape');
   assert.deepEqual(edits, []);
-  assert.equal(fields[0].children[1].textContent, 'Josh');
+  assert.equal(fields[0].querySelector('.field-value').textContent, 'Josh');
 });
 
 test('a field in a sentence is written into its place, and the ones after it move along', () => {
