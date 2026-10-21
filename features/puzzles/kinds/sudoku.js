@@ -22,35 +22,35 @@
   --cell: min(2.6rem, 9vw);
   --thick: 2.5px;
   display: grid; grid-template-columns: repeat(9, var(--cell));
-  width: max-content; border: var(--thick) solid var(--gm-ink, #222);
+  width: max-content; border: var(--thick) solid var(--gm-ink);
   font-family: var(--gm-sans); user-select: none; cursor: pointer;
-  background: var(--gm-paper, #fff);
+  background: var(--gm-paper);
 }
 .deck .sudoku-grid { --cell: min(3.9vh, 4.5vw); }
 .sudoku-grid .cell {
   width: var(--cell); height: var(--cell); box-sizing: border-box;
   display: grid; place-items: center;
-  border-right: 1px solid #b9b5ad; border-bottom: 1px solid #b9b5ad;
+  border-right: 1px solid var(--gm-rule-strong); border-bottom: 1px solid var(--gm-rule-strong);
   font-size: calc(var(--cell) * 0.55); line-height: 1;
-  color: #2457a6;
+  color: var(--gm-pick);
 }
 .sudoku-grid .cell:nth-child(9n) { border-right: 0; }
 .sudoku-grid .cell:nth-last-child(-n + 9) { border-bottom: 0; }
-.sudoku-grid .box-right { border-right: var(--thick) solid var(--gm-ink, #222); }
-.sudoku-grid .box-bottom { border-bottom: var(--thick) solid var(--gm-ink, #222); }
-.sudoku-grid .given { color: var(--gm-ink, #222); font-weight: 600; }
-.puzzle:focus-within .sudoku-grid .peer { background: #f1efe9; }
-.puzzle:focus-within .sudoku-grid .same { background: #e3ebf7; }
-.puzzle:focus-within .sudoku-grid .cursor { background: #c9daf5; box-shadow: inset 0 0 0 2px #2457a6; }
-.sudoku-grid .conflict { color: #c62828; background: #fbe9e7; }
-.puzzle:focus-within .sudoku-grid .conflict.cursor { background: #f6cfc9; }
-.puzzle.pencil:focus-within .sudoku-grid .cursor { box-shadow: inset 0 0 0 2px #2457a6, inset 0 0 0 4px #e0a800; }
+.sudoku-grid .box-right { border-right: var(--thick) solid var(--gm-ink); }
+.sudoku-grid .box-bottom { border-bottom: var(--thick) solid var(--gm-ink); }
+.sudoku-grid .given { color: var(--gm-ink); font-weight: 600; }
+.puzzle:focus-within .sudoku-grid .peer { background: var(--gm-wash); }
+.puzzle:focus-within .sudoku-grid .same { background: color-mix(in srgb, var(--gm-pick) 8%, var(--gm-paper)); }
+.puzzle:focus-within .sudoku-grid .cursor { background: color-mix(in srgb, var(--gm-pick) 18%, var(--gm-paper)); box-shadow: inset 0 0 0 2px var(--gm-pick); }
+.sudoku-grid .conflict { color: var(--gm-error); background: color-mix(in srgb, var(--gm-error) 8%, var(--gm-paper)); }
+.puzzle:focus-within .sudoku-grid .conflict.cursor { background: color-mix(in srgb, var(--gm-error) 18%, var(--gm-paper)); }
+.puzzle.pencil:focus-within .sudoku-grid .cursor { box-shadow: inset 0 0 0 2px var(--gm-pick), inset 0 0 0 4px var(--gm-amber); }
 .sudoku-grid .marks {
   display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; height: 100%;
-  font-size: calc(var(--cell) * 0.22); color: var(--gm-ink-soft, #777); font-weight: 400;
+  font-size: calc(var(--cell) * 0.22); color: var(--gm-ink-soft); font-weight: 400;
 }
 .sudoku-grid .marks span { display: grid; place-items: center; }
-.puzzle.solved .sudoku-grid { border-color: #2e7d32; }
+.puzzle.solved .sudoku-grid { border-color: var(--gm-ok); }
 @media print { .sudoku-grid .cell { background: none !important; } }
 `;
 

@@ -1,8 +1,7 @@
 /* `1)` lists: each number a badge in the list's margin, drawn here so it
  * doesn't copy; an item the asides carried on to the next row has its
  * badge already */
-ol.badges { list-style: none; --badge: #a8532c; --badge-ink: #fff; }
-:root.gm-dark ol.badges { --badge: #e0915f; --badge-ink: #22252b; }
+ol.badges { list-style: none; --badge: var(--gm-badge); --badge-ink: var(--gm-paper); }
 ol.badges > li { position: relative; }
 ol.badges > li:not(.gm-cont)::before {
   content: attr(data-n);

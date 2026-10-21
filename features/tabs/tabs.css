@@ -1,7 +1,7 @@
 /* versions of a passage (index.js adds which pane a checked tab shows) */
 .tabs, .compare {
-  --diff-added: rgba(47, 111, 62, .16);
-  --diff-removed: rgba(161, 50, 74, .13);
+  --diff-added: color-mix(in srgb, var(--gm-green) 16%, transparent);
+  --diff-removed: color-mix(in srgb, var(--gm-red) 13%, transparent);
   margin: 1rem 0;
 }
 

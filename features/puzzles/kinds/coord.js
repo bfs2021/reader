@@ -261,22 +261,22 @@
 }
 /* on a slide, leave room for the scripture above and the question below */
 .deck .coord-graph { width: min(calc(var(--unit) * var(--w)), calc(42vh * var(--w) / var(--h))); }
-.coord-graph .paper { fill: var(--gm-paper, #fff); }
-.coord-graph .rule { stroke: #dedad3; stroke-width: 0.04; }
-.coord-graph .rule.major { stroke: #b9b5ad; }
-.coord-graph .axis { fill: none; stroke: var(--gm-ink, #222); stroke-width: 0.09; }
-.coord-graph .edge { fill: none; stroke: #b9b5ad; stroke-width: 0.04; }
-.coord-graph text { font-size: 0.42px; fill: var(--gm-ink-soft, #777); text-anchor: middle; }
+.coord-graph .paper { fill: var(--gm-paper); }
+.coord-graph .rule { stroke: var(--gm-rule); stroke-width: 0.04; }
+.coord-graph .rule.major { stroke: var(--gm-rule-strong); }
+.coord-graph .axis { fill: none; stroke: var(--gm-ink); stroke-width: 0.09; }
+.coord-graph .edge { fill: none; stroke: var(--gm-rule-strong); stroke-width: 0.04; }
+.coord-graph text { font-size: 0.42px; fill: var(--gm-ink-soft); text-anchor: middle; }
 .coord-graph text.y { text-anchor: end; }
-.coord-graph .axis-name { font-size: 0.55px; font-weight: 700; fill: var(--gm-ink, #222); }
-.puzzle:focus-within .coord-graph .num.hot { fill: #2457a6; font-weight: 700; font-size: 0.55px; }
+.coord-graph .axis-name { font-size: 0.55px; font-weight: 700; fill: var(--gm-ink); }
+.puzzle:focus-within .coord-graph .num.hot { fill: var(--gm-pick); font-weight: 700; font-size: 0.55px; }
 .coord-graph .guide { fill: none; stroke: transparent; stroke-width: 0.06; stroke-dasharray: 0.15 0.15; }
-.puzzle:focus-within .coord-graph .guide { stroke: #8fb0e3; }
-.coord-graph .pen { fill: none; stroke: #1a5276; stroke-width: 0.16; stroke-linecap: round; stroke-linejoin: round; }
-.coord-graph .dot { fill: #1a5276; }
-.coord-graph .miss { fill: #c62828; opacity: 0.55; }
+.puzzle:focus-within .coord-graph .guide { stroke: color-mix(in srgb, var(--gm-pick) 50%, var(--gm-paper)); }
+.coord-graph .pen { fill: none; stroke: color-mix(in srgb, var(--gm-pick) 70%, var(--gm-ink)); stroke-width: 0.16; stroke-linecap: round; stroke-linejoin: round; }
+.coord-graph .dot { fill: color-mix(in srgb, var(--gm-pick) 70%, var(--gm-ink)); }
+.coord-graph .miss { fill: var(--gm-error); opacity: 0.55; }
 .coord-graph .pencil { fill: none; stroke: transparent; stroke-width: 0.07; }
-.puzzle:focus-within .coord-graph .pencil { stroke: #2457a6; }
+.puzzle:focus-within .coord-graph .pencil { stroke: var(--gm-pick); }
 .coord-list {
   flex: 1 1 14rem; columns: 5.4em auto; column-gap: 1em;
   font-family: var(--gm-sans); font-size: 0.78rem; line-height: 1.45;
@@ -284,12 +284,12 @@
 .deck .coord-list { font-size: 0.5rem; }
 .coord-list ol { list-style: none; margin: 0; padding: 0; }
 .coord-list li { white-space: nowrap; break-inside: avoid; }
-.coord-list li.cue { font-weight: 700; color: #1a5276; font-size: 0.85em; letter-spacing: 0.04em; }
-.coord-list li.done { color: var(--gm-ink-soft, #999); text-decoration: line-through; }
-.coord-list li.next { font-weight: 700; color: #2457a6; }
+.coord-list li.cue { font-weight: 700; color: color-mix(in srgb, var(--gm-pick) 70%, var(--gm-ink)); font-size: 0.85em; letter-spacing: 0.04em; }
+.coord-list li.done { color: var(--gm-ink-soft); text-decoration: line-through; }
+.coord-list li.next { font-weight: 700; color: var(--gm-pick); }
 .coord-list li.next::before { content: "▸ "; }
-.puzzle.solved .coord-graph .pen { stroke: #2e7d32; }
-.puzzle.solved .coord-graph .dot { fill: #2e7d32; }
+.puzzle.solved .coord-graph .pen { stroke: var(--gm-ok); }
+.puzzle.solved .coord-graph .dot { fill: var(--gm-ok); }
 @media print { .coord-graph .guide, .coord-graph .pencil { stroke: transparent !important; } }
 `);
 })();

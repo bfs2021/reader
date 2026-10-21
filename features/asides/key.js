@@ -30,8 +30,9 @@ const COLOR = /^(?:#[0-9a-f]{3,8}|[a-z]+)$/i;
 /** How a mark can be drawn: features/marks. */
 export const STYLES = ['circle', 'underline', 'dotted', 'wavy', 'highlight'];
 
-// Dark enough to read as text on the page and to hold apart in grey.
-const PALETTE = ['#b5523b', '#2f7d6d', '#6a4fa3', '#9a6f0e', '#2f6aa1', '#a23d6d', '#4f7a2a', '#7a5c3e'];
+// The family's hues (src/columns.css), which read as text on the page,
+// light or dark, and the page on them.
+const PALETTE = Array.from({ length: 8 }, (_, i) => `var(--gm-key-${i + 1})`);
 
 /** A front matter line declaring an alias -> `{ kind, alias, name, color, style }`, or null. */
 export function readEntry(line) {

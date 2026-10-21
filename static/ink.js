@@ -10,7 +10,7 @@
  */
 
 window.Ink = (() => {
-  // --gm-ink, on the paper (src/columns.css) and on a dark color (src/background.js)
+  // --gm-ink, light and dark (src/columns.css)
   const DARK_INK = [0x1a, 0x1a, 0x1a];
   const LIGHT_INK = [0xf5, 0xf3, 0xee];
 

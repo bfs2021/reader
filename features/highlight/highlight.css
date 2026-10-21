@@ -1,15 +1,16 @@
 /* code's colours, as highlight.js names its parts: quiet, on the page's
- * warm paper, closer to GitHub's light theme than to an editor's */
+ * warm paper, closer to GitHub's light theme than to an editor's; the
+ * family's, a little toward the ink (src/columns.css) */
 pre code.hljs {
-  --hl-keyword: #a1324a;
-  --hl-string: #2f6f3e;
-  --hl-number: #1f5f99;
-  --hl-comment: #67645d;
-  --hl-title: #6a3fa0;
-  --hl-type: #946200;
-  --hl-meta: #5b6b7f;
-  --hl-deletion: #a1324a;
-  --hl-addition: #2f6f3e;
+  --hl-keyword: var(--gm-code-keyword);
+  --hl-string: var(--gm-code-string);
+  --hl-number: var(--gm-code-number);
+  --hl-comment: var(--gm-code-comment);
+  --hl-title: var(--gm-code-title);
+  --hl-type: var(--gm-code-type);
+  --hl-meta: var(--gm-code-meta);
+  --hl-deletion: var(--gm-code-deletion);
+  --hl-addition: var(--gm-code-addition);
   color: var(--gm-ink);
 }
 .hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-literal, .hljs-doctag { color: var(--hl-keyword); }
@@ -21,8 +22,8 @@ pre code.hljs {
 .hljs-meta, .hljs-tag, .hljs-subst, .hljs-bullet { color: var(--hl-meta); }
 .hljs-section, .hljs-strong { font-weight: 600; }
 .hljs-emphasis { font-style: italic; }
-.hljs-deletion { color: var(--hl-deletion); background: #fbeef0; }
-.hljs-addition { color: var(--hl-addition); background: #edf6ef; }
+.hljs-deletion { color: var(--hl-deletion); background: color-mix(in srgb, var(--gm-red) 8%, var(--gm-well)); }
+.hljs-addition { color: var(--hl-addition); background: color-mix(in srgb, var(--gm-green) 8%, var(--gm-well)); }
 
 /* a fence whose lines are picked out: a line each, wide as the longest,
  * so a highlighted one is a band right across */
@@ -37,7 +38,7 @@ pre.code-lines .line {
 /* the lines out of focus lose their colours, rather than fading, so
  * they're still read: 6.9:1 */
 pre.code-focus:has(.line.hl) .line:not(.hl), pre.code-focus:has(.line.hl) .line:not(.hl) * { color: var(--gm-ink-soft); }
-pre.code-focus .line.hl { opacity: 1; background: #f0ebde; box-shadow: inset 2px 0 var(--gm-accent); }
+pre.code-focus .line.hl { opacity: 1; background: var(--gm-lit); box-shadow: inset 2px 0 var(--gm-accent); }
 
 /* numbered: the count sits in a gutter as wide as the last number, in the
  * soft ink, not faded, so it still reads: 6.9:1 */
@@ -55,7 +56,7 @@ pre.code-numbers .line::before {
 
 /* callouts: a numbered badge at the end of a marked line, and the same
  * badge on its note below; the numbers are drawn here, so they don't copy */
-.code-group { --callout-hover: #f0ebde; }
+.code-group { --callout-hover: var(--gm-lit); }
 .code-group > pre:has(+ .callout-notes) { margin-bottom: 0.5rem; }
 .callout::before {
   content: attr(data-n);
@@ -90,8 +91,8 @@ pre .callout { margin-left: 1.2ch; }
 /* a fence's output, attached under it: tinted, bold, and labelled */
 pre.output {
   position: relative;
-  background: #eef1f5;
-  border-color: #d5dbe4;
+  background: var(--gm-output);
+  border-color: var(--gm-output-rule);
 }
 pre.output > code { font-weight: 600; }
 pre.output::before {
@@ -118,14 +119,14 @@ pre.output::before {
 .code-group > .tabs + pre.output,
 .code-group > .tabs + .output-long > pre {
   margin-top: 0;
-  border-top: 1px dashed #c9d1dc;
+  border-top: 1px dashed var(--gm-output-split);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
-pre.output.code-focus .line.hl { background: #dfe6ef; }
+pre.output.code-focus .line.hl { background: var(--gm-output-lit); }
 
 /* long output: cut short until asked for, but whole on a slide or paper */
-.output-long > pre { max-height: 12lh; overflow: hidden; mask-image: linear-gradient(#000 70%, transparent); }
+.output-long > pre { max-height: 12lh; overflow: hidden; mask-image: linear-gradient(black 70%, transparent); }
 .output-long:has(input:checked) > pre { max-height: none; mask-image: none; }
 /* the box itself is hidden but still takes focus, and the label stays when
  * it's ticked, so a keyboard can open it, and close it again, in place */

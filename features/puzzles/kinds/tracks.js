@@ -396,23 +396,23 @@
 }
 /* on a slide, leave room for the scripture above and the question below */
 .deck .tracks-board { width: min(calc(5.6vh * var(--span)), 36vh); }
-.tracks-board .board { fill: var(--gm-paper, #fff); }
-.tracks-board .rule { stroke: #c9c5bd; stroke-width: 0.025; }
-.tracks-board .frame { fill: none; stroke: var(--gm-ink, #222); stroke-width: 0.07; }
+.tracks-board .board { fill: var(--gm-paper); }
+.tracks-board .rule { stroke: var(--gm-rule); stroke-width: 0.025; }
+.tracks-board .frame { fill: none; stroke: var(--gm-ink); stroke-width: 0.07; }
 .tracks-board .cursor { fill: transparent; }
-.puzzle:focus-within .tracks-board .cursor { fill: #c9daf5; stroke: #2457a6; stroke-width: 0.08; }
-.tracks-board text { font-size: 0.55px; text-anchor: middle; fill: var(--gm-ink, #222); font-weight: 600; }
-.tracks-board .clue.met { fill: #2e7d32; }
-.tracks-board .clue.over { fill: #c62828; }
+.puzzle:focus-within .tracks-board .cursor { fill: color-mix(in srgb, var(--gm-pick) 18%, var(--gm-paper)); stroke: var(--gm-pick); stroke-width: 0.08; }
+.tracks-board text { font-size: 0.55px; text-anchor: middle; fill: var(--gm-ink); font-weight: 600; }
+.tracks-board .clue.met { fill: var(--gm-ok); }
+.tracks-board .clue.over { fill: var(--gm-error); }
 .tracks-board .end { font-size: 0.5px; font-weight: 700; }
-.tracks-board .end-a { fill: #27ae60; }
-.tracks-board .end-b { fill: #c0392b; }
+.tracks-board .end-a { fill: var(--gm-ok); }
+.tracks-board .end-b { fill: var(--gm-error); }
 .tracks-board .track { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.tracks-board .given { stroke: #5d4037; stroke-width: 0.24; }
-.tracks-board .mine { stroke: #2457a6; stroke-width: 0.18; }
-.tracks-board .cross { stroke: #9e9a93; stroke-width: 0.06; stroke-linecap: round; }
-.puzzle.solved .tracks-board .frame { stroke: #2e7d32; }
-.puzzle.solved .tracks-board .mine { stroke: #2e7d32; }
+.tracks-board .given { stroke: var(--gm-ink); stroke-width: 0.24; }
+.tracks-board .mine { stroke: var(--gm-pick); stroke-width: 0.18; }
+.tracks-board .cross { stroke: var(--gm-ink-faint); stroke-width: 0.06; stroke-linecap: round; }
+.puzzle.solved .tracks-board .frame { stroke: var(--gm-ok); }
+.puzzle.solved .tracks-board .mine { stroke: var(--gm-ok); }
 @media print { .tracks-board .cursor { fill: transparent !important; } }
 `);
 })();

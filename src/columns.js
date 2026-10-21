@@ -27,6 +27,12 @@ export function themeCss() {
   return CSS;
 }
 
+/**
+ * The light colours' declarations, as columns.css sets them: what a page
+ * goes back to where it's dark but mustn't be, as on paper (export.js).
+ */
+export const LIGHT_COLOURS = CSS.match(/\/\* colours, light \*\/\n:root \{([^}]*)\}/)[1].trim();
+
 function renderAsideCell(md, aside, env, tab) {
   const html = md.renderer.render(asideTokens(md, aside, env), md.options, env);
   // The words it's about, if it chose some (features/marks), follow who

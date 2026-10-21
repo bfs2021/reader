@@ -22,7 +22,10 @@
 (() => {
   const { owns } = Puzzles;
 
-  const COLORS = ['#ffd54f', '#81d4fa', '#a5d6a7', '#f48fb1', '#ce93d8', '#ffab91', '#80cbc4', '#e6ee9c'];
+  // A found word's ring: the family's hues (src/columns.css), faint on the
+  // paper, light or dark, so the letters still read through them.
+  const COLORS = ['amber', 'blue', 'moss', 'rose', 'violet', 'red', 'green', 'slate']
+    .map((hue) => `color-mix(in srgb, var(--gm-${hue}) 45%, var(--gm-paper))`);
   const key = (w) => w.toUpperCase().replace(/[^A-Z]/g, '');
 
   function parseWordsearch(text) {
@@ -197,7 +200,7 @@
         s.found.forEach((f, i) => {
           const [x1, y1] = mid(f.a);
           const [x2, y2] = mid(f.b);
-          parts.push(el('line', { x1, y1, x2, y2, class: 'ring', stroke: color(i) }));
+          parts.push(el('line', { x1, y1, x2, y2, class: 'ring', style: `stroke: ${color(i)}` }));
         });
         const [cr, cc] = ui.cursor;
         parts.push(el('rect', { x: cc + 0.06, y: cr + 0.06, width: 0.88, height: 0.88, rx: 0.2, class: 'cursor' }));
@@ -337,15 +340,15 @@
 }
 /* on a slide, leave room for the scripture above and the question below */
 .deck .ws-grid { width: min(calc(var(--cell) * var(--cols)), calc(32vh * var(--cols) / var(--rows))); }
-.ws-grid .paper { fill: var(--gm-paper, #fff); }
-.ws-grid .frame { fill: none; stroke: var(--gm-ink, #222); stroke-width: 0.06; }
-.ws-grid text { font-size: 0.6px; font-weight: 600; text-anchor: middle; fill: var(--gm-ink, #222); }
+.ws-grid .paper { fill: var(--gm-paper); }
+.ws-grid .frame { fill: none; stroke: var(--gm-ink); stroke-width: 0.06; }
+.ws-grid text { font-size: 0.6px; font-weight: 600; text-anchor: middle; fill: var(--gm-ink); }
 .ws-grid .ring { stroke-width: 0.72; stroke-linecap: round; opacity: 0.6; }
-.ws-grid .mark { stroke: #b9b5ad; stroke-width: 0.6; stroke-linecap: round; opacity: 0.45; }
-.ws-grid .pick { stroke: #2457a6; stroke-width: 0.72; stroke-linecap: round; opacity: 0.3; }
-.ws-grid .pick.bent { stroke: #9e9a93; }
+.ws-grid .mark { stroke: var(--gm-rule-strong); stroke-width: 0.6; stroke-linecap: round; opacity: 0.45; }
+.ws-grid .pick { stroke: var(--gm-pick); stroke-width: 0.72; stroke-linecap: round; opacity: 0.3; }
+.ws-grid .pick.bent { stroke: var(--gm-ink-faint); }
 .ws-grid .cursor { fill: none; stroke: transparent; stroke-width: 0.07; }
-.puzzle:focus-within .ws-grid .cursor { stroke: #2457a6; }
+.puzzle:focus-within .ws-grid .cursor { stroke: var(--gm-pick); }
 .ws-words {
   list-style: none; margin: 0; padding: 0;
   font-family: var(--gm-sans); font-size: 0.85rem; line-height: 1.6;
@@ -356,10 +359,10 @@
 .ws-words li { break-inside: avoid; white-space: nowrap; }
 .ws-words li::before {
   content: ""; display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.45em;
-  border: 1.5px solid #9e9a93; border-radius: 2px; vertical-align: -0.05em;
+  border: 1.5px solid var(--gm-ink-faint); border-radius: 2px; vertical-align: -0.05em;
 }
-.ws-words li.found { color: var(--gm-ink-soft, #777); text-decoration: line-through; }
+.ws-words li.found { color: var(--gm-ink-soft); text-decoration: line-through; }
 .ws-words li.found::before { background: var(--ring); border-color: var(--ring); }
-.puzzle.solved .ws-grid .frame { stroke: #2e7d32; }
+.puzzle.solved .ws-grid .frame { stroke: var(--gm-ok); }
 `);
 })();

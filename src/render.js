@@ -151,9 +151,9 @@ th {
   font-family: var(--gm-sans);
   font-size: 0.88em;
   font-weight: 600;
-  background: #f5f3ef;
+  background: var(--gm-th);
 }
-tbody tr:nth-child(even) td { background: #faf9f7; }
+tbody tr:nth-child(even) td { background: var(--gm-stripe); }
 
 
 `;
