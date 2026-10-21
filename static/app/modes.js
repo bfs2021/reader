@@ -59,6 +59,13 @@ export function wireDrawer() {
   document.addEventListener('pointerdown', (e) => {
     if (!el.sidebar.contains(e.target) && !el.sidebarToggle.contains(e.target)) close();
   });
+  // Nor does it stay over the panes once Tab has gone on to them. Where the
+  // keyboard went is known once it's there: going into the preview's frame
+  // says nothing of it as it leaves.
+  el.sidebar.addEventListener('focusout', () => setTimeout(() => {
+    const to = document.activeElement;
+    if (to && to !== document.body && !el.sidebar.contains(to) && !el.sidebarToggle.contains(to)) close();
+  }));
   listShown();
 }
 

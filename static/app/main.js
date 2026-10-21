@@ -88,6 +88,7 @@ function wire() {
       if (e.data?.type === 'key') (isGoTo(e.data) ? openGoTo : deckKey)(e.data);
       else if (e.data?.type === 'click') (e.data.left ? back : next)();
       else if (e.data?.type === 'edit') applyEdit(e.data, { fromStage: true });
+      else if (e.data?.type === 'untab') el.deck.focus();
       return;
     }
     if (e.source !== el.preview.contentWindow) return;

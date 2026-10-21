@@ -3,8 +3,11 @@
  * worked on is lit, once any is done or one is clicked. It's the first
  * not done, or the one clicked; marking it done lights the next not done
  * after it. `j` and `k` light the next and the one before, and `x` marks
- * the lit one done, or not, when the page has the keys. What's lit is only the
- * page's, not the file's, and holds across renders.
+ * the lit one done, or not, when the page has the keys and no control on it
+ * does (but a step's own box), so they don't stand in for a key a control
+ * wants. The lit step is the current one, and each key says where it left
+ * the steps. What's lit is only the page's, not the file's, and holds
+ * across renders.
  *
  * While steps are under way -- begun and not all done -- the page around
  * the frame is asked to keep the screen awake (static/awake.js): hands
@@ -14,6 +17,27 @@
   // A group's lit step, by its index, once one is clicked or done.
   const lit = new Map();
   let awake = false;
+
+  // What a key did, for a screen reader, said outside <body>: marking a
+  // step done brings a render, which replaces the page.
+  const said = document.createElement('div');
+  said.className = 'steps-said';
+  said.setAttribute('aria-live', 'polite');
+  const say = (text) => {
+    if (!said.isConnected) document.documentElement.append(said);
+    // The same again is still heard.
+    said.textContent = said.textContent === text ? `${text}\u00a0` : text;
+  };
+  const words = (li) => {
+    const copy = li.cloneNode(true);
+    copy.querySelectorAll('ol, ul, input, button').forEach((n) => n.remove());
+    return copy.textContent.replace(/\s+/g, ' ').trim();
+  };
+  const tell = (g, k) => {
+    const steps = groups().get(g);
+    const li = steps?.[k];
+    if (li) say(`Step ${k + 1} of ${steps.length}${done(li) ? ', done' : ''}: ${words(li)}`);
+  };
 
   const groups = (root = document) => {
     const found = new Map();
@@ -39,7 +63,11 @@
     for (const [g, steps] of all) {
       const begun = lit.has(g) || steps.some(done);
       const at = lit.has(g) ? lit.get(g) : begun ? undone(steps) : -1;
-      steps.forEach((li, k) => li.classList.toggle('step-current', k === at));
+      steps.forEach((li, k) => {
+        li.classList.toggle('step-current', k === at);
+        if (k === at) li.setAttribute('aria-current', 'step');
+        else li.removeAttribute('aria-current');
+      });
       if (begun && !steps.every(done)) underWay = true;
     }
     // For what follows the lit steps (ingredients/preview.js).
@@ -106,17 +134,29 @@
     return g == null ? null : { g, steps: all.get(g), k: current ? all.get(g).indexOf(current) : -1 };
   };
 
+  /** Whether a key pressed on `t` is the steps': on the page itself, or a step's own box. */
+  const free = (t) => t === document.body || t === document.documentElement
+    || (t.matches?.('.task-box') && boxOf(t.closest('li.step') ?? t) === t);
+
   document.addEventListener('keydown', (e) => {
     if (Preview.deck || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
-    if (e.target.closest?.('input:not([type=checkbox], [type=radio]), textarea, [contenteditable], .puzzle, .field')) return;
-    if (!['j', 'k', 'x'].includes(e.key)) return;
+    if (!['j', 'k', 'x'].includes(e.key) || !free(e.target)) return;
     const at = keyed();
     if (!at) return;
     e.preventDefault();
     const { g, steps, k } = at;
-    if (e.key === 'j') light(g, Math.min(steps.length - 1, k + 1), true);
-    else if (e.key === 'k') light(g, Math.max(0, k - 1), true);
-    else if (k >= 0) boxOf(steps[k])?.click();
+    if (e.key === 'x') {
+      if (k < 0) return;
+      const box = boxOf(steps[k]);
+      box?.click();
+      // The step done, and the one lit after it.
+      const next = keyed();
+      if (box) say(`Step ${k + 1} ${box.checked ? 'done' : 'not done'}.${next && next.k >= 0 && next.k !== k ? ` Step ${next.k + 1} of ${steps.length}: ${words(steps[next.k])}` : ''}`);
+      return;
+    }
+    const to = e.key === 'j' ? Math.min(steps.length - 1, k + 1) : Math.max(0, k - 1);
+    light(g, to, true);
+    tell(g, to);
   });
 
   Preview.register({ restore: (root) => show(root) });

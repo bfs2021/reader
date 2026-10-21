@@ -16,7 +16,7 @@ test('a word is known by its plural and singular', () => {
 test('!word names an item\'s key, and the word in the recipe\'s steps is marked', () => {
   const { body } = render(RECIPE);
   assert.match(body, /<li class="ingredient task" data-ingredient="onion" data-recipe="0">.* small yellow <span class="ingredient-key">onion<\/span>, diced<\/li>/);
-  assert.match(body, /Add the <span class="ingredient-use" tabindex="0" data-ingredient="onion" data-recipe="0">Onions<\/span>, then <a href="x">onion<\/a> and <code>onion<\/code>/);
+  assert.match(body, /Add the <span class="ingredient-use" tabindex="0" role="button" data-ingredient="onion" data-recipe="0">Onions<\/span>, then <a href="x">onion<\/a> and <code>onion<\/code>/);
   assert.match(body, /More <span class="ingredient-use"[^>]*>onion<\/span>/);
 });
 
@@ -42,4 +42,10 @@ test('a defined term keeps its !, and \\! is as typed', () => {
   assert.match(body, /class="def-use"/);
   assert.doesNotMatch(body, /ingredient/);
   assert.match(body, /and !this/);
+});
+
+test('an exported page\'s word isn\'t a button: it has no script to show its item with', () => {
+  const { body } = render(RECIPE, { exported: true });
+  assert.match(body, /Add the <span class="ingredient-use" data-ingredient="onion"/);
+  assert.doesNotMatch(body, /tabindex|role="button"/);
 });

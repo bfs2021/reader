@@ -1,6 +1,7 @@
 /**
  * An ingredient named in a step: hovering or focusing the word shows its
- * item, amounts as multiplied; the lit step's (steps/preview.js) are lit,
+ * item, amounts as multiplied, and Enter or Space on it shows it or puts it
+ * away; the lit step's (steps/preview.js) are lit,
  * and so are their items in the list. A step marked done that's the last
  * to name an ingredient marks it used, in the same edit: a staged box
  * filled, a plain one ticked. Runs in the preview frame.
@@ -18,9 +19,10 @@
     }
   });
 
-  // The item, shown by the word.
+  // The item, shown by the word, and described by it.
   const pop = document.createElement('div');
   pop.className = 'ingredient-pop';
+  pop.id = 'ingredient-pop';
   pop.setAttribute('role', 'tooltip');
   pop.hidden = true;
   let showing = null;
@@ -28,6 +30,7 @@
   function show(use) {
     const item = itemOf(use);
     if (!item) return;
+    if (showing && showing !== use) showing.removeAttribute('aria-describedby');
     showing = use;
     const copy = item.cloneNode(true);
     copy.querySelectorAll('input, button, .stage-name, ul, ol').forEach((n) => n.remove());
@@ -35,15 +38,20 @@
     // Outside <body>, which every render replaces.
     if (!pop.isConnected) document.documentElement.append(pop);
     pop.hidden = false;
+    use.setAttribute('aria-describedby', pop.id);
     const r = use.getBoundingClientRect();
     pop.style.left = `${Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8))}px`;
     pop.style.top = `${r.bottom + 6}px`;
   }
   function hide() {
+    showing?.removeAttribute('aria-describedby');
     showing = null;
     pop.hidden = true;
   }
+  // It stays while the pointer is on the word or on it, so it can be read
+  // at any size; the gap between them is the popup's too (ingredients.css).
   document.addEventListener('mouseover', (e) => {
+    if (pop.contains(e.target)) return;
     const use = e.target.closest?.('.ingredient-use');
     if (use && use !== showing) show(use);
     else if (!use && showing) hide();
@@ -53,7 +61,16 @@
     if (use) show(use);
   });
   document.addEventListener('focusout', hide);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && showing) hide(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && showing) hide();
+    // The word is a button: Enter or Space shows its item, or puts it away.
+    const use = e.target.closest?.('.ingredient-use');
+    if (use && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      if (showing === use) hide();
+      else show(use);
+    }
+  });
   window.addEventListener('scroll', hide, { passive: true });
   Preview.register({ restore: hide });
 

@@ -105,7 +105,9 @@ place.
 - Once a step is done, the first not done is lit up, and marking that one
   done lights the next. Click a step to light it instead; with the page
   clicked into, `j` and `k` light the next and the one before, and `x`
-  marks the lit one done, or not done again. What's lit is only on the page, not in the file.
+  marks the lit one done, or not done again; each says which step it
+  left lit. They're left to a box, button or link Tabbed to, but for a
+  step's own. What's lit is only on the page, not in the file.
 - The steps under one heading go together, across a callout or a quote
   between them.
 - While steps are under way -- begun and not all done -- the screen is kept
@@ -140,7 +142,8 @@ names it can't slip by:
 :::
 
 - The word is underlined where it's used, and hovering or focusing it shows
-  its item, amounts multiplied.
+  its item, amounts multiplied; Enter on it shows it or puts it away, and
+  Esc puts it away.
 - The lit step's ingredients are lit, in the step and in the list.
 - When the last step that names an ingredient is marked done, its box is
   marked too, in the same edit: a box with stages filled, a plain one

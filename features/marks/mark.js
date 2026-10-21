@@ -28,9 +28,15 @@ export function marking(names, key) {
   return { style: style ?? topic?.style ?? 'underline', topic, rest };
 }
 
-/** Makes `token`, a span's opening, the mark: drawn in `style`, in `color` if there is one. */
-export function markSpan(token, { style, color }) {
+/**
+ * Makes `token`, a span's opening, the mark: drawn in `style`, in `color` if
+ * there is one. It's a mark to a screen reader, and its topic, if it has one,
+ * is said with it and shows on hover, not only by its colour and pen.
+ */
+export function markSpan(token, { style, color, topic }) {
   token.attrJoin('class', `mk mk-${style}`);
+  token.attrSet('role', 'mark');
+  if (topic) token.attrSet('title', topic);
   if (color) token.attrSet('style', `--mk: ${color}`);
   token.meta = { ...token.meta, mark: { style, color } };
 }

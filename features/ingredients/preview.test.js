@@ -53,3 +53,33 @@ test('a step done out of order leaves what a step still to do names', () => {
     [9, '* [x] a handful of fresh !cilantro, chopped'],
   ]]);
 });
+
+test('the word is a button that shows its item, described by it, and Enter puts it away', () => {
+  const p = preview();
+  p.show(render(RECIPE).body);
+  const use = p.document.querySelector('.ingredient-use');
+  const pop = () => p.document.querySelector('.ingredient-pop');
+  assert.equal(use.getAttribute('role'), 'button');
+  use.focus();
+  assert.equal(pop().hidden, false);
+  assert.equal(use.getAttribute('aria-describedby'), pop().id);
+  assert.match(pop().textContent, /small yellow onion/);
+  const press = (key) => use.dispatchEvent(new p.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  press('Enter');
+  assert.equal(pop().hidden, true);
+  assert.equal(use.hasAttribute('aria-describedby'), false);
+  press(' ');
+  assert.equal(pop().hidden, false);
+});
+
+test('the item stays up while the pointer moves from the word onto it', () => {
+  const p = preview();
+  p.show(render(RECIPE).body);
+  const over = (n) => n.dispatchEvent(new p.window.MouseEvent('mouseover', { bubbles: true }));
+  over(p.document.querySelector('.ingredient-use'));
+  const pop = p.document.querySelector('.ingredient-pop');
+  over(pop);
+  assert.equal(pop.hidden, false);
+  over(p.document.querySelector('h2'));
+  assert.equal(pop.hidden, true);
+});

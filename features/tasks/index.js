@@ -156,8 +156,11 @@ export function tasks(md) {
   };
 
   md.renderer.rules.task_box = (tokens, i, options, env) => {
-    if (tokens[i].meta.staged) return stageBox({ ...tokens[i].meta, stages: stagesOf(env) });
-    const { line, radio, checked, on, off, group, name } = tokens[i].meta;
+    if (tokens[i].meta.staged) return stageBox({ ...tokens[i].meta, stages: stagesOf(env), exported: env.exported });
+    const { line, radio, checked, on, off, group, name, step } = tokens[i].meta;
+    // A step's box sits unseen over its badge (features/steps), which says
+    // whether it's done; an exported page couldn't change what the badge says.
+    if (step && env.exported) return '';
     const lines = ` data-on="${escapeAttr(on)}" data-off="${escapeAttr(off)}"${name ? ` aria-label="${escapeAttr(name)}"` : ''}${checked ? ' checked' : ''}`;
     return radio
       ? `<input type="radio" class="choice-box" name="choice-${group}" data-line="${line}"${lines}> `
@@ -194,9 +197,10 @@ function stagesOf(env) {
 
 /**
  * A box with stages, drawn as a pip for each, those reached filled; its
- * stage named when the front matter names it.
+ * stage named when the front matter names it. On an exported page, only a
+ * picture of one.
  */
-function stageBox({ line, stage, lines, stages, name }) {
+function stageBox({ line, stage, lines, stages, name, exported }) {
   const n = lines.length - 1;
   const called = (k) => stages?.[k - 1] ?? `${k} of ${n}`;
   const now = stage ? called(stage) : 'not started';
@@ -204,6 +208,8 @@ function stageBox({ line, stage, lines, stages, name }) {
   const next = stage < n ? `; next, ${called(stage + 1)}` : '';
   const pips = lines.slice(1).map((_, k) => `<i${k < stage ? ' class="on"' : ''}></i>`).join('');
   const shown = stages?.[stage - 1] && stage < n ? ` <span class="stage-name">${escapeHtml(stages[stage - 1])}</span>` : '';
+  // An exported page has no script to fill it with: it only says how far it's got.
+  if (exported) return `<span class="stage-box" role="img" aria-label="${escapeAttr(label)}" title="${escapeAttr(now)}">${pips}</span>${shown} `;
   return `<button type="button" class="stage-box" role="checkbox" aria-checked="${stage === n ? 'true' : stage ? 'mixed' : 'false'}"`
     + ` aria-label="${escapeAttr(label)}" title="${escapeAttr(`${now}${next}`)}" data-line="${line}" data-stage="${stage}"`
     + ` data-lines="${escapeAttr(JSON.stringify(lines))}">${pips}</button>${shown} `;

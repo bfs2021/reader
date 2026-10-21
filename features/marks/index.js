@@ -88,7 +88,7 @@ function choose(state, asides) {
       // Words that cross another's, neither holding the other, can't both be marked.
       if (list.some((c) => c.start < o.end && o.start < c.end && !(c.start <= o.start && o.end <= c.end) && !(o.start <= c.start && c.end <= o.end))) continue;
       const span = new state.Token('style_span_open', 'span', 1);
-      markSpan(span, { style: aside.select.style ?? topic?.style ?? 'underline', color });
+      markSpan(span, { style: aside.select.style ?? topic?.style ?? 'underline', color, topic: topic?.name });
       cut = { start: o.start, end: o.end, span };
       list.push(cut);
       cuts.set(o.child, list);

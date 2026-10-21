@@ -224,9 +224,40 @@
     }
   }
 
+  // What the keyboard can reach, in order: the control that had it is found
+  // again by its place among them, as the same kind, once a render has
+  // replaced it.
+  const REACHABLE = 'a[href], button, input, select, textarea, [tabindex]';
+  const kind = (n) => `${n.tagName} ${n.className}`;
+  const placeOf = (n) => (n && n !== document.body && document.body.contains(n)
+    ? { k: [...document.body.querySelectorAll(REACHABLE)].indexOf(n), kind: kind(n) } : null);
+  function refocus(was) {
+    // A feature may have put the keyboard somewhere itself (a field, a puzzle).
+    if (!was || was.k < 0 || (document.activeElement && document.activeElement !== document.body)) return;
+    const now = document.body.querySelectorAll(REACHABLE)[was.k];
+    if (now && kind(now) === was.kind) now.focus({ preventScroll: true });
+  }
+  // Where the keyboard was as it left the frame: a box ticked passes it
+  // through the editor and back (app/editing.js), and the page may be drawn
+  // again meanwhile.
+  let left = null;
+  document.addEventListener('focusout', (e) => {
+    if (!e.relatedTarget) left = { node: e.target, place: placeOf(e.target) };
+  });
+  function giveBack() {
+    if (!left) return;
+    if (left.node.isConnected) {
+      if (document.activeElement === document.body) left.node.focus({ preventScroll: true });
+    } else {
+      refocus(left.place);
+    }
+    left = null;
+  }
+
   /** Puts a render in place: the page, its steps, its fit and its scroll. */
   function draw(m) {
     const y = window.scrollY;
+    const had = placeOf(document.activeElement);
     if (m.base) base.href = m.base;
     if (theme.textContent !== m.css) theme.textContent = m.css;
     dim = Boolean(m.dim);
@@ -248,6 +279,7 @@
       if (m.reveal != null) hideLater(m.reveal);
       Ink.set();
     });
+    refocus(had);
     hidePeek();
     Preview.deck = Boolean(m.deck);
     document.documentElement.classList.toggle('deck', Preview.deck);
@@ -314,6 +346,10 @@
       else reveal(m.reveal);
     } else if (m.type === 'scroll') {
       follow(m.line);
+    } else if (m.type === 'refocus') {
+      giveBack();
+    } else if (m.type === 'tab') {
+      tab(m.back, null);
     }
   });
 
@@ -415,15 +451,45 @@
   }, { passive: true });
 
   const DECK_KEYS = new Set([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace']);
+  // On a control, the keys that work it are its own, not the deck's.
+  const OWN_KEYS = new Set([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
+  /** What Tab reaches on a slide, in order: shown, and one radio button of a group. */
+  function reachable() {
+    return [...document.body.querySelectorAll(REACHABLE)].filter((n) => {
+      if (n.tabIndex < 0 || n.disabled || n.closest('.step-hidden') || n.checkVisibility?.({ visibilityProperty: true }) === false) return false;
+      if (n.type !== 'radio' || n.checked) return true;
+      const group = [...document.getElementsByName(n.name)];
+      return !group.some((r) => r.checked) && group[0] === n;
+    });
+  }
+  /**
+   * Tab on a slide goes round its boxes, choices, fields and cards; past the
+   * last, or before the first, it gives the keyboard back to the deck.
+   */
+  function tab(back, from) {
+    const all = reachable();
+    const at = all.indexOf(from);
+    const to = at < 0 ? (back ? all.length - 1 : 0) : at + (back ? -1 : 1);
+    if (all[to]) all[to].focus();
+    else window.parent.postMessage({ type: 'untab' }, '*');
+  }
 
   // Clicking into the page gives this frame the keyboard, so pass the app's
   // shortcuts (and Esc, which leaves work mode) up to it. On a slide, pass
   // every key: they're all the deck's, but for one a feature has already
-  // taken, such as Enter on a card's label.
+  // taken, such as Enter on a card's label, Tab, and those that work the
+  // control that has the keyboard.
   document.addEventListener('keydown', (e) => {
     const meta = e.metaKey || e.ctrlKey;
     if (Preview.deck && !meta && !e.altKey) {
       if (e.defaultPrevented) return;
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        tab(e.shiftKey, e.target);
+        return;
+      }
+      if (OWN_KEYS.has(e.key) && e.target !== document.body && e.target.matches?.(REACHABLE)) return;
       if (DECK_KEYS.has(e.key)) e.preventDefault();
       const { key, code, metaKey, ctrlKey, altKey, shiftKey } = e;
       window.parent.postMessage({ type: 'key', key, code, metaKey, ctrlKey, altKey, shiftKey }, '*');

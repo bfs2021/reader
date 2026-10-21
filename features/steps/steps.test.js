@@ -18,3 +18,9 @@ test('a `1.` list, a bullet list, or a radio button or staged box is no step', (
   const { body } = render('1. [ ] plain\n\n- [ ] bullet\n\n1) ( ) choice\n2) [ ][ ] staged\n3) no box\n');
   assert.doesNotMatch(body, /class="[^"]*\bstep\b/);
 });
+
+test('an exported page\'s steps have no box hidden over the badge, which says whether each is done', () => {
+  const { body } = render('1) [x] chop\n2) [ ] fry\n', { exported: true });
+  assert.doesNotMatch(body, /<input/);
+  assert.match(body, /class="task step step-done"/);
+});

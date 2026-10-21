@@ -29,8 +29,11 @@
 }
 .mk-dotted { text-decoration-style: dotted; text-decoration-thickness: 0.14em; }
 .mk-wavy { text-decoration-style: wavy; text-decoration-thickness: 0.08em; text-underline-offset: 0.16em; }
+/* The wash is faint, 1.4:1 on the page, so the pen's own colour edges it
+ * underneath. */
 .mk-highlight {
   background: color-mix(in srgb, var(--mk-ink) 24%, transparent);
+  box-shadow: inset 0 -0.1em var(--mk-ink);
   border-radius: 0.25em 0.1em 0.3em 0.15em;
   padding: 0 0.12em;
 }
@@ -40,7 +43,9 @@
 .mk-about {
   font-style: normal;
   font-weight: 600;
-  color: var(--mk, var(--gm-ink-soft));
+  /* the mark's colour, deepened toward the ink to be read as text: a pure
+   * red is 4:1 on the page, this 8.8:1 */
+  color: color-mix(in srgb, var(--mk, var(--gm-ink-soft)) 55%, var(--gm-ink));
   margin-right: 0.45em;
 }
 .mk-lost {

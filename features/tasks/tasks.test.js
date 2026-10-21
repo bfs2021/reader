@@ -146,3 +146,11 @@ test('an empty log is added to under its heading', () => {
   const nested = render('## Yam\nreset:[]\n\n### Log\n\n## Akara\n').body;
   assert.match(nested, /class="task-log" data-at="4" data-level="4">/);
 });
+
+test('an exported page\'s staged box is a picture of how far it\'s got, not a control', () => {
+  const md = '---\nmultibox:\n  stages: have, prepped, used\n---\n\n* [x][ ][ ] onion\n* [ ] salt\n';
+  const { body } = render(md, { exported: true });
+  assert.match(body, /<span class="stage-box" role="img" aria-label="onion: have \(1 of 3\)" title="have"><i class="on"><\/i><i><\/i><i><\/i><\/span> <span class="stage-name">have<\/span>/);
+  assert.doesNotMatch(body, /<button/);
+  assert.match(body, /<input type="checkbox" class="task-box"/, 'a plain box can still be ticked, on paper or on screen');
+});

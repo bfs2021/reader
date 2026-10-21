@@ -30,6 +30,7 @@ export function steps(md) {
         if (box?.type !== 'task_box' || box.meta.radio || box.meta.staged) return;
         of ??= sections(state).of;
         addClass(t, box.meta.checked ? 'step step-done' : 'step');
+        box.meta.step = true;
         t.attrSet('data-steps', String(of[i].line));
       }
     });
