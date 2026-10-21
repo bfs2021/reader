@@ -43,8 +43,17 @@
   const memory = new Map();
   // Each board drawn, by its kind and text, and the styles they take.
   const keys = new WeakMap();
-  // What each board says after a key, for a screen reader.
+  // What each board says after a key, for a screen reader, said in one place
+  // outside <body>: a move can bring a render, which replaces the page.
   const tells = new WeakMap();
+  const said = document.createElement('div');
+  said.className = 'puzzle-said';
+  said.setAttribute('aria-live', 'polite');
+  const say = (text) => {
+    if (!said.isConnected) document.documentElement.append(said);
+    // The same again is still heard.
+    said.textContent = said.textContent === text ? `${text}\u00a0` : text;
+  };
   let styles = '';
 
   function register(kind, impl, css = '') {
@@ -155,21 +164,13 @@
       dd.textContent = what;
       help.append(dt, dd);
     }
+    host.replaceChildren(board, bar, help);
     // Read after each key: where it left the puzzle, and how it stands.
-    const said = document.createElement('div');
-    said.className = 'puzzle-said';
-    said.setAttribute('aria-live', 'polite');
-    host.replaceChildren(board, bar, help, said);
-    const tell = () => {
-      if (!host.contains(document.activeElement) || !host.isConnected) return;
-      const status = bar.textContent.replace(/(^| · )\? for keys$/, '');
-      const text = [where(), status].filter(Boolean).join('. ');
-      // The same again is still heard.
-      said.textContent = said.textContent === text ? `${text}\u00a0` : text;
-    };
     tells.set(host, () => {
-      if (host.classList.contains('puzzle-resting')) said.textContent = 'Keys handed back. Enter to play';
-      else tell();
+      if (!host.contains(document.activeElement)) return;
+      if (host.classList.contains('puzzle-resting')) return say('Keys handed back. Enter to play');
+      const status = bar.textContent.replace(/(^| · )\? for keys$/, '');
+      say([where(), status].filter(Boolean).join('. '));
     });
     return { bar, help };
   }
@@ -215,7 +216,7 @@
       const boards = {};
       for (const host of document.querySelectorAll('.puzzle[data-kind]')) {
         if (!keys.has(host)) continue;
-        boards[keys.get(host)] = [...host.children].filter((e) => !e.matches('.puzzle-bar, .puzzle-help, .puzzle-said')).map((e) => e.outerHTML).join('');
+        boards[keys.get(host)] = [...host.children].filter((e) => !e.matches('.puzzle-bar, .puzzle-help')).map((e) => e.outerHTML).join('');
       }
       return { puzzles: { css: styles, boards } };
     },
