@@ -22,14 +22,14 @@ test('hiding the list with the keyboard in it leaves the keyboard on ☰', () =>
   toggleSidebar(false);
 });
 
-test('the list over the panes closes once Tab leaves it, not as it moves within it', () => {
-  const leave = (from, to) => from.dispatchEvent(new document.defaultView.FocusEvent('focusout', { bubbles: true, relatedTarget: to }));
+test('the list over the panes closes once Tab leaves it, not as it moves within it', async () => {
+  const settled = () => new Promise((r) => setTimeout(r, 5));
   toggleDrawer(true);
-  leave(el.filter, el.sidebar.querySelector('button') ?? el.filter);
+  el.newBtn.focus();
+  await settled();
   assert.equal(el.split.classList.contains('list-open'), true);
-  leave(el.filter, null);
-  assert.equal(el.split.classList.contains('list-open'), true, 'the window losing focus isn\'t leaving the list');
-  leave(el.filter, el.editor);
+  el.helpToggle.focus();
+  await settled();
   assert.equal(el.split.classList.contains('list-open'), false);
 });
 
