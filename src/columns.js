@@ -41,13 +41,13 @@ function renderAsideCell(md, aside, env, tab) {
   if (aside.by) {
     const chips = byChips(aside.by) + words;
     const opened = /^<p\b/.test(html) ? html.replace(/^<p\b([^>]*)>/, `<p$1>${chips}`) : `${chips}\n${html}`;
-    return `<div class="gm-aside-cell gm-attributed"${attrs}>\n${opened}</div>`;
+    return `<div class="gm-aside-cell gm-attributed" role="note"${attrs}>\n${opened}</div>`;
   }
   // Slip the `~` in front of the first line of prose so the mark survives into
-  // the printed page.
-  const lead = `<span class="gm-mark">~</span>${words}`;
+  // the printed page. It's seen, not read: the aside is a note.
+  const lead = `<span class="gm-mark" aria-hidden="true">~</span>${words}`;
   const marked = /<p\b/.test(html) ? html.replace(/<p\b([^>]*)>/, `<p$1>${lead}`) : words ? `<p>${lead}</p>\n${html}` : html;
-  return `<div class="gm-aside-cell"${attrs}>\n${marked}</div>`;
+  return `<div class="gm-aside-cell" role="note"${attrs}>\n${marked}</div>`;
 }
 
 /**

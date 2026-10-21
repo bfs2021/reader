@@ -135,7 +135,7 @@
     ['Space or Enter', 'start a word, then again at its last letter'],
     ['drag', 'circle a word (or click its first and last letters)'],
     ['⌫', 'erase gray marks through this letter'],
-    ['Esc', 'let go of a word; again, done for now'],
+    ['Esc', 'let go of a word; again, done for now, till Enter'],
   ];
 
   const SVGNS = 'http://www.w3.org/2000/svg';
@@ -167,8 +167,14 @@
       const list = document.createElement('ul');
       list.className = `ws-words${s.words.length > 12 ? ' many' : ''}`;
       board.append(svg, list);
-      const { bar, help } = Puzzles.frame(host, board, WORDSEARCH_KEYS);
-      host.setAttribute('aria-label', 'Word search');
+      const { bar, help } = Puzzles.frame(host, board, WORDSEARCH_KEYS, { name: 'Word search', where });
+
+      /** The letter the cursor is on, and where a word being circled starts. */
+      function where() {
+        const [r, c] = ui.cursor;
+        const from = ui.anchor ? `, from row ${ui.anchor[0] + 1}, column ${ui.anchor[1] + 1}` : '';
+        return `Row ${r + 1}, column ${c + 1}: ${s.grid[r][c]}${from}`;
+      }
 
       let flash = '';
       let flashTimer = 0;
@@ -277,7 +283,7 @@
           case '?': ui.help = !ui.help; return draw();
           case 'Escape':
             if (ui.anchor) { ui.anchor = null; return draw(); }
-            return host.blur();
+            return Puzzles.rest(host);
           default:
         }
       });

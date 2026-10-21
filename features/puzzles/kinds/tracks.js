@@ -29,6 +29,7 @@
   const STEP = { [N]: [-1, 0], [E]: [0, 1], [S]: [1, 0], [W]: [0, -1] };
   const OPP = { [N]: S, [E]: W, [S]: N, [W]: E };
   const OUTWARD = { left: W, right: E, top: N, bottom: S };
+  const SIDES = { [N]: 'top', [E]: 'right', [S]: 'bottom', [W]: 'left' };
 
   const LIGHT = {
     0: '·', [E | W]: '─', [N | S]: '│', [S | E]: '┌', [S | W]: '┐', [N | E]: '└', [N | W]: '┘',
@@ -199,7 +200,7 @@
     ['drag', 'lay track with the mouse'],
     ['x', 'mark a square with no track'],
     ['⌫', 'clear a square'],
-    ['Esc', 'done for now'],
+    ['Esc', 'done for now, till Enter'],
   ];
 
   const SVGNS = 'http://www.w3.org/2000/svg';
@@ -227,8 +228,16 @@
 
       const svg = el('svg', { viewBox: `0 0 ${n + 2} ${n + 2}`, class: 'tracks-board', role: 'img' });
       svg.style.setProperty('--span', n + 2);
-      const { bar, help } = Puzzles.frame(host, svg, TRACKS_KEYS);
-      host.setAttribute('aria-label', 'Train tracks');
+      const { bar, help } = Puzzles.frame(host, svg, TRACKS_KEYS, { name: 'Train tracks', where });
+
+      /** The square the cursor is on, and the track in it. */
+      function where() {
+        const i = ui.cursor;
+        const m = s.given[i] || s.mine[i];
+        const what = m ? `track ${bits(m).map((d) => SIDES[d]).join(' to ')}${s.given[i] ? ', given' : ''}`
+          : s.cross[i] ? 'no track' : 'empty';
+        return `Row ${Math.floor(i / n) + 1}, column ${(i % n) + 1}: ${what}`;
+      }
 
       /** Where track in square `i` reaches toward `d`: its edge, or past it out of the grid. */
       function reach(i, d) {
@@ -323,7 +332,7 @@
             return commit();
           case 'Backspace': case 'Delete': case ' ': clearSquare(s, ui.cursor); return commit();
           case '?': ui.help = !ui.help; return draw();
-          case 'Escape': return host.blur();
+          case 'Escape': return Puzzles.rest(host);
           default:
         }
       });
@@ -391,7 +400,7 @@
 .tracks-board .rule { stroke: #c9c5bd; stroke-width: 0.025; }
 .tracks-board .frame { fill: none; stroke: var(--gm-ink, #222); stroke-width: 0.07; }
 .tracks-board .cursor { fill: transparent; }
-.puzzle:focus-within .tracks-board .cursor { fill: #c9daf5; }
+.puzzle:focus-within .tracks-board .cursor { fill: #c9daf5; stroke: #2457a6; stroke-width: 0.08; }
 .tracks-board text { font-size: 0.55px; text-anchor: middle; fill: var(--gm-ink, #222); font-weight: 600; }
 .tracks-board .clue.met { fill: #2e7d32; }
 .tracks-board .clue.over { fill: #c62828; }

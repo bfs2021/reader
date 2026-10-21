@@ -32,9 +32,11 @@ pre.code-lines .line {
   min-height: 1lh;
   margin: 0 -0.85rem;
   padding: 0 0.85rem;
-  transition: opacity .18s, background-color .18s;
+  transition: color .18s, background-color .18s;
 }
-pre.code-focus:has(.line.hl) .line:not(.hl) { opacity: .45; }
+/* the lines out of focus lose their colours, rather than fading, so
+ * they're still read: 6.9:1 */
+pre.code-focus:has(.line.hl) .line:not(.hl), pre.code-focus:has(.line.hl) .line:not(.hl) * { color: var(--gm-ink-soft); }
 pre.code-focus .line.hl { opacity: 1; background: #f0ebde; box-shadow: inset 2px 0 var(--gm-accent); }
 
 /* numbered: the count sits in a gutter as wide as the last number */

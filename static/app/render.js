@@ -59,6 +59,7 @@ export async function renderNow({ resetScroll = false } = {}) {
     type: 'render',
     css: out.css,
     body: page ? page.body : out.body,
+    title: out.title,
     base: baseFor(path),
     resetScroll,
     lines: el.editor.value.split('\n').length,

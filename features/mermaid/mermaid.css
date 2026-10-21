@@ -1,5 +1,9 @@
 .mermaid { margin: 1rem 0; break-inside: avoid; }
-.mermaid.drawn > pre { display: none; }
+/* Drawn, its text is still there to be read aloud, out of sight. */
+.mermaid.drawn > pre {
+  position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; border: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: pre;
+}
 .mermaid svg { max-width: 100%; height: auto; }
 .mermaid.drawn.stale svg { opacity: 0.5; }
 .mermaid-error {

@@ -3,7 +3,8 @@
  *
  * Each ```mermaid fence comes from the server as `<div class="mermaid">`
  * holding its code block, and is drawn here from that text: the diagram
- * goes in beside the code, which is then hidden. Text that Mermaid can't
+ * goes in beside the code, which is then hidden but for a screen reader,
+ * the diagram one image named by its `accTitle:`. Text that Mermaid can't
  * read shows the code with what was wrong under it.
  *
  * Drawing takes a moment and a render comes with each keystroke, so what
@@ -60,6 +61,8 @@
     if (svg) {
       const figure = document.createElement('div');
       figure.className = 'mermaid-figure';
+      figure.setAttribute('role', 'img');
+      figure.setAttribute('aria-label', /^[ \t]*accTitle[ \t]*:[ \t]*(.+?)[ \t]*$/m.exec(text(host))?.[1] ?? 'Diagram');
       figure.innerHTML = svg;
       host.append(figure);
     }

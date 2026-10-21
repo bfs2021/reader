@@ -11,7 +11,7 @@ test('a mermaid fence is wrapped for the preview to draw, its text kept as code'
 test('a fence the preview drew is written drawn, for a page with nothing to draw it', () => {
   const src = '```mermaid\nflowchart LR\n  a --> b\n```\n\n```mermaid\ngraph TD\n```\n';
   const { body } = render(src, { drawn: { mermaid: { 'flowchart LR\n  a --> b': '<svg id="m1"></svg>' } } });
-  assert.match(body, /<div class="mermaid drawn"><pre><code class="language-mermaid">flowchart LR\n {2}a --&gt; b\n<\/code><\/pre><div class="mermaid-figure"><svg id="m1"><\/svg><\/div><\/div>/);
+  assert.match(body, /<div class="mermaid drawn"><pre><code class="language-mermaid">flowchart LR\n {2}a --&gt; b\n<\/code><\/pre><div class="mermaid-figure" role="img" aria-label="Diagram"><svg id="m1"><\/svg><\/div><\/div>/);
   assert.match(body, /<div class="mermaid"><pre><code class="language-mermaid">graph TD\n<\/code><\/pre><\/div>/);
 });
 
@@ -29,4 +29,12 @@ test('Mermaid is served for the preview to load when a page has a diagram', () =
   const feature = FEATURES.find((f) => f.name === 'mermaid');
   assert.match(feature.preview, /mermaid\/preview\.js$/);
   assert.match(feature.lazy, /vendor\/mermaid\.min\.js$/);
+});
+
+test('a drawn diagram is an image named by its accTitle, or as a diagram', () => {
+  const titled = 'flowchart LR\n  accTitle: How a post is published\n  a --> b';
+  const src = `\`\`\`mermaid\n${titled}\n\`\`\`\n\n\`\`\`mermaid\ngraph TD\n\`\`\`\n`;
+  const { body } = render(src, { drawn: { mermaid: { [titled]: '<svg></svg>', 'graph TD': '<svg></svg>' } } });
+  assert.match(body, /<div class="mermaid-figure" role="img" aria-label="How a post is published"><svg>/);
+  assert.match(body, /<div class="mermaid-figure" role="img" aria-label="Diagram"><svg>/);
 });

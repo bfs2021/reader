@@ -22,15 +22,23 @@
  * `env.drawn.mermaid`, the SVG for each fence's text, and is written as the
  * frame leaves it:
  *
- *   <div class="mermaid drawn">…the code block…<div class="mermaid-figure">…the svg…</div></div>
+ *   <div class="mermaid drawn">…the code block…<div class="mermaid-figure" role="img" aria-label="…">…the svg…</div></div>
+ *
+ * Drawn, the diagram is one image, named by the text's `accTitle:` if it
+ * has one, and the code block is out of sight but still read aloud.
  */
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import MarkdownIt from 'markdown-it';
-import { addClass } from '../source.js';
+import { addClass, escapeAttr } from '../source.js';
 
 const { Token } = MarkdownIt;
+
+/** What a diagram is called: its `accTitle:`, or that it's a diagram. */
+export function diagramName(source) {
+  return /^[ \t]*accTitle[ \t]*:[ \t]*(.+?)[ \t]*$/m.exec(source)?.[1] ?? 'Diagram';
+}
 
 export function mermaids(md) {
   const fence = md.renderer.rules.fence;
@@ -48,7 +56,7 @@ export function mermaids(md) {
     const all = env.drawn?.mermaid;
     const svg = all && Object.hasOwn(all, source) && typeof all[source] === 'string' ? all[source] : null;
     if (svg) addClass(wrapper, 'drawn');
-    const figure = svg ? `<div class="mermaid-figure">${svg}</div>` : '';
+    const figure = svg ? `<div class="mermaid-figure" role="img" aria-label="${escapeAttr(diagramName(source))}">${svg}</div>` : '';
     return `<div${self.renderAttrs(wrapper)}>${html.replace(/\n$/, '')}${figure}</div>\n`;
   };
 }

@@ -29,7 +29,7 @@ test('a shortcode in the masthead, a caption or a field shows too', () => {
   const { body } = render('---\ntitle: Party :tada:\n---\n\n![a :cake: cake](c.png)\n\n@ Mood: :smile:\n');
   assert.match(body, /<h1 class="gm-title">Party 🎉<\/h1>/);
   assert.match(body, /alt="a :cake: cake"><figcaption>a 🍰 cake<\/figcaption>/);
-  assert.match(body, /data-value=":smile:">😄<\/span>/);
+  assert.match(body, /data-value=":smile:"[^>]*>😄<\/span>/);
 });
 
 test('a shortcode in a line kept for click-to-edit stays as written', () => {

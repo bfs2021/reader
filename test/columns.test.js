@@ -25,7 +25,7 @@ test('column layout emits paired cells and the tilde mark', () => {
   assert.match(html, /gm-pair/);
   assert.match(html, /gm-speaker/);
   assert.match(html, /gm-aside-cell/);
-  assert.match(html, /class="gm-mark">~</);
+  assert.match(html, /class="gm-mark" aria-hidden="true">~</);
 });
 
 test('column headings come from front matter', () => {

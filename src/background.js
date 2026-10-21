@@ -80,7 +80,8 @@ export function backdrop(background) {
 
 // Fixed to the window, so a long page scrolls over it. On a dark color the
 // text is light; what keeps a light ground of its own (code, a table's
-// heading, an alert) keeps its dark text.
+// heading, an alert) keeps its dark text, and a topic's pill is given one,
+// its colour being for the paper.
 export const CSS = `
 .gm-bg { position: fixed; inset: 0; z-index: -1; background: center / cover no-repeat; }
 :root.gm-dark {
@@ -88,8 +89,9 @@ export const CSS = `
   --gm-rule: rgba(255, 255, 255, .32); --gm-aside-rule: rgba(205, 214, 228, .55);
   --gm-accent: #b4c1d4; --gm-paper: #22252b;
 }
+:root.gm-dark .gm-topic { background: #fff; }
 :root.gm-dark :is(code, pre, th, tbody tr:nth-child(even) td, .alert) {
-  --gm-ink: #1a1a1a; --gm-ink-soft: #555; --gm-accent: #7a8ba3;
+  --gm-ink: #1a1a1a; --gm-ink-soft: #555; --gm-accent: #5a6b84;
   color: var(--gm-ink);
 }
 `;

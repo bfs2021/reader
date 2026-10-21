@@ -56,10 +56,10 @@ test('without a key, or with none of its aliases, `~word` is text as before', ()
 
 test('the columns show chips, the reviewer\'s colour, and a legend', () => {
   const { body } = render(`${KEY}One.\n\n~#c Contradicts.\n\nTwo.\n\n~cx Also.\n\n~ Mine.\n`);
-  assert.match(body, /<div class="gm-aside-cell gm-attributed" style="--by: #b5523b">\n<p><span class="gm-by"><span class="gm-who">Josh<\/span><span class="gm-topic" style="--topic: #7a5c3e">Coherence<\/span><\/span>Contradicts.<\/p>/);
+  assert.match(body, /<div class="gm-aside-cell gm-attributed" role="note" style="--by: #b5523b">\n<p><span class="gm-by"><span class="gm-who">Josh<\/span><span class="gm-topic" style="--topic: #7a5c3e">Coherence<\/span><\/span>Contradicts.<\/p>/);
   // A topic alone keeps the usual rule; an undeclared alias is marked.
-  assert.match(body, /<div class="gm-aside-cell gm-attributed">\n<p><span class="gm-by"><span class="gm-topic"[^>]*>Coherence<\/span><span class="gm-unknown"[^>]*>x\?<\/span><\/span>Also.<\/p>/);
-  assert.match(body, /<span class="gm-mark">~<\/span>Mine./);
+  assert.match(body, /<div class="gm-aside-cell gm-attributed" role="note">\n<p><span class="gm-by"><span class="gm-topic"[^>]*>Coherence<\/span><span class="gm-unknown"[^>]*>x\?<\/span><\/span>Also.<\/p>/);
+  assert.match(body, /<span class="gm-mark" aria-hidden="true">~<\/span>Mine./);
   assert.match(body, /<div class="gm-legend"><span class="gm-who" style="--by: #b5523b">Josh <b>1<\/b><\/span><span class="gm-topic" style="--topic: #7a5c3e">Coherence <b>2<\/b><\/span><\/div>/);
   // The key isn't masthead meta.
   assert.doesNotMatch(body, /reviewer #/);
