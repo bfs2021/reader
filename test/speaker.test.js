@@ -1,23 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import vm from 'node:vm';
-
-const SCRIPT = fs.readFileSync(new URL('../static/speaker.js', import.meta.url), 'utf8');
-
-/** Just enough of an element for the speaker view to write into. */
-class Element {
-  constructor() {
-    Object.assign(this, { hidden: false, className: '', textContent: '', innerHTML: '', style: {}, nodes: [] });
-    this.classList = { toggle() {} };
-    this.contentWindow = { postMessage() {} };
-  }
-  addEventListener() {}
-  replaceChildren(...nodes) { this.nodes = nodes; }
-  append(...nodes) { this.nodes.push(...nodes); }
-  /** What it says, as a reader would see it. */
-  get said() { return this.nodes.map((n) => (typeof n === 'string' ? n : n.textContent)).join(''); }
-}
+import { file, run } from './dom.js';
 
 /**
  * The speaker view, loaded as speaker.html loads it, on a clock that reads
@@ -26,15 +9,9 @@ class Element {
  */
 function speaker() {
   const now = { seconds: 0 };
-  const elements = {};
   let heard = null;
-  const context = {
-    document: {
-      getElementById: (id) => (elements[id] ??= new Element()),
-      createElement: () => new Element(),
-      querySelectorAll: () => [],
-    },
-    window: { addEventListener() {} },
+  const window = file('static/speaker.html');
+  Object.assign(window, {
     BroadcastChannel: class {
       addEventListener(type, fn) { heard = fn; }
       postMessage() {}
@@ -44,9 +21,10 @@ function speaker() {
       toLocaleTimeString() { return '9:00'; }
     },
     setInterval() {},
-  };
-  vm.runInNewContext(SCRIPT, context);
-  return { now, elements, clock: context.clock, say: (data) => heard({ data }) };
+  });
+  run(window, 'static/speaker.js');
+  const $ = (id) => window.document.getElementById(id);
+  return { now, $, clock: window.clock, say: (data) => heard({ data }) };
 }
 
 test('the timer reads minutes and seconds, and hours once there are some', () => {
@@ -61,18 +39,18 @@ test('the timer reads minutes and seconds, and hours once there are some', () =>
 });
 
 test('the timer starts when the deck opens on its first slide, and counts from there', () => {
-  const { now, elements, say } = speaker();
+  const { now, $, say } = speaker();
   now.seconds = 1000;
   say({ type: 'deck', open: true, index: 0, reveal: 0, slides: [{}, {}], meta: {} });
   now.seconds = 1075;
   say({ type: 'go', index: 1, reveal: 0 });
-  assert.equal(elements.timer.textContent, '1:15');
+  assert.equal($('timer').textContent, '1:15');
   // Picked up on a later slide, it's the same talk.
   say({ type: 'deck', open: false, index: 1, reveal: 0, slides: [{}, {}], meta: {} });
   say({ type: 'deck', open: true, index: 1, reveal: 0, slides: [{}, {}], meta: {} });
   now.seconds = 1080;
   say({ type: 'go', index: 1, reveal: 0 });
-  assert.equal(elements.timer.textContent, '1:20');
+  assert.equal($('timer').textContent, '1:20');
 });
 
 // Three slides planned to start at 0:00 (a checkpoint), 2:00 and 5:00,
@@ -81,12 +59,12 @@ const PLANNED = [{ plan: 0, at: 0 }, { plan: 120 }, { plan: 300 }];
 
 /** What the pace says on slide `index` at `seconds` into the talk. */
 function paced(slides, index, seconds, end = null) {
-  const { now, elements, say } = speaker();
+  const { now, $, say } = speaker();
   say({ type: 'deck', open: true, index: 0, reveal: 0, slides, meta: {}, end });
   now.seconds = seconds;
   say({ type: 'go', index, reveal: 0 });
-  const pace = elements.pace;
-  return pace.hidden ? null : { state: pace.className, says: pace.said };
+  const pace = $('pace');
+  return pace.hidden ? null : { state: pace.className, says: pace.textContent };
 }
 
 test('on a slide between its start and the next one\'s, give or take half a minute, the talk is on plan', () => {

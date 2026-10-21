@@ -1,5 +1,6 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import { file, globals } from './dom.js';
 
 // A toast hides itself a few seconds on; here it waits to be told.
 mock.timers.enable({ apis: ['setTimeout'] });
@@ -7,79 +8,37 @@ mock.timers.enable({ apis: ['setTimeout'] });
 const ROW = 20;    // px, each row of the editor
 const WIDE = 40;   // characters to a row, before a line wraps
 
-/** Just enough of an element for lines.js, and the mirror sync.js measures lines in. */
-class Node {
-  constructor() {
-    Object.assign(this, { children: [], parent: null, style: {}, dataset: {}, className: '', textContent: '', hidden: false, listeners: {} });
-  }
-  append(...nodes) { this.insertBefore(nodes, null); }
-  insertBefore(nodes, ref) {
-    const list = nodes instanceof Node && nodes.fragment ? nodes.children : [nodes].flat();
-    for (const n of list) n.parent = this;
-    const at = ref ? this.children.indexOf(ref) : this.children.length;
-    this.children.splice(at, 0, ...list);
-  }
-  replaceWith(...nodes) {
-    for (const n of nodes) n.parent = this.parent;
-    this.parent.children.splice(this.parent.children.indexOf(this), 1, ...nodes);
-  }
-  remove() { this.parent?.children.splice(this.parent.children.indexOf(this), 1); }
-  replaceChildren(...nodes) { this.children = nodes; }
-  setAttribute(name, value) { this[name] = value; }
-  addEventListener(type, fn) { this.listeners[type] = fn; }
-  focus() { page.activeElement = this; }
-  select() { page.selected = this; }
-  closest() { return this; }
-  /** A line in the mirror wraps at WIDE characters. */
-  get offsetHeight() { return Math.max(1, Math.ceil(this.textContent.length / WIDE)) * ROW; }
-}
+const window = globals(file('static/index.html'));
+const { document } = window;
+const editor = document.getElementById('editor');
+editor.disabled = false;
+editor.style.cssText = `line-height: ${ROW}px; padding: 0;`;
 
-class Editor extends Node {
-  constructor() {
-    super();
-    Object.assign(this, { value: '', selectionStart: 0, selectionEnd: 0, selectionDirection: 'forward', scrollTop: 0, clientWidth: 400, clientHeight: 100 });
-  }
-  setSelectionRange(start, end) { Object.assign(this, { selectionStart: start, selectionEnd: end }); }
-  get scrollHeight() {
-    return this.value.split('\n').reduce((n, line) => n + Math.max(1, Math.ceil(line.length / WIDE)), 0) * ROW;
-  }
-}
+// The page lays nothing out, so here a line in the mirror sync.js measures
+// lines in wraps at WIDE characters, and the editor is as tall as its rows.
+Object.defineProperty(window.HTMLDivElement.prototype, 'offsetHeight', {
+  get() { return Math.max(1, Math.ceil(this.textContent.length / WIDE)) * ROW; },
+});
+Object.defineProperties(editor, {
+  clientWidth: { value: 400 },
+  clientHeight: { value: 100 },
+  scrollHeight: { get: () => editor.value.split('\n').reduce((n, line) => n + Math.max(1, Math.ceil(line.length / WIDE)), 0) * ROW },
+});
 
-const elements = { editor: new Editor() };
 const frames = [];
+window.requestAnimationFrame = (fn) => frames.push(fn);
 const copied = [];
 let clipboard = true;
 let execCopies = true;
-const page = {
-  body: new Node(),
-  activeElement: null,
-  getElementById: (id) => (elements[id] ??= new Node()),
-  createElement: () => new Node(),
-  createDocumentFragment: () => Object.assign(new Node(), { fragment: true }),
-  addEventListener() {},
-  execCommand: () => {
-    if (execCopies) copied.push(page.selected.value);
-    return execCopies;
-  },
+window.navigator.clipboard.writeText = async (text) => {
+  if (!clipboard) throw new Error('not a secure context');
+  copied.push(text);
 };
-globalThis.document = page;
-globalThis.window = { addEventListener() {} };
-globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
-globalThis.getComputedStyle = () => ({ lineHeight: `${ROW}px`, paddingTop: '0px', paddingBottom: '0px' });
-globalThis.requestAnimationFrame = (fn) => frames.push(fn);
-globalThis.ResizeObserver = class { observe() {} };
-globalThis.location = { hostname: 'localhost', origin: 'http://localhost:8734' };
-Object.defineProperty(globalThis, 'navigator', {
-  configurable: true,
-  value: {
-    clipboard: {
-      writeText: async (text) => {
-        if (!clipboard) throw new Error('not a secure context');
-        copied.push(text);
-      },
-    },
-  },
-});
+// The scratch it's copied from the old way is the last thing on the page.
+document.execCommand = () => {
+  if (execCopies) copied.push(document.body.lastElementChild.value);
+  return execCopies;
+};
 
 const { el, state } = await import('../static/app/state.js');
 const { copyLines, copyPath, goToLines, scheduleGutter, wireLines } = await import('../static/app/lines.js');
@@ -106,7 +65,7 @@ async function copying(copy) {
 /** The line numbers drawn down the side: [number, top, the caret's]. */
 function gutter() {
   for (const fn of frames.splice(0)) fn();
-  return el.gutter.children.map((n) => [String(n.textContent), n.style.top, n.className === 'now']);
+  return [...el.gutter.children].map((n) => [n.textContent, n.style.top, n.className === 'now']);
 }
 
 test('copying lines gives the file and the caret\'s line, or the lines selected', async () => {
@@ -133,13 +92,13 @@ test('copying the path gives the file alone, and lines are only a markdown file\
 });
 
 test('seen from another device, it\'s the file\'s address here, at its lines', async () => {
-  globalThis.location = { hostname: '192.168.1.5', origin: 'http://192.168.1.5:8734' };
+  window.happyDOM.setURL('http://192.168.1.5:8734/');
   try {
     editing(TEXT, { selected: [5, 10] });
     assert.deepEqual(await copying(copyLines), ['http://192.168.1.5:8734/#notes/a%20b.md:2-3']);
     assert.deepEqual(await copying(copyPath), ['http://192.168.1.5:8734/#notes/a%20b.md']);
   } finally {
-    globalThis.location = { hostname: 'localhost', origin: 'http://localhost:8734' };
+    window.happyDOM.setURL('http://localhost:8734/');
   }
 });
 
@@ -149,9 +108,9 @@ test('without the clipboard, it\'s copied the old way, and the editor\'s selecti
     editing(TEXT, { selected: [5, 10] });
     el.editor.focus();
     assert.deepEqual(await copying(copyLines), ['/home/me/docs/notes/a b.md:2-3']);
-    assert.equal(page.activeElement, el.editor);
+    assert.equal(document.activeElement, el.editor);
     assert.deepEqual([el.editor.selectionStart, el.editor.selectionEnd], [5, 10]);
-    assert.deepEqual(page.body.children.filter((n) => 'value' in n && n !== el.editor), [], 'the scratch is gone');
+    assert.equal(document.querySelector('body > textarea'), null, 'the scratch is gone');
     execCopies = false;
     assert.deepEqual(await copying(copyLines), []);
     assert.equal(el.toast.textContent, 'could not copy');
@@ -208,6 +167,8 @@ test('the gutter is drawn once a frame, and not for what isn\'t markdown', () =>
 
 test('clicking a line\'s number copies where that line is', async () => {
   editing(TEXT);
-  assert.deepEqual(await copying(() => el.gutter.listeners.click({ target: Object.assign(new Node(), { dataset: { line: '3' } }) })),
-    ['/home/me/docs/notes/a b.md:3']);
+  const three = Object.assign(document.createElement('div'), { textContent: '3' });
+  three.dataset.line = '3';
+  el.gutter.replaceChildren(three);
+  assert.deepEqual(await copying(() => three.click()), ['/home/me/docs/notes/a b.md:3']);
 });
