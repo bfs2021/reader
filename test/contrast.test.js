@@ -46,6 +46,13 @@ test('the soft ink reads on every panel and row, in both themes', () => {
   readable(tokens(speaker)['ink-soft'], tokens(speaker).panel, 'speaker view');
 });
 
+test("the version, at the foot of the list, is in the soft ink or the ink", () => {
+  const rules = [...style.matchAll(/^\.version[^{]*\{([^}]*)\}/gm)].map((m) => m[1]);
+  const inks = rules.flatMap((r) => [...r.matchAll(/(?:^|[;\s])color:\s*([^;]+)/g)].map((m) => m[1].trim()));
+  assert.ok(inks.length);
+  for (const ink of inks) assert.match(ink, /^var\(--ink(-soft)?\)$/);
+});
+
 test("the deck's foot reads on its white", () => {
   readable(style.match(/\.deck-foot \{[^}]*?[\s;]color: (#\w+)/)[1], '#ffffff', 'deck foot');
 });

@@ -202,6 +202,15 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .crumbs button[aria-current] { color: var(--ink); font-weight: 600; }
 .crumbs .sep { color: var(--ink-soft); }
 
+/* which reader this is, at the foot of the list (app/main.js) */
+.version {
+  align-self: flex-start; margin: 4px 8px 6px; padding: 2px 4px; border-radius: 4px;
+  font-size: 11px; color: var(--ink-soft); text-decoration: none; font-variant-numeric: tabular-nums;
+}
+.version:hover, .version:focus-visible { color: var(--ink); text-decoration: underline; }
+.version:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+#helpVersion a { color: inherit; }
+
 .files { list-style: none; margin: 0; padding: 6px; overflow: auto; flex: 1; }
 .file, .folder {
   display: flex; flex-direction: column; align-items: flex-start; gap: 0;
