@@ -3,7 +3,7 @@ name: Release
 # Tags main as vX.Y.Z and publishes a GitHub release whose notes list the
 # issues it addresses: those closed in the version's milestone, and those a
 # commit since the last tag says it closes. Run by hand once the milestone's
-# review is done.
+# review is done. Then pushes its Docker image (docker.yml).
 on:
   workflow_dispatch:
     inputs:
@@ -83,3 +83,16 @@ jobs:
         run: |
           gh release create "v$VERSION" --target "$GITHUB_SHA" \
             --title "$VERSION" --notes-file notes.md
+
+  # The image, at the tag just made: a tag pushed with the workflow's own
+  # token starts no other workflow, so it's called from here.
+  docker:
+    needs: release
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
