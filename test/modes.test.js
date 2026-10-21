@@ -4,7 +4,7 @@ import { file, globals } from './dom.js';
 
 const { document } = globals(file('static/index.html'));
 const { el } = await import('../static/app/state.js');
-const { toggleSidebar, toggleHelp, wireDrawer } = await import('../static/app/modes.js');
+const { toggleSidebar, toggleDrawer, toggleHelp, wireDrawer } = await import('../static/app/modes.js');
 wireDrawer();
 
 test('☰ says whether the file list is showing', () => {
@@ -20,6 +20,17 @@ test('hiding the list with the keyboard in it leaves the keyboard on ☰', () =>
   toggleSidebar(true);
   assert.equal(document.activeElement, el.sidebarToggle);
   toggleSidebar(false);
+});
+
+test('the list over the panes closes once Tab leaves it, not as it moves within it', () => {
+  const leave = (from, to) => from.dispatchEvent(new document.defaultView.FocusEvent('focusout', { bubbles: true, relatedTarget: to }));
+  toggleDrawer(true);
+  leave(el.filter, el.sidebar.querySelector('button') ?? el.filter);
+  assert.equal(el.split.classList.contains('list-open'), true);
+  leave(el.filter, null);
+  assert.equal(el.split.classList.contains('list-open'), true, 'the window losing focus isn\'t leaving the list');
+  leave(el.filter, el.editor);
+  assert.equal(el.split.classList.contains('list-open'), false);
 });
 
 test('what a control is called is said in words, not by a mark', () => {

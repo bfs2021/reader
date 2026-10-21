@@ -59,6 +59,11 @@ export function wireDrawer() {
   document.addEventListener('pointerdown', (e) => {
     if (!el.sidebar.contains(e.target) && !el.sidebarToggle.contains(e.target)) close();
   });
+  // Nor does it stay over the panes once Tab has gone on to them.
+  el.sidebar.addEventListener('focusout', (e) => {
+    const to = e.relatedTarget;
+    if (to && !el.sidebar.contains(to) && !el.sidebarToggle.contains(to)) close();
+  });
   listShown();
 }
 
