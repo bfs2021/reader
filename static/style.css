@@ -1,8 +1,10 @@
+/* Text is never fainter than --ink-soft, 4.5:1 or better on every panel and
+ * row it sits on, picked ones too; --ink-faint is for rules and borders. */
 :root {
   --bg: #efeae1;
   --panel: #fffdf9;
   --ink: #26221e;
-  --ink-soft: #6b6259;
+  --ink-soft: #645b52;
   --ink-faint: #a2988a;
   --line: #e3dccf;
   --line-soft: #efe9dd;
@@ -22,7 +24,7 @@
     --bg: #14130f;
     --panel: #201e1b;
     --ink: #ece6dc;
-    --ink-soft: #a79e91;
+    --ink-soft: #aba295;
     --ink-faint: #756c60;
     --line: #34302b;
     --line-soft: #2a2723;
@@ -68,7 +70,7 @@ body {
   overflow: hidden; text-overflow: ellipsis;
 }
 
-.save-state { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.save-state { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
 .save-state.ok { color: var(--ok); }
 .save-state.err { color: var(--warn); }
 
@@ -82,7 +84,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .ghost:hover { background: var(--line-soft); color: var(--ink); }
 .ghost.small { padding: 3px 9px; font-size: 12px; }
 .ghost.icon { padding: 3px 8px; font-size: 14px; line-height: 1.2; }
-.copy-path { padding: 1px 6px; font-size: 12px; color: var(--ink-faint); }
+.copy-path { padding: 1px 6px; font-size: 12px; color: var(--ink-soft); }
 
 /* under Present, while it's hovered: the slides that don't fit (app/fit.js) */
 .present-wrap { position: relative; display: flex; }
@@ -156,19 +158,19 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 /* ten pages at once, in a long workbook: filled as far as they're done */
 .page-block {
   margin: 0 3px; padding: 1px 6px; min-width: 2.4em; border: 1.5px solid var(--ink-faint); border-radius: 999px;
-  font-size: 11px; line-height: 1.3; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  font-size: 11px; line-height: 1.3; color: var(--ink); font-variant-numeric: tabular-nums;
   background: linear-gradient(to right, color-mix(in srgb, var(--accent) 30%, transparent) var(--done), transparent var(--done));
 }
 .page-block:hover { border-color: var(--ink); color: var(--ink); }
 .page-block.done { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.page-count { font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.page-count { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pages button:disabled { opacity: .35; cursor: default; }
 
 #preview { flex: 1; width: 100%; border: 0; background: #fff; }
 
 .empty {
   margin: auto; padding: 24px; max-width: 36ch; text-align: center;
-  color: var(--ink-faint); font-size: 14px;
+  color: var(--ink-soft); font-size: 14px;
 }
 .view-pane:has(.empty:not([hidden])) { background: var(--bg); }
 
@@ -190,7 +192,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 
 .crumbs {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 4px;
-  padding: 7px 12px; border-bottom: 1px solid var(--line-soft); font-size: 12px; color: var(--ink-faint);
+  padding: 7px 12px; border-bottom: 1px solid var(--line-soft); font-size: 12px; color: var(--ink-soft);
 }
 .crumbs button {
   border: 0; background: none; padding: 1px 3px; border-radius: 4px;
@@ -198,7 +200,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 }
 .crumbs button:hover { background: var(--line-soft); color: var(--ink); }
 .crumbs button[aria-current] { color: var(--ink); font-weight: 600; }
-.crumbs .sep { color: var(--ink-faint); }
+.crumbs .sep { color: var(--ink-soft); }
 
 .files { list-style: none; margin: 0; padding: 6px; overflow: auto; flex: 1; }
 .file, .folder {
@@ -209,9 +211,9 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .file:hover, .folder:hover { color: var(--ink); }
 .file:focus-visible, .folder:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .file.now { color: var(--ink); }
-.folder .name::after { content: '/'; color: var(--ink-faint); }
+.folder .name::after { content: '/'; color: var(--ink-soft); }
 .file .name, .folder .name { font-size: 13.5px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; max-width: 100%; white-space: nowrap; }
-.file .sub { font-size: 11px; color: var(--ink-faint); }
+.file .sub { font-size: 11px; color: var(--ink-soft); }
 /* at the end of a row, when it's hovered, focused or open: what can be done to it */
 .files li { display: flex; align-items: center; gap: 2px; margin: 1px 0; border-radius: 6px; }
 .files li:hover { background: var(--line-soft); }
@@ -222,7 +224,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .row-action {
   display: grid; place-items: center; width: 24px; height: 24px; padding: 0;
   border: 0; border-radius: 5px; background: none; cursor: pointer;
-  color: var(--ink-faint); font-family: inherit; text-decoration: none;
+  color: var(--ink-soft); font-family: inherit; text-decoration: none;
 }
 .row-action:hover, .row-action:focus-visible { background: var(--bg); color: var(--ink); }
 .row-action:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
@@ -240,7 +242,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .files li.entry-row { padding-left: calc(var(--depth) * 12px); }
 .fold {
   flex: none; width: 18px; height: 24px; padding: 0; border: 0; background: none;
-  color: var(--ink-faint); font-size: 10px; cursor: pointer;
+  color: var(--ink-soft); font-size: 10px; cursor: pointer;
 }
 .fold:disabled { visibility: hidden; }
 .entry {
@@ -249,7 +251,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   color: var(--ink-soft); text-align: left; font: inherit; font-size: 13px; cursor: pointer;
 }
 .entry .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.entry .num { font-size: 11px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.entry .num { font-size: 11px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .entry.part, .entry.section { color: var(--ink); }
 .entry:hover { color: var(--ink); }
 .entry:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
@@ -258,7 +260,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .files li.picked { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .files li.picked .entry { color: var(--ink); }
 .files li.entry-row:has(.entry.at) .actions, .files li.picked .actions { display: flex; }
-.outline-empty { padding: 8px 10px; font-size: 12.5px; color: var(--ink-faint); }
+.outline-empty { padding: 8px 10px; font-size: 12.5px; color: var(--ink-soft); }
 
 /* ---------------------------------------------------------------- go to -- */
 
@@ -281,9 +283,9 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   border-radius: 6px; font-size: 13px; color: var(--ink-soft); cursor: pointer;
 }
 .goto-list li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.goto-list li .sub { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+.goto-list li .sub { font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
 .goto-list li.on { background: var(--line); color: var(--ink); }
-.goto-list li.none { color: var(--ink-faint); cursor: default; }
+.goto-list li.none { color: var(--ink-soft); cursor: default; }
 
 /* ---------------------------------------------------------------- pdf -- */
 
@@ -313,7 +315,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   font-family: var(--mono); font-size: 11.5px; background: var(--line-soft);
   border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
 }
-.help .keys { color: var(--ink-faint); font-size: 11.5px; padding-top: 2px; }
+.help .keys { color: var(--ink-soft); font-size: 11.5px; padding-top: 2px; }
 
 /* the editor, and the numbers of its lines beside it (app/lines.js) */
 .editor-wrap { flex: 1; min-height: 0; display: flex; }
@@ -321,12 +323,12 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .editor-wrap:has(#editor:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
 .gutter {
   flex: none; position: relative; overflow: hidden;
-  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
   font-variant-numeric: tabular-nums; user-select: none;
 }
 .gutter div { position: absolute; right: 6px; padding: 0 2px; cursor: copy; }
 .gutter div:hover { color: var(--ink); }
-.gutter .now { color: var(--ink-soft); }
+.gutter .now { color: var(--ink); }
 .editor-wrap:has(#editor:disabled) .gutter { visibility: hidden; }
 .gutter:not([hidden]) + #editor { padding-left: 10px; }
 
@@ -343,18 +345,18 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 #editor:disabled { opacity: .5; }
 /* the editor's text, wrapped as it is, to find where each line is (sync.js) */
 .editor-mirror { position: absolute; left: -20000px; top: 0; visibility: hidden; contain: layout style; }
-#editor::placeholder { color: var(--ink-faint); font-family: var(--sans); font-size: 14.5px; }
+#editor::placeholder { color: var(--ink-soft); font-family: var(--sans); font-size: 14.5px; }
 
 .write-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 8px 14px; border-top: 1px solid var(--line-soft);
-  font-size: 11.5px; color: var(--ink-faint);
+  font-size: 11.5px; color: var(--ink-soft);
 }
 .foot-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; font-variant-numeric: tabular-nums; }
 .foot-info .dot { color: var(--accent); font-size: 9px; }
 .foot-right { display: flex; flex-shrink: 0; align-items: center; gap: 8px; min-width: 0; }
 .foot-right .ghost { padding: 1px 6px; font-family: var(--mono); font-size: 11px; }
-.foot-right .ghost[aria-pressed="false"] { color: var(--ink-faint); }
+.foot-right .ghost[aria-pressed="true"] { color: var(--ink); }
 /* off screen, at the speaker view's size */
 .measure { position: fixed; left: -20000px; top: 0; width: 1280px; height: 720px; border: 0; visibility: hidden; }
 /* off screen, a letter page wide, to print from */
@@ -381,7 +383,7 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
 .deck-notes code { font-family: var(--mono); font-size: 0.9em; }
 .deck-foot {
   display: flex; justify-content: space-between; gap: 16px;
-  padding: 6px 14px; font-size: 12px; color: #9a9187; background: #fff; cursor: auto;
+  padding: 6px 14px; font-size: 12px; color: #645b52; background: #fff; cursor: auto;
   font-variant-numeric: tabular-nums;
 }
 /* out of the room's sight, but for a moment as the deck opens, on hover,
