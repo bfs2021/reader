@@ -143,7 +143,9 @@ function wire() {
     createFile(el.newName.value.trim());
   });
   el.newName.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') el.newForm.hidden = true;
+    if (e.key !== 'Escape') return;
+    el.newForm.hidden = true;
+    el.newBtn.focus();
   });
 
   el.sidebarToggle.addEventListener('click', () => toggleSidebar());

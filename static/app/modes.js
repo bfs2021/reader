@@ -16,6 +16,8 @@ export function toggleSidebar(force) {
   if (NARROW.matches && force === undefined) return toggleDrawer();
   const hide = force ?? !el.split.classList.contains('no-sidebar');
   el.split.classList.toggle('no-sidebar', hide);
+  // The keyboard isn't left in a list that's gone.
+  if (hide && el.sidebar.contains(document.activeElement)) el.sidebarToggle.focus();
   listShown();
   try { localStorage.setItem('reader:sidebar', hide ? 'hidden' : 'shown'); } catch { /* ignore */ }
 }
