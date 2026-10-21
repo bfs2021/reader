@@ -6,11 +6,16 @@
   border-radius: 3px;
   cursor: help;
 }
+/* Lit, the word and its item's key are underlined solid, in green that's
+ * 5:1 on the page, past the faint tint behind them. */
+.ingredient-use.lit, li.ingredient.lit .ingredient-key {
+  text-decoration: underline solid 0.12em var(--ingredient-lit, #2f7d5b);
+  font-weight: 600;
+}
+:root.gm-dark { --ingredient-lit: #6fcf9f; }
 .ingredient-use.lit {
-  text-decoration: none;
   background: color-mix(in srgb, #2f7d5b 18%, transparent);
   box-shadow: 0 0 0 0.12em color-mix(in srgb, #2f7d5b 18%, transparent);
-  font-weight: 600;
 }
 li.ingredient { border-radius: 4px; transition: background-color 0.2s; }
 li.ingredient.lit {
