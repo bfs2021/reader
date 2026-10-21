@@ -500,3 +500,19 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   .page-dot.now::before { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
   .help code { border-color: var(--ink-faint); }
 }
+
+/* ------------------------------------------------- the system's colours -- */
+
+/* Under forced-colors (Windows' contrast themes) the system draws in its own
+ * colours, and grounds and shadows go: what they said is said by an outline
+ * or a border in its Highlight, or, for a dot filled in, its own colours. */
+@media (forced-colors: active) {
+  .files li:has(.now), .files li:has(.entry.at), .goto-list li.on { outline: 2px solid Highlight; outline-offset: -2px; }
+  .files li.picked { outline: 2px dashed Highlight; outline-offset: -2px; }
+  .side-head input:focus, .new-form input:focus, .name-edit:focus, .goto input:focus { outline: 2px solid Highlight; }
+  .page-dot::before { forced-color-adjust: none; border-color: CanvasText; }
+  .page-dot.done::before { background: CanvasText; }
+  .page-dot.now::before { outline: 2px solid Highlight; outline-offset: 2px; }
+  .page-block.done { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+  .toast { border: 1px solid CanvasText; }
+}

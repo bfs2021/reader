@@ -48,3 +48,7 @@ li.ingredient-unused::after {
 .ingredient-pop::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 8px; }
 .ingredient-pop[hidden] { display: none; }
 @media print { .ingredient-use { text-decoration: none; } li.ingredient-unused::after { display: none; } }
+@media (forced-colors: active) {
+  li.ingredient.lit { outline: 2px solid Highlight; outline-offset: 0.1em; }
+  li.ingredient-unused::after { border: 1px solid CanvasText; }
+}

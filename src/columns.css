@@ -219,6 +219,39 @@
   --gm-code-addition: color-mix(in srgb, var(--gm-green) 80%, var(--gm-ink));
 }
 
+/* The system's own colours (forced-colors: active, as Windows' contrast
+ * themes are): the browser draws text, grounds and borders in them anyway,
+ * but not an SVG's strokes and fills (a puzzle's), nor what a feature says
+ * with a ground or a shadow, so every colour is named as one of them here,
+ * the accent and a puzzle's pick the system's Highlight. Each feature says
+ * what it would lose another way, by an outline or a border, under its own
+ * `@media (forced-colors: active)`. */
+@media (forced-colors: active) {
+  :root, :root.gm-dark {
+    --gm-ink: CanvasText; --gm-ink-soft: CanvasText; --gm-ink-faint: GrayText; --gm-aside-ink: CanvasText;
+    --gm-rule: CanvasText; --gm-rule-strong: CanvasText; --gm-aside-rule: CanvasText;
+    --gm-paper: Canvas; --gm-wash: Canvas; --gm-well: Canvas; --gm-th: Canvas; --gm-stripe: Canvas; --gm-lit: Canvas;
+    --gm-output: Canvas; --gm-output-rule: CanvasText; --gm-output-split: CanvasText; --gm-output-lit: Canvas;
+    --gm-red: CanvasText; --gm-amber: CanvasText; --gm-moss: CanvasText; --gm-green: CanvasText;
+    --gm-blue: CanvasText; --gm-violet: CanvasText; --gm-rose: CanvasText; --gm-slate: CanvasText;
+    --gm-code-comment: CanvasText;
+    --gm-clip-paper: Canvas; --gm-clip-white: Canvas; --gm-clip-ink: CanvasText; --gm-clip-ink-soft: CanvasText;
+    --gm-brand-atlantic: CanvasText; --gm-brand-guardian: CanvasText; --gm-brand-slashdot: CanvasText; --gm-on-brand: Canvas;
+    --gm-accent: Highlight;
+    --gm-pick: Highlight;
+  }
+  /* What's filled with a colour and lettered in the paper's keeps its own
+   * colours, which are the system's now: the system would letter it in
+   * its text colour, on a ground of the same. A reviewer's chip, a
+   * numbered badge and a done step's, a callout's number, a staged box's
+   * pips, a day picked, a pressed multiplier, a word found, a popup, and
+   * the clippings lettered on a band of colour. */
+  .gm-who, ol.badges > li:not(.gm-cont)::before, .callout::before, .stage-box > i,
+  .date-cal-grid > button.on, .multiply[aria-pressed="true"], .ws-words li.found::before,
+  .ingredient-pop, .headline-wired, .headline-slashdot { forced-color-adjust: none; }
+  .date-cal-grid > button.today { outline: 1px solid Highlight; outline-offset: -1px; }
+}
+
 * { box-sizing: border-box; }
 
 html { font-size: var(--gm-base); }

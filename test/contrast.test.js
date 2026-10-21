@@ -306,3 +306,28 @@ test("with more contrast asked for, the document's inks, its family, cards and c
   }
 });
 
+test("in the system's own colours, every colour of the document's is one of them", () => {
+  const forced = declared(block(after(columns, '@media (forced-colors: active)'), ':root, :root.gm-dark {'));
+  const SYSTEM = /^(Canvas|CanvasText|GrayText|Highlight)$/;
+  // a profile link's mark is its site's, as an image's colours are
+  const MARKS = /^gm-brand-(linkedin|bluesky|facebook|instagram|youtube)$/;
+  for (const name of Object.keys(lightSet).filter((n) => !MARKS.test(n))) assert.match(forced[name] ?? '', SYSTEM, `--${name}`);
+  assert.equal(forced['gm-accent'], 'Highlight');
+  assert.equal(forced['gm-pick'], 'Highlight');
+});
+
+test("in the system's own colours, what a ground or a shadow said is said another way", () => {
+  const under = (css) => after(css, '@media (forced-colors: active)');
+  // the open file, a picked row, the place in Go to, a field with the keyboard, the page showing and those done
+  for (const what of ['.files li:has(.now)', '.files li.picked', '.goto-list li.on', '.side-head input:focus', '.page-dot.now::before', '.page-dot.done::before', '.page-block.done']) {
+    assert.ok(under(style).includes(what), what);
+  }
+  assert.match(under(read('features/steps/steps.css')), /li\.step-current \{ outline: 2px solid Highlight/);
+  assert.match(under(read('features/qa/qa.css')), /qa-done > \.qa-label[\s\S]*background: CanvasText; color: Canvas/);
+  assert.match(under(read('features/marks/marks.css')), /\.mk-highlight[^{]*\{[^}]*background: Mark; color: MarkText/);
+  assert.match(under(read('features/highlight/highlight.css')), /\.line\.hl, \.callout-notes > li\.hl \{ outline: 2px solid Highlight/);
+  assert.match(under(read('features/puzzles/kinds/sudoku.js')), /\.cursor \{ outline: 3px solid Highlight/);
+  assert.match(under(read('features/tabs/tabs.css')), /\.tab \{ forced-color-adjust: none; \}/);
+  assert.match(under(columns), /\.gm-who, ol\.badges > li:not\(\.gm-cont\)::before/);
+});
+

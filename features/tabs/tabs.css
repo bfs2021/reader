@@ -16,6 +16,9 @@
 .tab:hover { color: var(--gm-ink); }
 .tab > input { position: absolute; opacity: 0; pointer-events: none; margin: 0; }
 .tab:has(> input:focus-visible) { outline: 2px solid var(--gm-accent); outline-offset: 2px; }
+/* In the system's colours a transparent edge is drawn, so every tab would
+ * look picked: they keep their own (src/columns.css names them system ones). */
+@media (forced-colors: active) { .tab { forced-color-adjust: none; } }
 
 /* tabs: a row of them over the one pane showing */
 .tab-bar { display: flex; flex-wrap: wrap; gap: 0 1.2em; border-bottom: 1px solid var(--gm-rule); }
