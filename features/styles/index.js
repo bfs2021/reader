@@ -183,7 +183,7 @@ function span(state, silent) {
   if (marked) {
     const color = marked.rest.find((n) => COLORS.has(n.toLowerCase()))?.toLowerCase();
     const rest = marked.rest.filter((n) => !COLORS.has(n.toLowerCase()));
-    markSpan(open, { style: marked.style, color: color ?? marked.topic?.color });
+    markSpan(open, { style: marked.style, color: color ?? marked.topic?.color, topic: marked.topic?.name });
     if (rest.length) apply(open, rest.join(' '));
   } else {
     apply(open, names[1]);

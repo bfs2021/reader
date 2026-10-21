@@ -130,7 +130,9 @@ over [the lazy dog]{l} and [the fence]{wavy red}
 ~[the fence] which fence?
 :::
 
-Hovering a mark or an aside about it picks out both, and the line.
+Hovering a mark or an aside about it picks out both, and the line. A
+mark's topic shows on hover too, and a screen reader says it, so it isn't
+known only by its colour.
 
 ## A note to whoever opens the file
 
