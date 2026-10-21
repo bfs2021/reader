@@ -29,6 +29,7 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | `src/export-cli.js`, `src/browser.js` | `reader export`, and the headless browser it draws with |
 | `src/export.js` | a document as one HTML file, to keep, send or print: its stylesheet and images inside it, a deck as its pages |
 | `action.yml` | the GitHub Action |
+| `Dockerfile` | the Docker image, serving `/docs`; its page on Docker Hub is `docs/docker.md` |
 | `src/server.js` | HTTP API and static files |
 | `src/content.js` | the content directory: listing, safe paths, saves, backups, the trash, branching, renaming and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
@@ -71,3 +72,10 @@ It tags `main` as `v0.0.1` and publishes a release listing the issues it
 addresses: the milestone's, and those a commit since the last tag closes.
 It refuses a version `package.json` doesn't have, so bump that first; it's
 the version the app and `reader --version` show.
+
+Then it pushes the image, built from the tag, to Docker Hub as
+`jzheaux/reader:0.0.1` and `:latest`, with [`docs/docker.md`](docs/docker.md)
+as its overview ([Docker](.github/workflows/docker.yml); run that by hand
+with a released version to push it again). It signs in with the repository's
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, the token a Docker Hub
+access token with Read, Write and Delete.
