@@ -37,7 +37,9 @@ A backslash (`\A:`) keeps a line that happens to start that way as typed.
 ## Retro cards and votes
 
 A retro's cards work the same way: `Good:`, `Bad:` and `Try:` each start a
-card, labelled G, B or T, with `A:` after it as its discussion. Every card
+card, labelled G, B or T in blue-green, red-orange or blue, colours that
+stay apart for most colour blindness too, with `A:` after it as its
+discussion. Every card
 line is a card of its own, even from the same person twice in a row. `+1`
 under a card or a question is a vote for it, named or not, with a comment
 after a colon or not; the card shows how many votes it has:
