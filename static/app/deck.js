@@ -54,6 +54,7 @@ export async function present() {
   el.bar.inert = el.split.inert = true;
   el.deck.hidden = false;
   el.deck.focus();
+  flashKeys();
   // On two screens: the slides full screen on the room's, the speaker view
   // on the laptop's, both from the one press of Present.
   if (await screens) {
@@ -206,6 +207,21 @@ export function closeDeck() {
   if (document.activeElement === document.body) (deck.returnTo?.isConnected && deck.returnTo !== document.body ? deck.returnTo : el.presentBtn).focus();
 }
 
+// The keys in the foot show for a while as the deck opens, and from then
+// on while ? keeps them.
+const KEYS_FOR = 5000;
+let keysTimer = 0;
+function flashKeys() {
+  el.deck.classList.add('keys-shown');
+  clearTimeout(keysTimer);
+  keysTimer = setTimeout(() => el.deck.classList.remove('keys-shown'), KEYS_FOR);
+}
+
+export function toggleKeys() {
+  clearTimeout(keysTimer);
+  el.deck.classList.toggle('keys-shown');
+}
+
 export function toggleNotes() {
   deck.notes = !deck.notes;
   el.deckNotes.hidden = !deck.notes || !deck.slides[deck.index]?.notes;
@@ -262,6 +278,7 @@ export function deckKey(e) {
     case 't': case 'T': toggleNotes(); break;
     case 'f': case 'F': toggleFullscreen(); break;
     case 's': case 'S': openSpeaker(); break;
+    case '?': toggleKeys(); break;
     // Nothing else is in reach while presenting, so focus stays on the slides.
     case 'Tab': el.deck.focus(); break;
     default: return false;
