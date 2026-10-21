@@ -217,8 +217,9 @@ function onKey(e) {
   if (meta && !e.altKey && !e.shiftKey && key === 'p' && state.current?.type === 'md') { e.preventDefault(); print(); return; }
   if (meta && e.shiftKey && !e.altKey && key === 'c' && state.current?.type === 'md') { e.preventDefault(); copyLines(); return; }
   if (meta && e.key === '\\') { e.preventDefault(); toggleSidebar(); return; }
-  if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
-  if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }
+  // ⌘⌥, not ⌥ alone, which moves by a paragraph where there's typing.
+  if (meta && e.altKey && !e.shiftKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
+  if (meta && e.altKey && !e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }
 
   if (document.activeElement !== el.editor) return;
   if (meta && !e.shiftKey && key === 'b') { e.preventDefault(); wrap('**', '**'); return; }

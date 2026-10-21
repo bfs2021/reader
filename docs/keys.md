@@ -16,7 +16,7 @@ title: Keys
 | `⌘⇧C` | copy the file and line (or lines selected) |
 | `⌃G` | go to a page, a slide, a line (`:340`) or a heading |
 | `Home` / `End` (`fn←` / `fn→`) | in the editor, the start / end of the line, as it wraps (`⇧` to select) |
-| `⌥↑` / `⌥↓` | previous / next file |
+| `⌘⌥↑` / `⌘⌥↓` | previous / next file |
 | `↑` `↓` `→` `←` | in the file list: move, go into a folder, a file's versions or the open file's outline, go back out (`⌫` too) |
 | `→` `←` | in the outline: open or fold an entry, or go back out |
 | `⌘`-click / `⇧`-click / `⌘A` | in the outline: choose entries to take out together |

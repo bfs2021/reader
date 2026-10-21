@@ -36,7 +36,7 @@ Click an entry to go there: the editor and the page beside it both move to
 it. A part or a page's number is beside it. As you scroll, the entry you're
 in is marked, and its part opens. Parts are folded otherwise; `▸` and `▾`,
 or `→` and `←`, open and fold one. The outline follows the open file, so
-`⌥↑` and `⌥↓` still step through the folder's files.
+`⌘⌥↑` and `⌘⌥↓` still step through the folder's files.
 
 ### Taking a part out into a file of its own
 
