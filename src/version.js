@@ -35,7 +35,7 @@ function head() {
   delete env.GIT_WORK_TREE;
   try {
     return parseHead(execFileSync('git', ['-C', ROOT, 'log', '-1', '--no-show-signature', '--format=%H%n%D'], {
-      encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'], env,
+      cwd: ROOT,encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'], env,
     }).trim());
   } catch {
     return null;
