@@ -4,7 +4,7 @@ pre code.hljs {
   --hl-keyword: #a1324a;
   --hl-string: #2f6f3e;
   --hl-number: #1f5f99;
-  --hl-comment: #8a8780;
+  --hl-comment: #67645d;
   --hl-title: #6a3fa0;
   --hl-type: #946200;
   --hl-meta: #5b6b7f;
@@ -39,7 +39,8 @@ pre.code-lines .line {
 pre.code-focus:has(.line.hl) .line:not(.hl), pre.code-focus:has(.line.hl) .line:not(.hl) * { color: var(--gm-ink-soft); }
 pre.code-focus .line.hl { opacity: 1; background: #f0ebde; box-shadow: inset 2px 0 var(--gm-accent); }
 
-/* numbered: the count sits in a gutter as wide as the last number */
+/* numbered: the count sits in a gutter as wide as the last number, in the
+ * soft ink, not faded, so it still reads: 6.9:1 */
 pre.code-numbers > code { counter-reset: line; }
 pre.code-numbers .line::before {
   counter-increment: line;
@@ -49,7 +50,6 @@ pre.code-numbers .line::before {
   margin-right: 1.4ch;
   text-align: right;
   color: var(--gm-ink-soft);
-  opacity: .6;
   user-select: none;
 }
 
@@ -103,7 +103,6 @@ pre.output::before {
   letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--gm-ink-soft);
-  opacity: .7;
 }
 .code-group > pre:has(+ pre.output, + .output-long),
 .code-group > .tabs:has(+ pre.output, + .output-long) .tab-pane > pre:last-child {
