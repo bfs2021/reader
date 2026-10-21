@@ -5,8 +5,8 @@
  * nowhere else. --ok and --warn are the document's green and red
  * (src/columns.css), deeper here to read on the app's warmer panels; they
  * stay apart for the colour-blind, green going grey and red going ochre.
- * The paper is the document's, under the preview and the deck, and stays
- * white either way. */
+ * The paper is the document's, under the preview and the deck: its light
+ * paper, or its dark when the document is drawn dark (src/columns.css). */
 :root {
   --bg: #efeae1;
   --panel: #fffdf9;
@@ -22,6 +22,7 @@
   --on-warn: #fff;
   --paper: #fff;
   --paper-ink-soft: #645b52;
+  color-scheme: light;
   --bar-h: 46px;
   --side-w: 230px;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
@@ -29,21 +30,24 @@
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14130f;
-    --panel: #201e1b;
-    --ink: #ece6dc;
-    --ink-soft: #aba295;
-    --ink-faint: #756c60;
-    --line: #34302b;
-    --line-soft: #2a2723;
-    --accent: #c9a476;
-    --accent-ink: #1d1b18;
-    --ok: #81cfc2;
-    --warn: #f8926a;
-    --on-warn: #1d1b18;
-  }
+/* Dark, as chosen in the help or as the system is (static/theme.js, which
+ * sets data-theme before the page is drawn). */
+:root[data-theme="dark"] {
+  --bg: #14130f;
+  --panel: #201e1b;
+  --ink: #ece6dc;
+  --ink-soft: #aba295;
+  --ink-faint: #756c60;
+  --line: #34302b;
+  --line-soft: #2a2723;
+  --accent: #c9a476;
+  --accent-ink: #1d1b18;
+  --ok: #81cfc2;
+  --warn: #f8926a;
+  --on-warn: #1d1b18;
+  --paper: #22252b;
+  --paper-ink-soft: #cfcbc3;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -336,6 +340,11 @@ button, .ghost { font: inherit; font-size: 13px; border-radius: 7px; cursor: poi
   border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
 }
 .help .keys { color: var(--ink-soft); font-size: 11.5px; padding-top: 2px; }
+/* Light, Dark or System (static/theme.js): a row of radio buttons, named */
+.theme { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; margin: 2px 0 0; padding: 0; border: 0; min-width: 0; }
+.theme legend { float: left; padding: 0; margin-right: 2px; color: var(--ink-soft); }
+.theme label { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); cursor: pointer; }
+.theme input { margin: 0; accent-color: var(--accent); }
 
 /* the editor, and the numbers of its lines beside it (app/lines.js) */
 .editor-wrap { flex: 1; min-height: 0; display: flex; }

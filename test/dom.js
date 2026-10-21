@@ -6,6 +6,7 @@
  *
  *   page(html)            a page of `html`, a whole document or what goes in its body
  *   file('static/x.html') a page of one of reader's own
+ *   app()                 the app's page, with what its <head> runs (theme.js)
  *   run(window, ...files) runs reader's scripts in the page, as its <script>s would
  *   frame(html)           a page in a frame: `posted` is what it sends the page
  *                         around it, `send` sends it something from there
@@ -38,6 +39,8 @@ export function page(html = '', { url = 'http://localhost:8734/' } = {}) {
 }
 
 export const file = (path, opts) => page(read(path), opts);
+
+export const app = (opts) => run(file('static/index.html', opts), 'static/theme.js');
 
 export function run(window, ...files) {
   for (const path of files) vm.runInContext(read(path), window, { filename: path });

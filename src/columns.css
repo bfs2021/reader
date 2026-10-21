@@ -22,7 +22,7 @@
  *
  * Every colour a document draws with is named here, once: a light set, and
  * a dark set over it under `:root.gm-dark`, which static/ink.js sets on a
- * page whose background is dark. Nothing outside these two blocks names a
+ * page whose background is dark, or with none in the app's dark theme. Nothing outside these two blocks names a
  * colour of its own; a feature takes one of these, or mixes two.
  *
  * Text is 4.5:1 or better on what it sits on, in either set; the faint ink
@@ -37,6 +37,7 @@
 
 /* colours, light */
 :root {
+  color-scheme: light;
   --gm-ink: #1a1a1a;
   --gm-ink-soft: #555;
   --gm-ink-faint: #9e9a93;   /* marks, not text */
@@ -90,6 +91,7 @@
 
 /* colours, dark */
 :root.gm-dark {
+  color-scheme: dark;
   --gm-ink: #f5f3ee;
   --gm-ink-soft: #cfcbc3;
   --gm-ink-faint: #80848c;

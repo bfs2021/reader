@@ -137,7 +137,7 @@ export async function showSlide({ render = true, transition } = {}) {
   await deck.stageReady;
   if (!deck.open || deck.index !== i) return;
   el.stage.contentWindow.postMessage(render
-    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition }
+    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark() }
     : { type: 'reveal', reveal: deck.reveal }, '*');
   el.deckCount.textContent = paging(i);
   // Said aloud as it changes, the slide's number and how far into it.

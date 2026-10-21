@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { file, globals } from './dom.js';
+import { app, globals } from './dom.js';
 
-const { document } = globals(file('static/index.html'));
+const { document } = globals(app());
 const { el } = await import('../static/app/state.js');
 const { toggleSidebar, toggleDrawer, toggleHelp, wireDrawer } = await import('../static/app/modes.js');
 wireDrawer();

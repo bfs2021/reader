@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { slides } from '../src/slides.js';
-import { file, globals } from './dom.js';
+import { app, globals } from './dom.js';
 
 // deck.js is the app's, for the browser: it's loaded here on the app's page.
-const window = globals(file('static/index.html'));
+const window = globals(app());
 const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
 const { deck } = await import('../static/app/state.js');

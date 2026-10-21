@@ -59,9 +59,15 @@ function resolve(props) {
   return out;
 }
 
-// the app's colours
-const light = resolve(declared(style.slice(0, style.indexOf('@media'))));
-const dark = resolve({ ...declared(style.slice(0, style.indexOf('@media'))), ...declared(style.slice(style.indexOf('@media'), style.indexOf('* {'))) });
+// the app's colours, and the speaker view's, dark unless light is chosen
+const appLight = declared(block(style, ':root {'));
+const light = resolve(appLight);
+const dark = resolve({ ...appLight, ...declared(block(style, ':root[data-theme="dark"] {')) });
+const speakerDark = declared(block(speaker, ':root {'));
+const speakers = {
+  dark: resolve(speakerDark),
+  light: resolve({ ...speakerDark, ...declared(block(speaker, ':root[data-chosen="light"] {')) }),
+};
 
 // the document's: the light set, the dark over it, and what each is for
 const meaning = declared(block(columns, ':root {\n  --gm-accent'));
@@ -84,8 +90,7 @@ test('the soft ink reads on every panel and row, in both themes', () => {
     for (const ground of ['bg', 'panel', 'line', 'line-soft']) readable(t['ink-soft'], t[ground], `${theme} --${ground}`);
     readable(t['ink-soft'], mix(t.accent, 0.18, t.panel), `${theme} picked row`);
   }
-  const s = resolve(declared(speaker));
-  readable(s['ink-soft'], s.panel, 'speaker view');
+  for (const [theme, s] of Object.entries(speakers)) for (const ground of ['bg', 'panel']) readable(s['ink-soft'], s[ground], `speaker view, ${theme}`);
 });
 
 test("the app's ok and warn read where they're drawn, and the toast's ink on warn", () => {
@@ -100,8 +105,9 @@ test("the app's ok and warn read where they're drawn, and the toast's ink on war
 });
 
 test("the speaker view's pace reads on its ground", () => {
-  const s = resolve(declared(speaker));
-  for (const ink of ['ahead', 'on-pace', 'behind', 'warn']) for (const ground of ['bg', 'panel']) readable(s[ink], s[ground], `${ink} on --${ground}`);
+  for (const [theme, s] of Object.entries(speakers)) {
+    for (const ink of ['ahead', 'on-pace', 'behind', 'warn']) for (const ground of ['bg', 'panel']) readable(s[ink], s[ground], `${theme} ${ink} on --${ground}`);
+  }
 });
 
 test("the version, at the foot of the list, is in the soft ink or the ink", () => {
@@ -111,7 +117,7 @@ test("the version, at the foot of the list, is in the soft ink or the ink", () =
   for (const ink of inks) assert.match(ink, /^var\(--ink(-soft)?\)$/);
 });
 
-test("the deck's foot reads on its white", () => {
+test("the deck's foot reads on its paper, light or dark", () => {
   const [, ink, ground] = style.match(/\.deck-foot \{[^}]*?[\s;]color: var\(--([\w-]+)\); background: var\(--([\w-]+)\)/);
   for (const t of [light, dark]) readable(t[ink], t[ground], 'deck foot');
 });
@@ -205,8 +211,8 @@ test('Good, Bad and Try, and ok and warn, stay apart under deuteranopia and prot
 
 test('no colour is written outside the blocks that name them', () => {
   const blocks = [
-    [style, /^:root \{[^}]*\}|^@media \(prefers-color-scheme: dark\) \{\n {2}:root \{[^}]*\}\n\}/gm],
-    [speaker, /^:root \{[^}]*\}/gm],
+    [style, /^ *:root[^{]*\{[^}]*\}/gm],
+    [speaker, /^ *:root[^{]*\{[^}]*\}/gm],
     [columns, /^\/\* colours, (light|dark) \*\/\n:root(\.gm-dark)? \{[^}]*\}/gm],
   ];
   const named = new Map(blocks.map(([css, re]) => [css, css.replace(re, '')]));

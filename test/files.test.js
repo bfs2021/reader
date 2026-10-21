@@ -1,11 +1,11 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { file, globals } from './dom.js';
+import { app, globals } from './dom.js';
 
 // A toast hides itself a few seconds on; here it waits to be told.
 mock.timers.enable({ apis: ['setTimeout'] });
 
-globals(file('static/index.html'));
+globals(app());
 // What the app asks the server, which answers every file with the same text.
 const asked = [];
 globalThis.fetch = async (url) => {

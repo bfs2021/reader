@@ -277,7 +277,7 @@
       // fit below): a step first seen showing would fade out, flashing
       // on screen as it went.
       if (m.reveal != null) hideLater(m.reveal);
-      Ink.set();
+      Ink.set(m.dark);
     });
     refocus(had);
     hidePeek();

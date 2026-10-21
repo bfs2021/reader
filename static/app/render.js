@@ -63,6 +63,8 @@ export async function renderNow({ resetScroll = false } = {}) {
     base: baseFor(path),
     resetScroll,
     lines: el.editor.value.split('\n').length,
+    // drawn in the app's theme, unless its own background says otherwise
+    dark: Theme.dark(),
   }, '*');
   // What's above may have grown or shrunk; put the page back level.
   if (!resetScroll) sendScroll();
