@@ -49,7 +49,7 @@ const PAGES_CSS = `
   .gm-page > .gm-bg { display: none; }
   :root.gm-dark {
     --gm-ink: #1a1a1a; --gm-ink-soft: #555; --gm-aside-ink: #4a5a72;
-    --gm-rule: #d9d6d0; --gm-aside-rule: #b9c4d4; --gm-accent: #7a8ba3; --gm-paper: #fff;
+    --gm-rule: #d9d6d0; --gm-aside-rule: #b9c4d4; --gm-accent: #5a6b84; --gm-paper: #fff;
   }
 }
 @page numbered {

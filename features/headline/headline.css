@@ -2,7 +2,7 @@
  * the page behind it. Only fonts a machine may already have; each look
  * falls back to the page's own serif or sans. */
 .headline {
-  --gm-ink: #121212; --gm-ink-soft: #5a5a5a; --gm-rule: #d9d6d0; --gm-accent: #7a8ba3;
+  --gm-ink: #121212; --gm-ink-soft: #5a5a5a; --gm-rule: #d9d6d0; --gm-accent: #5a6b84;
   max-width: 30em; margin: 1rem 0; padding: 1.1em 1.4em 1.2em;
   background: #fdfcf9; color: var(--gm-ink);
   border: 0.75px solid var(--gm-rule);
