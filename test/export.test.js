@@ -132,6 +132,6 @@ test('export draws diagrams with a browser', { skip: !findBrowser() && 'no Chrom
   const root = dir({ 'a.md': '```mermaid\nflowchart LR\n  draft --> publish\n```\n' });
   await reader(root, 'a.md');
   const html = fs.readFileSync(path.join(root, 'a.html'), 'utf8');
-  assert.match(html, /<div class="mermaid-figure"><svg/);
+  assert.match(html, /<div class="mermaid-figure" role="img" aria-label="Diagram"><svg/);
   assert.match(html, /draft/);
 });
