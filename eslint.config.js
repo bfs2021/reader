@@ -1,6 +1,8 @@
 import js from '@eslint/js';
 import globals from 'globals';
 
+const FRAME = ['features/*/preview.js', 'features/puzzles/kinds/*.js'];
+
 export default [
   { ignores: ['node_modules/', 'static/vendor/', 'features/*/vendor/'] },
   js.configs.recommended,
@@ -19,9 +21,11 @@ export default [
       ],
     },
   },
-  // The server, the CLI, the renderer's features, the tools and the tests.
+  // The server, the CLI, the renderer's features, the tools and the tests,
+  // less what features draw into the preview frame, which has no Node.
   {
     files: ['bin/**/*.js', 'src/**/*.js', 'features/**/*.js', 'test/**/*.js', 'tools/**/*.js', '*.config.js'],
+    ignores: FRAME,
     languageOptions: { sourceType: 'module', globals: globals.node },
   },
   // The app and what it imports are modules; the preview frame's scripts
@@ -32,7 +36,7 @@ export default [
     languageOptions: { sourceType: 'module', globals: globals.browser },
   },
   {
-    files: ['static/preview-api.js', 'static/preview.js', 'static/speaker.js', 'static/picks.js', 'static/views.js', 'static/awake.js', 'features/*/preview.js', 'features/puzzles/kinds/*.js'],
+    files: ['static/preview-api.js', 'static/preview.js', 'static/speaker.js', 'static/picks.js', 'static/views.js', 'static/awake.js', ...FRAME],
     languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly' } },
   },
 ];
