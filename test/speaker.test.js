@@ -90,3 +90,41 @@ test('a slide with no plan has no pace, and one planned no later than the next s
   assert.equal(paced([{ plan: 0 }, {}], 1, 10), null);
   assert.deepEqual(paced([{ plan: 60, at: 60 }, { plan: 60 }], 0, 70), { state: 'pace on', says: 'on plan · checkpoint 1:00' });
 });
+
+test('the timer restarts from the keyboard: R anywhere, or Enter on the timer itself', () => {
+  const { now, $, say } = speaker();
+  const window = $('timer').ownerDocument.defaultView;
+  say({ type: 'deck', open: true, index: 0, reveal: 0, slides: [{}, {}], meta: {} });
+  now.seconds = 75;
+  window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'r' }));
+  now.seconds = 80;
+  say({ type: 'go', index: 1, reveal: 0 });
+  assert.equal($('timer').textContent, '0:05');
+  assert.equal($('timer').tagName, 'BUTTON');
+  // Enter on it is its own, and doesn't move the deck too.
+  const enter = new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+  $('timer').dispatchEvent(enter);
+  assert.equal(enter.defaultPrevented, false);
+});
+
+test('the pace is said aloud when it changes, not as it counts', () => {
+  const { now, $, say } = speaker();
+  const heard = () => $('pace-heard').textContent;
+  say({ type: 'deck', open: true, index: 0, reveal: 0, slides: PLANNED, meta: {}, end: 360 });
+  now.seconds = 10;
+  say({ type: 'go', index: 1, reveal: 0 });
+  assert.equal(heard(), '1:50 ahead of plan');
+  now.seconds = 20;
+  say({ type: 'go', index: 1, reveal: 0 });
+  assert.equal(heard(), '1:50 ahead of plan');
+  now.seconds = 200;
+  say({ type: 'go', index: 1, reveal: 0 });
+  assert.equal(heard(), 'On plan');
+  now.seconds = 400;
+  say({ type: 'go', index: 1, reveal: 0 });
+  assert.equal(heard(), '1:40 behind plan');
+  now.seconds = 500;
+  say({ type: 'go', index: 1, reveal: 0 });
+  assert.equal(heard(), '3:20 behind plan');
+  assert.equal($('pace-heard').getAttribute('role'), 'status');
+});
