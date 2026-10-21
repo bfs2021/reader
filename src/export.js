@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { render } from './render.js';
 import { isDeck, pages } from './slides.js';
+import { LIGHT_COLOURS } from './columns.js';
 import { escapeHtml, escapeAttr } from '../features/source.js';
 
 const IMAGE_TYPES = {
@@ -38,7 +39,7 @@ const BACKDROP_URL = /(background-image: url\(&quot;)(.*?)(&quot;\))/g;
 // A deck's pages, one after another, each with what's behind it to itself.
 // On paper, each starts a sheet, and every sheet of them is numbered. What's
 // behind a page is set for a slide's screen, not a sheet, so paper is left
-// plain, with the page's own dark ink.
+// plain, in the light colours, whatever the screen's.
 const PAGES_CSS = `
 .gm-page { position: relative; isolation: isolate; }
 .gm-page > .gm-bg { position: absolute; }
@@ -47,17 +48,14 @@ const PAGES_CSS = `
   .gm-page { page: numbered; }
   .gm-page + .gm-page { border-top: none; break-before: page; }
   .gm-page > .gm-bg { display: none; }
-  :root.gm-dark {
-    --gm-ink: #1a1a1a; --gm-ink-soft: #555; --gm-aside-ink: #4a5a72;
-    --gm-rule: #d9d6d0; --gm-aside-rule: #b9c4d4; --gm-accent: #5a6b84; --gm-paper: #fff;
-  }
+  :root.gm-dark { ${LIGHT_COLOURS} }
 }
 @page numbered {
   @bottom-center {
     content: counter(page);
     font-family: "Avenir Next", Avenir, "Helvetica Neue", Inter, system-ui, sans-serif;
     font-size: 9pt;
-    color: #555;
+    color: ${LIGHT_COLOURS.match(/--gm-ink-soft: ([^;]+);/)[1]};
   }
 }
 `;

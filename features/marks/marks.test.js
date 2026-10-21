@@ -14,15 +14,15 @@ const tied = (body) => [...body.matchAll(/<div class="gm-aside-cell[^"]*" role="
 
 test('an aside marks the words it names in the line above, in its topic\'s colour and style', () => {
   const { body } = render(`${KEY}the quick brown fox\n~a[quick] nice job\n`);
-  assert.deepEqual(marks(body), [{ id: 'mk-1', style: 'circle', color: '#7a5c3e', text: 'quick' }]);
+  assert.deepEqual(marks(body), [{ id: 'mk-1', style: 'circle', color: 'var(--gm-key-8)', text: 'quick' }]);
   assert.deepEqual(tied(body), [{ id: 'mk-1', words: 'quick' }]);
-  assert.match(body, /<div class="gm-aside-cell gm-attributed" role="note" style="--mk: #7a5c3e" data-mark="mk-1">/);
+  assert.match(body, /<div class="gm-aside-cell gm-attributed" role="note" style="--mk: var\(--gm-key-8\)" data-mark="mk-1">/);
   assert.match(body, /<\/q>nice job<\/p>/);
 });
 
 test('a mark is one to a screen reader, its topic said with it and shown on hover, not only by colour and pen', () => {
   const { body } = render(`${KEY}the quick brown fox\n~a[quick] nice job\n`);
-  assert.match(body, /<span class="mk mk-circle" role="mark" title="adjectives" style="--mk: #7a5c3e" data-mark="mk-1">quick<\/span>/);
+  assert.match(body, /<span class="mk mk-circle" role="mark" title="adjectives" style="--mk: var\(--gm-key-8\)" data-mark="mk-1">quick<\/span>/);
   assert.match(render('[x]{circle}\n').body, /<span class="mk mk-circle" role="mark" data-mark="mk-1">/, 'no topic, no title');
 });
 
@@ -72,10 +72,10 @@ test('words not found are set in the aside with a ?, tied to nothing', () => {
 
 test('a mark written in braces is the one an aside naming its words ties to, as many as name it', () => {
   const { body } = render(`${KEY}jumped over [the lazy dog]{c}\n~c[the lazy dog] one\n~a[the lazy dog] two\n`);
-  assert.deepEqual(marks(body), [{ id: 'mk-1', style: 'underline', color: '#a23d6d', text: 'the lazy dog' }]);
+  assert.deepEqual(marks(body), [{ id: 'mk-1', style: 'underline', color: 'var(--gm-key-6)', text: 'the lazy dog' }]);
   // Each aside's line takes its own topic's colour.
   assert.deepEqual(tied(body), [{ id: 'mk-1', words: 'the lazy dog' }, { id: 'mk-1', words: 'the lazy dog' }]);
-  assert.match(body, /style="--mk: #7a5c3e" data-mark="mk-1"/);
+  assert.match(body, /style="--mk: var\(--gm-key-8\)" data-mark="mk-1"/);
 });
 
 test('in braces: a topic, a style, or both; a color is the mark\'s; a lone letter not declared is a font', () => {
@@ -96,7 +96,7 @@ test('an aside about words keeps its place in a ::: block', () => {
 
 test('the writer\'s own aside can name words too, and one with nothing to say just marks them', () => {
   const { body } = render(`${KEY}the quick brown fox\n~[quick] mine\n~a[fox]\n`);
-  assert.deepEqual(marks(body).map((m) => [m.text, m.color]), [['quick', undefined], ['fox', '#7a5c3e']]);
+  assert.deepEqual(marks(body).map((m) => [m.text, m.color]), [['quick', undefined], ['fox', 'var(--gm-key-8)']]);
   assert.match(body, /<div class="gm-aside-cell" role="note" data-mark="mk-1">\n<p><span class="gm-mark" aria-hidden="true">~<\/span><q class="mk-about">quick<\/q>mine<\/p>/);
 });
 

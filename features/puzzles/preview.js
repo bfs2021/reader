@@ -192,7 +192,7 @@
   margin-top: 0.4rem; min-height: 1.2em; visibility: hidden;
 }
 .puzzle:focus-within .puzzle-bar, .puzzle.solved .puzzle-bar { visibility: visible; }
-.puzzle.solved .puzzle-bar { color: #2e7d32; font-weight: 600; font-size: 0.95rem; }
+.puzzle.solved .puzzle-bar { color: var(--gm-ok); font-weight: 600; font-size: 0.95rem; }
 .puzzle-help {
   display: grid; grid-template-columns: max-content 1fr; gap: 0.15rem 0.8rem;
   font-family: var(--gm-sans); font-size: 0.8rem; margin: 0.4rem 0 0;
@@ -200,8 +200,8 @@
 .puzzle-help[hidden] { display: none; }
 .puzzle-help dt { font-weight: 600; }
 .puzzle-help dd { margin: 0; color: var(--gm-ink-soft); }
-.puzzle-unreadable pre { border-left: 3px solid #c62828; }
-.puzzle-error { font-family: var(--gm-sans); font-size: 0.8rem; color: #c62828; margin: 0 0 0.3rem; }
+.puzzle-unreadable pre { border-left: 3px solid var(--gm-error); }
+.puzzle-error { font-family: var(--gm-sans); font-size: 0.8rem; color: var(--gm-error); margin: 0 0 0.3rem; }
 @media print { .puzzle-bar, .puzzle-help { display: none; } }
 `);
 

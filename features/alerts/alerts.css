@@ -16,8 +16,15 @@ blockquote.alert > p { margin: 0.3rem 0; }
   text-transform: uppercase;
   margin-top: 0;
 }
-.alert-note { border-color: #9db4d6; background: #f4f7fb; }
-.alert-tip { border-color: #9cc9a6; background: #f3f9f4; }
-.alert-important { border-color: #b8a3d9; background: #f7f4fb; }
-.alert-warning { border-color: #dcc07a; background: #fcf8ec; }
-.alert-caution { border-color: #dc9a92; background: #fcf1f0; }
+/* each kind in its colour (src/columns.css): its left edge in full, the
+ * rest of its frame and its ground faint. Its title says which it is. */
+.alert-note { --alert: var(--gm-note); }
+.alert-tip { --alert: var(--gm-tip); }
+.alert-important { --alert: var(--gm-important); }
+.alert-warning { --alert: var(--gm-warning); }
+.alert-caution { --alert: var(--gm-caution); }
+blockquote.alert[class*="alert-"] {
+  border-color: color-mix(in srgb, var(--alert) 40%, var(--gm-paper));
+  border-left-color: var(--alert);
+  background: color-mix(in srgb, var(--alert) 7%, var(--gm-paper));
+}

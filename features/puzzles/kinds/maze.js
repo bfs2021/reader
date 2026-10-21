@@ -501,17 +501,17 @@
 }
 /* on a slide, leave room for the scripture above and the question below */
 .deck .mz-grid { --mz-tall: 42vh; }
-.mz-grid .paper { fill: var(--gm-paper, #fff); }
-.mz-grid .wall { fill: none; stroke: var(--gm-ink, #222); stroke-width: 0.12; stroke-linecap: square; }
+.mz-grid .paper { fill: var(--gm-paper); }
+.mz-grid .wall { fill: none; stroke: var(--gm-ink); stroke-width: 0.12; stroke-linecap: square; }
 .mz-grid .way {
-  fill: none; stroke: #2457a6; stroke-width: 0.34; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75;
+  fill: none; stroke: var(--gm-pick); stroke-width: 0.34; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75;
 }
-.mz-grid .head { fill: #2457a6; }
-.mz-grid .note { fill: none; stroke: #8f8a82; stroke-width: 0.1; stroke-linecap: round; }
+.mz-grid .head { fill: var(--gm-pick); }
+.mz-grid .note { fill: none; stroke: var(--gm-ink-faint); stroke-width: 0.1; stroke-linecap: round; }
 .mz-grid text { font-size: 0.75px; font-weight: 700; text-anchor: middle; }
-.mz-grid .end-S { fill: #2e7d32; }
-.mz-grid .end-E { fill: #c62828; }
-.puzzle.solved .mz-grid .way { stroke: #2e7d32; }
-.puzzle.solved .mz-grid .head { fill: #2e7d32; }
+.mz-grid .end-S { fill: var(--gm-ok); }
+.mz-grid .end-E { fill: var(--gm-error); }
+.puzzle.solved .mz-grid .way { stroke: var(--gm-ok); }
+.puzzle.solved .mz-grid .head { fill: var(--gm-ok); }
 `);
 })();

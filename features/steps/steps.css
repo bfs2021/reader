@@ -25,7 +25,7 @@ ol.badges > li.step-current {
   color: var(--gm-ink);
 }
 /* The tint is faint, so the lit step's badge is ringed in its own colour
- * too, 5.3:1 on the page, the step's mark however faint the tint. */
-ol.badges > li.step-current::before { box-shadow: 0 0 0 2px var(--gm-paper, #fff), 0 0 0 3.5px var(--badge); }
+ * too, 5.7:1 on the page, the step's mark however faint the tint. */
+ol.badges > li.step-current::before { box-shadow: 0 0 0 2px var(--gm-paper), 0 0 0 3.5px var(--badge); }
 @media print { ol.badges > li.step-current { background: none; box-shadow: none; } }
 .steps-said { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

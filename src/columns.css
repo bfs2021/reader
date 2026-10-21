@@ -10,20 +10,164 @@
   --gm-aside-col: 0.62fr;
   --gm-gutter: 2.2rem;
 
-  --gm-ink: #1a1a1a;
-  --gm-ink-soft: #555;
-  --gm-aside-ink: #4a5a72;
-  --gm-rule: #d9d6d0;
-  --gm-aside-rule: #b9c4d4;
-  --gm-accent: #5a6b84;   /* text too: 5.4:1 on the paper */
-  --gm-paper: #fff;
-
   --gm-serif: "Iowan Old Style", Charter, "Palatino Linotype", Palatino, Georgia, serif;
   --gm-sans: "Avenir Next", Avenir, "Helvetica Neue", Inter, system-ui, sans-serif;
   --gm-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
   --gm-base: 10.75pt;
   --gm-lead: 1.5;
+}
+
+/* ---------- colours ----------------------------------------------------
+ *
+ * Every colour a document draws with is named here, once: a light set, and
+ * a dark set over it under `:root.gm-dark`, which static/ink.js sets on a
+ * page whose background is dark. Nothing outside these two blocks names a
+ * colour of its own; a feature takes one of these, or mixes two.
+ *
+ * Text is 4.5:1 or better on what it sits on, in either set; the faint ink
+ * and the rules are for lines and marks, never text.
+ *
+ * The hues are one family, picked in OKLCH at one lightness and about one
+ * chroma (L 0.50-0.53 in the light, 0.76-0.80 in the dark), so they sit
+ * together on the warm paper. Each reads as text on the paper, the paper
+ * reads on each, and green, red and blue stay apart under deuteranopia and
+ * protanopia: green goes grey, red goes ochre, blue stays blue.
+ */
+
+/* colours, light */
+:root {
+  --gm-ink: #1a1a1a;
+  --gm-ink-soft: #555;
+  --gm-ink-faint: #9e9a93;   /* marks, not text */
+  --gm-aside-ink: #4a5a72;
+  --gm-rule: #d9d6d0;
+  --gm-rule-strong: #b9b5ad;
+  --gm-aside-rule: #b9c4d4;
+  --gm-paper: #fff;
+
+  /* grounds on the paper: code's, a table's, a line picked out, output */
+  --gm-wash: #f3f2ef;
+  --gm-well: #f7f6f3;
+  --gm-th: #f5f3ef;
+  --gm-stripe: #faf9f7;
+  --gm-lit: #f0ebde;
+  --gm-output: #eef1f5;
+  --gm-output-rule: #d5dbe4;
+  --gm-output-split: #c9d1dc;
+  --gm-output-lit: #dfe6ef;
+
+  /* the family */
+  --gm-red: #a83906;
+  --gm-amber: #975800;
+  --gm-moss: #4f7715;
+  --gm-green: #257d6f;
+  --gm-blue: #305dba;
+  --gm-violet: #7b52a4;
+  --gm-rose: #9e4573;
+  --gm-slate: #5a6b84;
+
+  /* code's comments, a grey of their own */
+  --gm-code-comment: #67645d;
+
+  /* a headline's clipping, and the papers' own colours */
+  --gm-clip-paper: #fdfcf9;
+  --gm-clip-white: #fff;
+  --gm-clip-ink: #121212;
+  --gm-clip-ink-soft: #5a5a5a;
+  --gm-brand-atlantic: #e7131a;
+  --gm-brand-guardian: #052962;
+  --gm-brand-slashdot: #016765;
+  --gm-on-brand: #fff;
+
+  /* a profile link's mark, in its site's colour */
+  --gm-brand-linkedin: #0a66c2;
+  --gm-brand-bluesky: #0285ff;
+  --gm-brand-facebook: #0866ff;
+  --gm-brand-instagram: #e4405f;
+  --gm-brand-youtube: #ff0000;
+}
+
+/* colours, dark */
+:root.gm-dark {
+  --gm-ink: #f5f3ee;
+  --gm-ink-soft: #cfcbc3;
+  --gm-ink-faint: #80848c;
+  --gm-aside-ink: #cdd6e4;
+  --gm-rule: rgba(255, 255, 255, .32);
+  --gm-rule-strong: rgba(255, 255, 255, .5);
+  --gm-aside-rule: rgba(205, 214, 228, .55);
+  --gm-paper: #22252b;
+
+  --gm-wash: #30343b;
+  --gm-well: #2b2f36;
+  --gm-th: #30343b;
+  --gm-stripe: #272a30;
+  --gm-lit: #3d3a31;
+  --gm-output: #262d37;
+  --gm-output-rule: #3c4757;
+  --gm-output-split: #4a5568;
+  --gm-output-lit: #34404f;
+
+  --gm-red: #f8926a;
+  --gm-amber: #ecac5f;
+  --gm-moss: #a1ca76;
+  --gm-green: #81cfc2;
+  --gm-blue: #73b6fa;
+  --gm-violet: #cca7f8;
+  --gm-rose: #f59ac5;
+  --gm-slate: #b4c1d4;
+
+  --gm-code-comment: #b5b0a7;
+
+  --gm-clip-paper: #262624;
+  --gm-clip-white: #1e1e1e;
+  --gm-clip-ink: #f2f0ea;
+  --gm-clip-ink-soft: #b9b5ad;
+  --gm-brand-atlantic: #ff6b61;
+  --gm-brand-guardian: #9cb9f0;
+
+  --gm-brand-linkedin: #5aa2e6;
+  --gm-brand-bluesky: #4aa3ff;
+  --gm-brand-facebook: #5b9bff;
+  --gm-brand-instagram: #f06f88;
+  --gm-brand-youtube: #ff5252;
+}
+
+/* What each colour is for: the same in either set, as they're named from
+ * the family. Good, Bad and Try are its green, red and blue. */
+:root {
+  --gm-accent: var(--gm-slate);
+  --gm-good: var(--gm-green);
+  --gm-bad: var(--gm-red);
+  --gm-try: var(--gm-blue);
+  --gm-ok: var(--gm-green);
+  --gm-error: var(--gm-red);
+  --gm-badge: var(--gm-amber);
+  --gm-pick: var(--gm-blue);
+  --gm-note: var(--gm-blue);
+  --gm-tip: var(--gm-green);
+  --gm-important: var(--gm-violet);
+  --gm-warning: var(--gm-amber);
+  --gm-caution: var(--gm-red);
+  /* a key's reviewers and topics (features/asides/key.js) */
+  --gm-key-1: var(--gm-red);
+  --gm-key-2: var(--gm-green);
+  --gm-key-3: var(--gm-violet);
+  --gm-key-4: var(--gm-amber);
+  --gm-key-5: var(--gm-blue);
+  --gm-key-6: var(--gm-rose);
+  --gm-key-7: var(--gm-moss);
+  --gm-key-8: var(--gm-slate);
+  /* code, the family taken a fifth of the way to the ink */
+  --gm-code-keyword: color-mix(in srgb, var(--gm-rose) 80%, var(--gm-ink));
+  --gm-code-string: color-mix(in srgb, var(--gm-moss) 80%, var(--gm-ink));
+  --gm-code-number: color-mix(in srgb, var(--gm-blue) 80%, var(--gm-ink));
+  --gm-code-title: color-mix(in srgb, var(--gm-violet) 80%, var(--gm-ink));
+  --gm-code-type: color-mix(in srgb, var(--gm-amber) 80%, var(--gm-ink));
+  --gm-code-meta: color-mix(in srgb, var(--gm-slate) 80%, var(--gm-ink));
+  --gm-code-deletion: color-mix(in srgb, var(--gm-red) 80%, var(--gm-ink));
+  --gm-code-addition: color-mix(in srgb, var(--gm-green) 80%, var(--gm-ink));
 }
 
 * { box-sizing: border-box; }
@@ -174,7 +318,8 @@ body {
 
 /* An aside from a reviewer, about a topic (features/asides/key.js): the
  * rule in the reviewer's colour, their name in a chip, each topic in an
- * outlined pill. Names, not only colours, so it holds up in print. */
+ * outlined pill. Names, not only colours, so it holds up in print. The
+ * paper on a chip: a key's colours read on the paper, and so it on them. */
 .gm-attributed { border-left-color: var(--by, var(--gm-aside-rule)); }
 .gm-by { font-style: normal; margin-right: 0.35em; }
 .gm-who, .gm-topic, .gm-unknown {
@@ -190,7 +335,7 @@ body {
   border-radius: 3px;
   vertical-align: 0.1em;
 }
-.gm-who { color: #fff; background: var(--by, var(--gm-accent)); }
+.gm-who { color: var(--gm-paper); background: var(--by, var(--gm-accent)); }
 .gm-topic { color: var(--topic, var(--gm-accent)); border: 1px solid currentColor; border-radius: 999px; padding: 0 0.55em; }
 .gm-unknown { color: var(--gm-ink-soft); border: 1px dashed currentColor; }
 
@@ -208,7 +353,7 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }
 code {
   font-family: var(--gm-mono);
   font-size: 0.86em;
-  background: #f3f2ef;
+  background: var(--gm-wash);
   padding: 0.1em 0.32em;
   border-radius: 3px;
 }
@@ -216,7 +361,7 @@ code {
 pre {
   font-family: var(--gm-mono);
   font-size: 0.8rem;
-  background: #f7f6f3;
+  background: var(--gm-well);
   border: 0.75px solid var(--gm-rule);
   border-radius: 4px;
   padding: 0.7rem 0.85rem;

@@ -8,5 +8,5 @@
 .mermaid.drawn.stale svg { opacity: 0.5; }
 .mermaid-error {
   margin: 0.4rem 0 0; padding: 0; border: 0; background: none;
-  white-space: pre-wrap; font-size: 0.8rem; color: #b42318;
+  white-space: pre-wrap; font-size: 0.8rem; color: var(--gm-error);
 }

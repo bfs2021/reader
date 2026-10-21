@@ -6,21 +6,20 @@
   border-radius: 3px;
   cursor: help;
 }
-/* Lit, the word and its item's key are underlined solid, in green that's
- * 5:1 on the page, past the faint tint behind them. */
+/* Lit, the word and its item's key are underlined solid, in the green,
+ * which reads on the page, past the faint tint behind them. */
 .ingredient-use.lit, li.ingredient.lit .ingredient-key {
-  text-decoration: underline solid 0.12em var(--ingredient-lit, #2f7d5b);
+  text-decoration: underline solid 0.12em var(--gm-green);
   font-weight: 600;
 }
-:root.gm-dark { --ingredient-lit: #6fcf9f; }
 .ingredient-use.lit {
-  background: color-mix(in srgb, #2f7d5b 18%, transparent);
-  box-shadow: 0 0 0 0.12em color-mix(in srgb, #2f7d5b 18%, transparent);
+  background: color-mix(in srgb, var(--gm-green) 18%, transparent);
+  box-shadow: 0 0 0 0.12em color-mix(in srgb, var(--gm-green) 18%, transparent);
 }
 li.ingredient { border-radius: 4px; transition: background-color 0.2s; }
 li.ingredient.lit {
-  background: color-mix(in srgb, #2f7d5b 13%, transparent);
-  box-shadow: -0.35em 0 0 0.15em color-mix(in srgb, #2f7d5b 13%, transparent), 0.35em 0 0 0.15em color-mix(in srgb, #2f7d5b 13%, transparent);
+  background: color-mix(in srgb, var(--gm-green) 13%, transparent);
+  box-shadow: -0.35em 0 0 0.15em color-mix(in srgb, var(--gm-green) 13%, transparent), 0.35em 0 0 0.15em color-mix(in srgb, var(--gm-green) 13%, transparent);
 }
 li.ingredient-unused::after {
   content: "in no step";
@@ -31,8 +30,8 @@ li.ingredient-unused::after {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   vertical-align: 0.15em;
-  color: #9a5b00;
-  background: color-mix(in srgb, #e0a030 22%, transparent);
+  color: var(--gm-amber);
+  background: color-mix(in srgb, var(--gm-amber) 12%, transparent);
 }
 .ingredient-pop {
   position: fixed;

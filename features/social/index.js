@@ -34,7 +34,7 @@ const SITES = {
   linkedin: {
     site: 'LinkedIn',
     icon: 'linkedin',
-    color: '#0a66c2',
+    color: 'var(--gm-brand-linkedin)',
     at: (name) => {
       const page = name.includes('/') ? name : `in/${name}`;
       return { href: `https://www.linkedin.com/${page}`, label: `linkedin.com/${page}` };
@@ -43,7 +43,7 @@ const SITES = {
   bluesky: {
     site: 'Bluesky',
     icon: 'bluesky',
-    color: '#0285ff',
+    color: 'var(--gm-brand-bluesky)',
     at: (name) => {
       const handle = name.includes('.') ? name : `${name}.bsky.social`;
       return { href: `https://bsky.app/profile/${handle}`, label: `@${handle}` };
@@ -64,19 +64,19 @@ const SITES = {
   fb: {
     site: 'Facebook',
     icon: 'facebook',
-    color: '#0866ff',
+    color: 'var(--gm-brand-facebook)',
     at: (name) => ({ href: `https://www.facebook.com/${name}`, label: `facebook.com/${name}` }),
   },
   insta: {
     site: 'Instagram',
     icon: 'instagram',
-    color: '#e4405f',
+    color: 'var(--gm-brand-instagram)',
     at: (name) => ({ href: `https://www.instagram.com/${name}`, label: `@${name}` }),
   },
   yt: {
     site: 'YouTube',
     icon: 'youtube',
-    color: '#ff0000',
+    color: 'var(--gm-brand-youtube)',
     at: (name) => ({ href: `https://www.youtube.com/@${name}`, label: `@${name}` }),
   },
 };
