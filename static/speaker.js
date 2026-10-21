@@ -74,6 +74,7 @@ function tick() {
 
 // Within this much of the plan is on it.
 const GRACE = 30;
+let heard = 'on';  // the pace last said aloud
 
 /**
  * Where the plan (from the notes' checkpoints and budgets; see
@@ -105,6 +106,11 @@ function pace(elapsed) {
   const b = document.createElement('b');
   b.textContent = say;
   el.append(b, ` · ${slide.at != null ? 'checkpoint' : 'plan'} ${span}`);
+  // Said aloud when it changes, not each second it counts.
+  if (state !== heard) {
+    heard = state;
+    $('pace-heard').textContent = { on: 'On plan', ahead: `${say} of plan` }[state] ?? `${say} plan`;
+  }
 }
 
 channel.addEventListener('message', (e) => {
@@ -140,12 +146,25 @@ window.addEventListener('message', (e) => {
 const MOVES = new Set(['n', 'N', 'p', 'P', 'ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter',
   'ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'Home', 'End']);
 window.addEventListener('keydown', (e) => {
-  if (e.metaKey || e.ctrlKey || e.altKey || !MOVES.has(e.key)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  // The timer's own Enter and Space restart it.
+  if (e.target === $('timer') && (e.key === 'Enter' || e.key === ' ')) return;
+  if (e.key === 'r' || e.key === 'R') return restart();
+  if (!MOVES.has(e.key)) return;
   e.preventDefault();
   channel.postMessage({ type: 'key', key: e.key });
 });
 
-$('timer').addEventListener('click', () => { started = Date.now(); tick(); });
+function restart() {
+  started = Date.now();
+  tick();
+}
+
+$('timer').addEventListener('click', (e) => {
+  restart();
+  // Clicked, it lets go of the keys, so Space still moves the deck.
+  if (e.detail) $('timer').blur();
+});
 window.addEventListener('resize', fit);
 fit();
 tick();

@@ -62,15 +62,8 @@ const PAGES_CSS = `
 }
 `;
 
-// The preview frame's `ink()`: light text on a dark background.
-const INK_JS = `
-(() => {
-  const bg = document.querySelector('.gm-bg');
-  const rgb = bg && getComputedStyle(bg).backgroundColor.match(/[\\d.]+/g)?.map(Number);
-  const dark = Boolean(rgb) && (rgb[3] ?? 1) > 0.5 && (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000 < 140;
-  document.documentElement.classList.toggle('gm-dark', dark);
-})();
-`;
+// Light text on a dark background, as the preview frame picks it.
+const INK_JS = `${fs.readFileSync(new URL('../static/ink.js', import.meta.url), 'utf8')}Ink.set();\n`;
 const INK = `<script>${INK_JS}</script>\n`;
 
 // What the page may load and run: its own styles, images inside it or on

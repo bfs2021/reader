@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readBackground, liftBackground, backdrop } from '../src/background.js';
 import { render } from '../src/render.js';
 import { slides } from '../src/slides.js';
+import { page, preview, run } from './dom.js';
 
 test('a background is a color, an image, or both, in either order', () => {
   assert.deepEqual(readBackground('MidnightBlue'), { color: 'midnightblue' });
@@ -69,4 +70,28 @@ test('a deck\'s background is behind every slide, unless the slide says otherwis
   assert.equal(long.title, 'T');
   assert.deepEqual(long.slides.map(style), Array(2).fill('background-image: url(&quot;paper.jpg&quot;)'));
   assert.equal(out.slides[2].notes, '');
+});
+
+test('the ink is whichever stands out more on the color, light or dark', () => {
+  const { Ink } = run(page(), 'static/ink.js');
+  assert.equal(Ink.lightInk([0, 0, 128]), true);
+  assert.equal(Ink.lightInk([255, 255, 255]), false);
+  // Mid-greys: on #777 the light ink is 4.0:1 and the dark 3.9:1; on #808080
+  // and #8a8a8a, which brightness took for dark, the light would be 3.6:1
+  // and 3.1:1, the dark 4.4:1 and 5.0:1.
+  assert.equal(Ink.lightInk([0x77, 0x77, 0x77]), true);
+  assert.equal(Ink.lightInk([0x80, 0x80, 0x80]), false);
+  assert.equal(Ink.lightInk([0x8a, 0x8a, 0x8a]), false);
+  // Pure red, which brightness took for dark: the light is 3.6:1, the dark 4.4:1.
+  assert.equal(Ink.lightInk([255, 0, 0]), false);
+  // Mostly see-through, it's the paper that shows.
+  assert.equal(Ink.lightInk([0, 0, 0, 0.3]), false);
+});
+
+test('the preview frame inks the page by what its backdrop came to', () => {
+  const { document, show } = preview();
+  show('<div class="gm-bg" style="background-color: rgb(0, 0, 128)"></div><div class="gm-doc"></div>');
+  assert.ok(document.documentElement.classList.contains('gm-dark'));
+  show('<div class="gm-bg" style="background-color: rgb(138, 138, 138)"></div><div class="gm-doc"></div>');
+  assert.ok(!document.documentElement.classList.contains('gm-dark'));
 });

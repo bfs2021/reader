@@ -72,6 +72,20 @@ test('slides renders each slide without a masthead and keeps its notes', () => {
   assert.match(out.css, /--gm-base: clamp/);
 });
 
+test('a slide\'s text fills the window as it did, and zooming in makes it bigger', () => {
+  const [min, vw, vh, rem, max] = /--gm-base: clamp\(([\d.]+)rem, min\(([\d.]+)vw, ([\d.]+)vh\) \+ ([\d.]+)rem, ([\d.]+)rem\)/
+    .exec(slides('# One\n').css).slice(1).map(Number);
+  // On a screen `w`×`h` at `zoom`, with the browser's 16px text: how big it looks.
+  const looks = (w, h, zoom = 1) => zoom * Math.min(Math.max(min * 16, Math.min(vw * w / zoom, vh * h / zoom) / 100 + rem * 16), max * 16);
+  // As big as 2.1vw, as it was, on the speaker view's 1280×720.
+  assert.ok(Math.abs(looks(1280, 720) - 26.88) < 0.1);
+  assert.ok(Math.abs(looks(1280, 900) - 26.88) < 0.1);
+  assert.ok(Math.abs(looks(1600, 720) - 26.88) < 0.1);
+  assert.ok(looks(1920, 1080) > looks(1280, 720));
+  assert.ok(looks(1280, 720, 2) > 1.45 * looks(1280, 720));
+  assert.ok(looks(1280, 720, 4) > 2 * looks(1280, 720));
+});
+
 test('a slide\'s opening heading is set apart from the rest, unless it is all headings', () => {
   const out = slides([
     '# Title\n\n> a quote\n',

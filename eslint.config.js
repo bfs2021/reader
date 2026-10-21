@@ -30,13 +30,14 @@ export default [
   },
   // The app and what it imports are modules; the preview frame's scripts
   // (its own, the puzzles' and the features') are classic scripts sharing
-  // `window.Preview` and `window.Puzzles`, and Mermaid's `window.mermaid`.
+  // `window.Preview` and `window.Puzzles`, Mermaid's `window.mermaid`, and
+  // `window.Ink` (ink.js).
   {
     files: ['static/app/*.js', 'static/edits.js'],
     languageOptions: { sourceType: 'module', globals: globals.browser },
   },
   {
-    files: ['static/preview-api.js', 'static/preview.js', 'static/speaker.js', 'static/picks.js', 'static/views.js', 'static/awake.js', ...FRAME],
-    languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly' } },
+    files: ['static/preview-api.js', 'static/preview.js', 'static/ink.js', 'static/speaker.js', 'static/picks.js', 'static/views.js', 'static/awake.js', ...FRAME],
+    languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly', Ink: 'readonly' } },
   },
 ];

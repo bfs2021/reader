@@ -1,0 +1,45 @@
+/**
+ * Text goes light on a dark background: `.gm-bg` (src/background.js) is
+ * asked what its color came to, so a name and a `#hex` read alike, and the
+ * ink is whichever of the page's dark one and its light one stands out more
+ * against it, by WCAG's contrast ratio. An image alone says nothing; it's
+ * taken for a light one.
+ *
+ * The preview frame inks each render (static/preview.js); an exported page
+ * has this file inside it, and inks itself as it opens (src/export.js).
+ */
+
+window.Ink = (() => {
+  // --gm-ink, on the paper (src/columns.css) and on a dark color (src/background.js)
+  const DARK_INK = [0x1a, 0x1a, 0x1a];
+  const LIGHT_INK = [0xf5, 0xf3, 0xee];
+
+  /** WCAG's relative luminance of an sRGB color, `[r, g, b]` from 0 to 255. */
+  function luminance(rgb) {
+    const [r, g, b] = rgb.slice(0, 3).map((c) => {
+      const s = c / 255;
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
+  /** WCAG's contrast ratio of two colors, from 1 to 21. */
+  function contrast(a, b) {
+    const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  /** Whether the light ink reads better than the dark on `rgb`, `[r, g, b, a?]`. */
+  function lightInk(rgb) {
+    return (rgb[3] ?? 1) > 0.5 && contrast(LIGHT_INK, rgb) > contrast(DARK_INK, rgb);
+  }
+
+  /** Inks the page by its `.gm-bg`. */
+  function set() {
+    const bg = document.querySelector('.gm-bg');
+    const rgb = bg && getComputedStyle(bg).backgroundColor.match(/[\d.]+/g)?.map(Number);
+    document.documentElement.classList.toggle('gm-dark', Boolean(rgb) && lightInk(rgb));
+  }
+
+  return { lightInk, set };
+})();

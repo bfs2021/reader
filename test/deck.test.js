@@ -8,7 +8,7 @@ const window = globals(file('static/index.html'));
 const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
 const { deck } = await import('../static/app/state.js');
-const { paging, steps } = await import('../static/app/deck.js');
+const { paging, steps, deckKey } = await import('../static/app/deck.js');
 
 /** Each thing a slide's steps show, by the step it shows with: [step, its text]. */
 function stepped(body) {
@@ -35,6 +35,15 @@ test('the count reads as the front matter\'s paging says, or n / total', () => {
   // Without a %d it isn't a count, and the usual one stands.
   deck.meta = { paging: 'page' };
   assert.equal(paging(1), '2 / 3');
+});
+
+test('? shows the deck\'s keys at its foot, and puts them away again', () => {
+  const stage = window.document.getElementById('deck');
+  assert.match(stage.querySelector('.deck-keys').textContent, /\? these keys/);
+  assert.equal(deckKey({ key: '?' }), true);
+  assert.ok(stage.classList.contains('keys-shown'));
+  deckKey({ key: '?' });
+  assert.ok(!stage.classList.contains('keys-shown'));
 });
 
 test('each block is a step, and so is each list item and each column; the title isn\'t', () => {
