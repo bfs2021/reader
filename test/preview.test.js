@@ -72,3 +72,26 @@ test('the document is the frame\'s main part, and its title the frame\'s', () =>
   show(render('Hi\n').body);
   assert.equal(document.title, 'Rendered document');
 });
+
+test('the box that had the keyboard has it again once a render replaces it', () => {
+  const { document, show } = preview();
+  const md = '* [ ] one\n* [ ] two\n';
+  show(render(md).body);
+  document.querySelectorAll('.task-box')[1].focus();
+  show(render(md.replace('[ ] two', '[x] two')).body);
+  assert.equal(document.activeElement, document.querySelectorAll('.task-box')[1]);
+});
+
+test('the keyboard comes back to the box it left, once the edit that took it is made', () => {
+  const { document, show, send } = preview();
+  const md = '* [ ] one\n* [ ] two\n';
+  show(render(md).body);
+  const box = document.querySelectorAll('.task-box')[1];
+  box.focus();
+  // Ticking it takes the keyboard out of the frame, to the editor.
+  box.blur();
+  show(render(md.replace('[ ] two', '[x] two')).body);
+  assert.equal(document.activeElement, document.body);
+  send({ type: 'refocus' });
+  assert.equal(document.activeElement, document.querySelectorAll('.task-box')[1]);
+});

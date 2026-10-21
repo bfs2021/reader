@@ -224,9 +224,40 @@
     }
   }
 
+  // What the keyboard can reach, in order: the control that had it is found
+  // again by its place among them, as the same kind, once a render has
+  // replaced it.
+  const REACHABLE = 'a[href], button, input, select, textarea, [tabindex]';
+  const kind = (n) => `${n.tagName} ${n.className}`;
+  const placeOf = (n) => (n && n !== document.body && document.body.contains(n)
+    ? { k: [...document.body.querySelectorAll(REACHABLE)].indexOf(n), kind: kind(n) } : null);
+  function refocus(was) {
+    // A feature may have put the keyboard somewhere itself (a field, a puzzle).
+    if (!was || was.k < 0 || (document.activeElement && document.activeElement !== document.body)) return;
+    const now = document.body.querySelectorAll(REACHABLE)[was.k];
+    if (now && kind(now) === was.kind) now.focus({ preventScroll: true });
+  }
+  // Where the keyboard was as it left the frame: a box ticked passes it
+  // through the editor and back (app/editing.js), and the page may be drawn
+  // again meanwhile.
+  let left = null;
+  document.addEventListener('focusout', (e) => {
+    if (!e.relatedTarget) left = { node: e.target, place: placeOf(e.target) };
+  });
+  function giveBack() {
+    if (!left) return;
+    if (left.node.isConnected) {
+      if (document.activeElement === document.body) left.node.focus({ preventScroll: true });
+    } else {
+      refocus(left.place);
+    }
+    left = null;
+  }
+
   /** Puts a render in place: the page, its steps, its fit and its scroll. */
   function draw(m) {
     const y = window.scrollY;
+    const had = placeOf(document.activeElement);
     if (m.base) base.href = m.base;
     if (theme.textContent !== m.css) theme.textContent = m.css;
     dim = Boolean(m.dim);
@@ -248,6 +279,7 @@
       if (m.reveal != null) hideLater(m.reveal);
       Ink.set();
     });
+    refocus(had);
     hidePeek();
     Preview.deck = Boolean(m.deck);
     document.documentElement.classList.toggle('deck', Preview.deck);
@@ -314,6 +346,8 @@
       else reveal(m.reveal);
     } else if (m.type === 'scroll') {
       follow(m.line);
+    } else if (m.type === 'refocus') {
+      giveBack();
     }
   });
 

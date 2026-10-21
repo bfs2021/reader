@@ -116,8 +116,8 @@ export function toLineEdge(end, extend) {
  * box or filling in a form isn't editing the file.
  *
  * `undo` puts the edit on the editor's undo stack, which means passing it
- * through the editor's focus; not in work mode or while presenting, though,
- * and not for a field or puzzle, which would lose the keyboard. `drawn` says the page shows the
+ * through the editor's focus, and back; not in work mode or while presenting,
+ * though, and not for a field or puzzle, which would lose the keyboard. `drawn` says the page shows the
  * edit already and needn't be rendered again for it.
  */
 export function applyEdit({ edits, undo = false, drawn = false }, { fromStage = false } = {}) {
@@ -132,6 +132,7 @@ export function applyEdit({ edits, undo = false, drawn = false }, { fromStage = 
   const lines = t.value.split('\n').length;
   const { selectionStart, selectionEnd, scrollTop } = t;
   if (undo && !state.working && !deck.open) {
+    const had = document.activeElement;
     t.focus({ preventScroll: true });
     t.setSelectionRange(change.start, change.end);
     if (!document.execCommand('insertText', false, change.text)) {
@@ -139,6 +140,9 @@ export function applyEdit({ edits, undo = false, drawn = false }, { fromStage = 
       t.dispatchEvent(new Event('input'));
     }
     t.setSelectionRange(selectionStart, selectionEnd);
+    // The keyboard goes back to the page, on the box it ticked.
+    if (had && had !== t && had !== document.body) had.focus({ preventScroll: true });
+    if (had === el.preview) el.preview.contentWindow.postMessage({ type: 'refocus' }, '*');
   } else {
     t.setRangeText(change.text, change.start, change.end);
     if (drawn) {
