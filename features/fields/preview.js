@@ -1,15 +1,18 @@
 /**
  * A form field (`@ Label: value`, a line of blank for each colon): a click
  * on its label, its blank, or beside them opens the blank for typing, the
- * text wrapping onto more lines as it needs them. Enter, or clicking away,
- * writes the value into the file; Esc puts it back as it was; Tab and
- * Shift-Tab write it and move to the next field or the one before. A field
- * of choices writes its line as it reads with the one picked. A field in a
- * sentence (`[@ what goes here: answer]`) writes its answer into its place
- * on the line, moving along the others after it. Runs in the preview frame.
+ * text wrapping onto more lines as it needs them, as does the keyboard
+ * reaching the blank. Enter, or clicking away, writes the value into the
+ * file; Esc puts it back as it was, both leaving the keyboard on the blank,
+ * where Enter opens it again; Tab and Shift-Tab write it and move to the
+ * next field or the one before. A field of choices writes its line as it
+ * reads with the one picked. A field in a sentence (`[@ what goes here:
+ * answer]`) writes its answer into its place on the line, moving along the
+ * others after it. Runs in the preview frame.
  */
 (() => {
   let editing = null;
+  let resting = null;   // a blank the keyboard is put back on, not to open again
 
   const fieldLabel = (f) => f.querySelector('.field-label')?.textContent ?? '';
   const fieldAt = (line, label, start) => [...document.querySelectorAll('.field')]
@@ -44,7 +47,7 @@
     const input = document.createElement('textarea');
     input.value = value ?? before;
     input.rows = 1;
-    input.setAttribute('aria-label', fieldLabel(field));
+    input.setAttribute('aria-label', slot.getAttribute('aria-label') ?? fieldLabel(field));
     input.spellcheck = false;
     slot.replaceChildren(input);
     const fit = () => {
@@ -57,7 +60,7 @@
     input.setSelectionRange(start ?? input.value.length, end ?? input.value.length);
 
     let done = false;
-    const close = (commit) => {
+    const close = (commit, { stay = false } = {}) => {
       if (done) return;
       done = true;
       if (editing?.input === input) editing = null;
@@ -66,6 +69,10 @@
       if (field.dataset.start !== undefined) after = after.replace(/\[/g, '(').replace(/\]/g, ')');
       slot.textContent = after;
       slot.dataset.value = after;
+      if (stay && slot.tabIndex >= 0) {
+        resting = slot;
+        slot.focus();
+      }
       if (after !== before) {
         // The line as written, with the new value after its colons.
         const line = Number(field.dataset.line);
@@ -91,10 +98,9 @@
       if (!['Enter', 'Escape', 'Tab'].includes(e.key) || e.isComposing) return;
       e.preventDefault();
       e.stopPropagation();
-      close(e.key !== 'Escape');
-      if (e.key !== 'Tab') return;
       const all = [...document.querySelectorAll('.field:not([data-choices])')];
-      const next = all[all.indexOf(field) + (e.shiftKey ? -1 : 1)];
+      const next = e.key === 'Tab' && all[all.indexOf(field) + (e.shiftKey ? -1 : 1)];
+      close(e.key !== 'Escape', { stay: !next });
       if (next) openField(next);
     });
     input.addEventListener('blur', () => close(true));
@@ -108,6 +114,21 @@
     const now = e.target.dataset.on;
     field.dataset.text = now;
     if (now !== was) Preview.edit([{ from: line, to: line + 1, before: [was], after: [now] }], { undo: true });
+  });
+
+  document.addEventListener('focusin', (e) => {
+    const slot = e.target.matches?.('.field-value') && e.target;
+    if (!slot || slot === resting) return;
+    const f = !Preview.deck && slot.closest('.field:not([data-choices])');
+    if (f) openField(f);
+  });
+  document.addEventListener('focusout', (e) => { if (e.target === resting) resting = null; });
+  // Enter opens again the blank the keyboard was left on.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.target !== resting || Preview.deck) return;
+    e.preventDefault();
+    resting = null;
+    openField(e.target.closest('.field'));
   });
 
   document.addEventListener('click', (e) => {

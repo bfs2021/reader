@@ -100,3 +100,24 @@ test('in a sentence, brackets typed go round, so as not to end the field', () =>
   fill(0, 'a [b] c');
   assert.deepEqual(lines(edits), ['Say [@ what: a (b) c] now.']);
 });
+
+test('the keyboard reaching a blank opens it, and Enter writes it and leaves the keyboard there to open it again', () => {
+  const { fields, edits, press } = page('@ Name: Josh\n\n!REPL:\n');
+  const slot = fields[0].querySelector('.field-value');
+  slot.focus();
+  let input = slot.querySelector('textarea');
+  assert.equal(input.getAttribute('aria-label'), 'Name');
+  input.value = 'Ann';
+  press(input, 'Enter');
+  assert.deepEqual(lines(edits), ['@ Name: Ann']);
+  assert.equal(slot.ownerDocument.activeElement, slot);
+  assert.equal(slot.querySelector('textarea'), null);
+  press(slot, 'Enter');
+  input = slot.querySelector('textarea');
+  assert.equal(slot.ownerDocument.activeElement, input);
+  // A term not yet defined is a blank named by the term.
+  press(input, 'Escape');
+  const blank = fields[1].querySelector('.field-value');
+  blank.focus();
+  assert.equal(blank.querySelector('textarea').getAttribute('aria-label'), 'REPL');
+});

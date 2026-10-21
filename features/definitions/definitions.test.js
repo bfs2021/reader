@@ -40,7 +40,7 @@ test('definitions in a row are one glossary, a term again its next sense', () =>
 
 test('a term with no meaning yet is a blank to fill in', () => {
   const { body } = render('# Notes\n\n!REPL (Venkat):\n');
-  assert.match(body, /<span class="field def-blank" data-line="2" data-text="!REPL \(Venkat\):" data-head="!REPL \(Venkat\):"><span class="field-value" data-value=""><\/span><\/span><span class="def-name">Venkat<\/span>/);
+  assert.match(body, /<span class="field def-blank" data-line="2" data-text="!REPL \(Venkat\):" data-head="!REPL \(Venkat\):"><span class="field-value" data-value="" tabindex="0" role="textbox" aria-label="REPL"><\/span><\/span><span class="def-name">Venkat<\/span>/);
 });
 
 test('an acronym has the letters it is spelled with bolded', () => {

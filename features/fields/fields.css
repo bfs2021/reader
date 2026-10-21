@@ -42,6 +42,7 @@
 }
 .field:hover .field-value { --gm-field-rule: var(--gm-ink); }
 .field-value:has(> textarea) { --gm-field-rule: var(--gm-accent); }
+.field-value:focus-visible { outline: 2px solid var(--gm-accent); outline-offset: 2px; }
 /* A field to pick from: its choices in a row, wrapping as they need to. */
 .field[data-choices] { cursor: default; }
 .field-choices {

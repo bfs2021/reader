@@ -75,6 +75,15 @@ function choices(line, head, value) {
   });
 }
 
+/**
+ * A blank's attributes, so it can be reached by the keyboard and is read as
+ * a box named `label`: the preview opens it for typing when it's focused.
+ * An exported page has no script to open it with.
+ */
+export function typable(label, env) {
+  return env.exported ? '' : ` tabindex="0" role="textbox" aria-label="${escapeAttr(label)}"`;
+}
+
 export function fields(md) {
   beforeAsides(md, 'field_lines', (state) => {
     const found = [];
@@ -110,12 +119,13 @@ export function fields(md) {
     }
   });
 
-  md.renderer.rules.field = (tokens, i) => {
+  md.renderer.rules.field = (tokens, i, opts, env) => {
     const { line, text, head, label, value, lines } = tokens[i].meta;
     const open = `<span class="field" data-line="${line}" data-text="${escapeAttr(text)}" data-head="${escapeAttr(head)}"`;
     const picks = choices(text, head, value);
     if (picks) {
-      return `${open} data-choices><span class="field-label">${escapeHtml(label)}</span><span class="field-choices">`
+      // Its buttons a group, named by its label.
+      return `${open} data-choices role="radiogroup" aria-labelledby="field-${line}"><span class="field-label" id="field-${line}">${escapeHtml(label)}</span><span class="field-choices">`
         + picks.map((c) => `<label class="field-choice"><input type="radio" class="choice-box" name="field-${line}"`
           + ` data-on="${escapeAttr(c.on)}"${c.checked ? ' checked' : ''}> ${escapeHtml(c.label)}</label>`).join('')
         + '</span></span>';
@@ -124,16 +134,16 @@ export function fields(md) {
     const tall = lines > 1 ? ` data-lines="${lines}" style="--lines: ${lines}"` : '';
     return `${open}${tall}>`
       + `<span class="field-label">${escapeHtml(label)}</span>`
-      + `<span class="field-value" data-value="${v}">${v}</span></span>`;
+      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span></span>`;
   };
 
   // The blank first, so the sentence lines up with what's written on it.
-  md.renderer.rules.field_inline = (tokens, i) => {
+  md.renderer.rules.field_inline = (tokens, i, opts, env) => {
     const { line, text, start, end, label, value } = tokens[i].meta;
     const v = escapeHtml(value);
     return `<span class="field field-inline" data-line="${line}" data-text="${escapeAttr(text)}"`
       + ` data-head="${escapeAttr(`[@ ${label}`)}" data-start="${start}" data-end="${end}">`
-      + `<span class="field-value" data-value="${v}">${v}</span>`
+      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span>`
       + `<span class="field-label">${escapeHtml(label)}</span></span>`;
   };
 }
