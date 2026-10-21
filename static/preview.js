@@ -49,18 +49,6 @@
     }
   }
 
-  /**
-   * Text goes light on a dark background: `.gm-bg` (src/background.js) is
-   * asked what its color came to, so a name and a `#hex` read alike. An
-   * image alone says nothing; it's taken for a light one.
-   */
-  function ink() {
-    const bg = document.querySelector('.gm-bg');
-    const rgb = bg && getComputedStyle(bg).backgroundColor.match(/[\d.]+/g)?.map(Number);
-    const dark = Boolean(rgb) && (rgb[3] ?? 1) > 0.5 && (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000 < 140;
-    document.documentElement.classList.toggle('gm-dark', dark);
-  }
-
   // A slide is shrunk to fit the window, everything on it together (`zoom`,
   // so a puzzle sized by the window shrinks with the text), as large as it
   // can be and no smaller than FLOOR. It's measured with every step shown,
@@ -258,7 +246,7 @@
       // fit below): a step first seen showing would fade out, flashing
       // on screen as it went.
       if (m.reveal != null) hideLater(m.reveal);
-      ink();
+      Ink.set();
     });
     hidePeek();
     Preview.deck = Boolean(m.deck);

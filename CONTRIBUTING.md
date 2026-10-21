@@ -44,6 +44,7 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | `static/markdown.js` | reading markdown as written, for the server and the app alike: the front matter, and which lines are fenced code |
 | `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait`; and what features lend each other there: `Preview.stageLine` and `Preview.setStage` (tasks: a staged box moved by another's edit) and `Preview.multiple` (count: the multiple a recipe is at) |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |
+| `static/ink.js` | light text or dark on what's behind a page, by contrast: for the preview frame, and inside an exported page |
 | `static/edits.js` | edits the preview asks for, checked against the lines they were drawn from |
 | `static/picks.js`, `static/views.js` | kept for the frames, which have no storage of their own: the versions picked in `tabs` and `compare` blocks, and how a document is set to be seen (a recipe's multiple) |
 | `static/awake.js` | keeps the screen on while a frame asks: steps under way |

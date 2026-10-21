@@ -20,7 +20,7 @@
  *
  * The background is an element behind the page (`.gm-bg`) rather than a
  * style on it, so it travels in the body the frame is handed. The frame
- * turns the text light when the color is dark (static/preview.js).
+ * turns the text light when that reads better on the color (static/ink.js).
  */
 
 import { COLORS } from '../features/styles/index.js';

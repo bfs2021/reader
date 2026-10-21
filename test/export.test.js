@@ -112,6 +112,8 @@ test('an exported page runs only its own script', async () => {
   assert.match(policy, /default-src 'none'/);
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
   assert.equal(scripts.length, 1);
+  // The preview frame's own inking, by contrast (static/ink.js).
+  assert.equal(scripts[0], `${fs.readFileSync(path.join(import.meta.dirname, '..', 'static', 'ink.js'), 'utf8')}Ink.set();\n`);
   const hash = crypto.createHash('sha256').update(scripts[0]).digest('base64');
   assert.match(policy, new RegExp(`script-src 'sha256-${hash.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
 });
