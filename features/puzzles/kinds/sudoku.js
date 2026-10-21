@@ -41,10 +41,10 @@
 .sudoku-grid .given { color: var(--gm-ink, #222); font-weight: 600; }
 .puzzle:focus-within .sudoku-grid .peer { background: #f1efe9; }
 .puzzle:focus-within .sudoku-grid .same { background: #e3ebf7; }
-.puzzle:focus-within .sudoku-grid .cursor { background: #c9daf5; }
+.puzzle:focus-within .sudoku-grid .cursor { background: #c9daf5; box-shadow: inset 0 0 0 2px #2457a6; }
 .sudoku-grid .conflict { color: #c62828; background: #fbe9e7; }
 .puzzle:focus-within .sudoku-grid .conflict.cursor { background: #f6cfc9; }
-.puzzle.pencil:focus-within .sudoku-grid .cursor { box-shadow: inset 0 0 0 2px #e0a800; }
+.puzzle.pencil:focus-within .sudoku-grid .cursor { box-shadow: inset 0 0 0 2px #2457a6, inset 0 0 0 4px #e0a800; }
 .sudoku-grid .marks {
   display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; height: 100%;
   font-size: calc(var(--cell) * 0.22); color: var(--gm-ink-soft, #777); font-weight: 400;
@@ -130,7 +130,7 @@
     ['⇧ 1–9', 'pencil mark'],
     ['n', 'pencil marks on / off'],
     ['⌫ or 0', 'erase'],
-    ['Esc', 'done for now'],
+    ['Esc', 'done for now, till Enter'],
   ];
 
   Puzzles.register('sudoku', {
@@ -152,8 +152,16 @@
         grid.append(cell);
         return cell;
       });
-      const { bar, help } = Puzzles.frame(host, grid, SUDOKU_KEYS);
-      host.setAttribute('aria-label', 'Sudoku');
+      const { bar, help } = Puzzles.frame(host, grid, SUDOKU_KEYS, { name: 'Sudoku', where });
+
+      /** The square the cursor is on, and what's in it. */
+      function where() {
+        const i = ui.cursor;
+        const notes = [...(s.notes.get(i) ?? [])].sort();
+        const what = s.board[i] ? `${s.board[i]}${s.givens[i] ? ', given' : ''}` : notes.length ? `pencil marks ${notes.join(' ')}` : 'empty';
+        const bad = conflicts(s.board).has(i) ? ', repeated' : '';
+        return `Row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1}: ${what}${bad}`;
+      }
 
       function draw() {
         const bad = conflicts(s.board);
@@ -245,7 +253,7 @@
           case 'Backspace': case 'Delete': case '0': case '.': case ' ': return erase();
           case 'n': case 'N': ui.pencil = !ui.pencil; return draw();
           case '?': ui.help = !ui.help; return draw();
-          case 'Escape': return host.blur();
+          case 'Escape': return Puzzles.rest(host);
           default:
         }
       });

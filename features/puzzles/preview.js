@@ -14,7 +14,9 @@
  * the fence's part is posted up, so the file is never written to.
  *
  * Click a puzzle (or Tab to it) to play; while it has focus it takes the
- * keys. Esc hands them back.
+ * keys. Esc hands them back, the puzzle keeping the focus, and Enter takes
+ * them again. A screen reader hears it as an application, named by its
+ * kind, and hears where each key leaves it.
  *
  * A move goes up as an edit to the lines inside the fence, which the server
  * names as `data-from` and `data-to` (see edits.js), each line starting with
@@ -27,7 +29,8 @@
  * Each kind lives in kinds/<kind>.js and registers itself here with
  * `mount(host, text, ui, post)`: draw the puzzle into `host` from `text`
  * (false if the text can't be read), keep what the reader was doing in `ui`,
- * and call `post(before, after)` with the fence's text after each move.
+ * and call `post(before, after)` with the fence's text after each move. It
+ * draws through `frame`, saying what it's called and where a key leaves it.
  * Alongside, without the page, it gives `parse(text)` (its state, or null),
  * `format(state)` (the text again), `solved(state)` and the `rules` a move
  * follows, which kinds.test.js checks.
@@ -40,6 +43,8 @@
   const memory = new Map();
   // Each board drawn, by its kind and text, and the styles they take.
   const keys = new WeakMap();
+  // What each board says after a key, for a screen reader.
+  const tells = new WeakMap();
   let styles = '';
 
   function register(kind, impl, css = '') {
@@ -86,6 +91,11 @@
       }
       keys.set(host, `${host.dataset.kind}\n${text}`);
       host.tabIndex = 0;
+      host.setAttribute('role', 'application');
+      // After the kind's own keys: a key it took is heard.
+      host.addEventListener('keydown', (e) => { if (e.defaultPrevented) tells.get(host)?.(); });
+      host.addEventListener('focusout', (e) => { if (!host.contains(e.relatedTarget)) host.classList.remove('puzzle-resting'); });
+      host.addEventListener('pointerdown', () => host.classList.remove('puzzle-resting'));
       if (index === focus) host.focus({ preventScroll: true });
     }
   }
@@ -101,16 +111,39 @@
     host.prepend(note);
   }
 
-  /** Keys a focused puzzle keeps from the page: all but shortcuts and Tab. */
+  /**
+   * Keys a focused puzzle keeps from the page: all but shortcuts and Tab,
+   * and none once Esc has handed them back (`rest`), till Enter.
+   */
   function owns(e) {
-    return !e.metaKey && !e.ctrlKey && !e.altKey && e.key !== 'Tab';
+    if (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Tab') return false;
+    const host = e.currentTarget;
+    if (!host?.classList?.contains('puzzle-resting')) return true;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      host.classList.remove('puzzle-resting');
+    }
+    return false;
+  }
+
+  /** Hands the keys back to the page, keeping the focus on the puzzle. */
+  function rest(host) {
+    host.classList.add('puzzle-resting');
   }
 
   /**
    * Puts `board` in `host` with a status bar under it and a list of `keys`
-   * ([key, what it does] pairs) that `?` shows. Returns the bar and the list.
+   * ([key, what it does] pairs) that `?` shows, the puzzle called `name`.
+   * After each key it takes, a screen reader hears `where()` and the bar.
+   * Returns the bar and the list.
    */
-  function frame(host, board, keys) {
+  function frame(host, board, keys, { name, where = () => '' } = {}) {
+    if (name) {
+      host.setAttribute('aria-label', name);
+      board.setAttribute('role', 'img');
+      board.setAttribute('aria-label', `${name} board`);
+    }
     const bar = document.createElement('div');
     bar.className = 'puzzle-bar';
     const help = document.createElement('dl');
@@ -122,7 +155,22 @@
       dd.textContent = what;
       help.append(dt, dd);
     }
-    host.replaceChildren(board, bar, help);
+    // Read after each key: where it left the puzzle, and how it stands.
+    const said = document.createElement('div');
+    said.className = 'puzzle-said';
+    said.setAttribute('aria-live', 'polite');
+    host.replaceChildren(board, bar, help, said);
+    const tell = () => {
+      if (!host.contains(document.activeElement) || !host.isConnected) return;
+      const status = bar.textContent.replace(/(^| · )\? for keys$/, '');
+      const text = [where(), status].filter(Boolean).join('. ');
+      // The same again is still heard.
+      said.textContent = said.textContent === text ? `${text}\u00a0` : text;
+    };
+    tells.set(host, () => {
+      if (host.classList.contains('puzzle-resting')) said.textContent = 'Keys handed back. Enter to play';
+      else tell();
+    });
     return { bar, help };
   }
 
@@ -135,6 +183,9 @@
 
   addStyle(`
 .puzzle { margin: 1rem 0; outline: none; break-inside: avoid; }
+.puzzle:focus-visible { outline: 2px solid var(--gm-accent); outline-offset: 4px; }
+.puzzle.puzzle-resting:focus { outline: 2px dashed var(--gm-ink-soft); outline-offset: 4px; }
+.puzzle-said { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .puzzle-bar {
   font-family: var(--gm-sans); font-size: 0.8rem; color: var(--gm-ink-soft);
   margin-top: 0.4rem; min-height: 1.2em; visibility: hidden;
@@ -164,11 +215,11 @@
       const boards = {};
       for (const host of document.querySelectorAll('.puzzle[data-kind]')) {
         if (!keys.has(host)) continue;
-        boards[keys.get(host)] = [...host.children].filter((e) => !e.matches('.puzzle-bar, .puzzle-help')).map((e) => e.outerHTML).join('');
+        boards[keys.get(host)] = [...host.children].filter((e) => !e.matches('.puzzle-bar, .puzzle-help, .puzzle-said')).map((e) => e.outerHTML).join('');
       }
       return { puzzles: { css: styles, boards } };
     },
   });
 
-  window.Puzzles = { register, hydrate, owns, frame };
+  window.Puzzles = { register, hydrate, owns, rest, frame };
 })();

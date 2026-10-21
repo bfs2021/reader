@@ -63,7 +63,7 @@
     ['Space or Enter', 'plot the next point here'],
     ['click', 'plot the next point there'],
     ['⌫', 'take back the last point'],
-    ['Esc', 'done for now'],
+    ['Esc', 'done for now, till Enter'],
   ];
 
   const SVGNS = 'http://www.w3.org/2000/svg';
@@ -97,8 +97,7 @@
       const list = document.createElement('div');
       list.className = 'coord-list';
       board.append(svg, list);
-      const { bar, help } = Puzzles.frame(host, board, COORD_KEYS);
-      host.setAttribute('aria-label', 'Coordinate graph');
+      const { bar, help } = Puzzles.frame(host, board, COORD_KEYS, { name: 'Coordinate graph', where: () => `At (${ui.at[0]}, ${ui.at[1]})` });
 
       let flash = '';
       let flashTimer = 0;
@@ -220,7 +219,7 @@
             if (s.plotted) { s.plotted--; flash = ''; commit(); }
             return undefined;
           case '?': ui.help = !ui.help; return draw();
-          case 'Escape': return host.blur();
+          case 'Escape': return Puzzles.rest(host);
           default:
         }
       });

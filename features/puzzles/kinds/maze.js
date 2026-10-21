@@ -40,6 +40,7 @@
   const PROGRESS = /^\s*(path|notes)\s*:(.*)$/i;
   const DIRS = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
   const BACK = { U: 'D', D: 'U', L: 'R', R: 'L' };
+  const WAYS = { U: 'up', D: 'down', L: 'left', R: 'right' };
 
   function parseMaze(text) {
     const art = [];
@@ -275,7 +276,7 @@
     ['Shift + ← → ↑ ↓', 'pencil mark the way that way, or rub it out'],
     ['X', 'pencil mark where you are'],
     ['right-click, Shift-click, or hold', 'pencil mark a spot, or rub it out'],
-    ['Esc', 'done for now'],
+    ['Esc', 'done for now, till Enter'],
   ];
 
   const SVGNS = 'http://www.w3.org/2000/svg';
@@ -309,8 +310,13 @@
       const svg = el('svg', { viewBox: `${vx} ${vy} ${vw} ${vh}`, class: 'mz-grid', role: 'img' });
       svg.style.setProperty('--cols', vw);
       svg.style.setProperty('--rows', vh);
-      const { bar, help } = Puzzles.frame(host, svg, MAZE_KEYS);
-      host.setAttribute('aria-label', 'Maze');
+      const { bar, help } = Puzzles.frame(host, svg, MAZE_KEYS, { name: 'Maze', where });
+
+      /** Which ways are open from the end of the way. */
+      function where() {
+        const ways = exits(m, head()).map((d) => WAYS[d]);
+        return ways.length ? `Open ${ways.join(', ')}` : 'No way on';
+      }
 
       // The walls never change: drawn once.
       const d = [];
@@ -408,7 +414,7 @@
             return draw();
           case 'x': case 'X': return note(head());
           case '?': ui.help = !ui.help; return draw();
-          case 'Escape': return host.blur();
+          case 'Escape': return Puzzles.rest(host);
           default:
         }
       });

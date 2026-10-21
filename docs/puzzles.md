@@ -9,8 +9,10 @@ on the page, in edit, work and present modes alike. The fence's text *is*
 the puzzle and the progress made on it: each move is written back into the
 file, saved like typing, so it's there next time and reads as plain text
 anywhere else. Click a puzzle (or Tab to it) to play; while it has focus it
-takes the keys, and `Esc` hands them back. `?` shows them. A puzzle can sit
-in a quote or a list too.
+takes the keys, and `Esc` hands them back, leaving it in focus till `Enter`
+takes them again. `?` shows them. A screen reader hears where each key
+leaves you: the square you're on and what's in it. A puzzle can sit in a
+quote or a list too.
 
 There are five so far: `sudoku`, `tracks`, `wordsearch`, `coord` and
 `maze`.
@@ -241,4 +243,4 @@ you like, say to rule out a way that dead-ends.
 | `⇧` + arrow | pencil mark the way that way, or rub it out |
 | `x` | pencil mark where you are |
 | right-click, `⇧`-click, or hold | pencil mark a spot, or rub it out |
-| `Esc` | done for now |
+| `Esc` | done for now, till `Enter` |
