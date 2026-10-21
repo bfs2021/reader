@@ -79,3 +79,11 @@ li.qa-try.qa-done .qa-tried::after {
   inset: 0;
   color: var(--gm-paper);
 }
+/* In the system's colours, a filled label (an answer's, a card that's done)
+ * is still filled, the system's text colour behind its own ground. */
+@media (forced-colors: active) {
+  li.qa-a > .qa-label, li.qa-a > p:first-child > .qa-label,
+  li.qa-card.qa-done > .qa-label, li.qa-card.qa-done > p:first-child > .qa-label {
+    forced-color-adjust: none; background: CanvasText; color: Canvas; border-color: CanvasText;
+  }
+}

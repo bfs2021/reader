@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>reader</title>
+<!-- before the stylesheet, so the page is drawn in the look chosen from the first -->
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>📖</text></svg>">
 </head>
@@ -72,6 +74,12 @@
       <div class="keys">⌘. work, Esc to leave it · ⌥← ⌥→ a deck's page, at work · ⌘⇧. present</div>
       <div class="keys">On the page, in steps to follow: j k next, previous step · x step done or not</div>
       <div class="keys">In the files: ↑ ↓ move · → into a folder, versions or outline · ← ⌫ back out · F2 rename · ⌘⌫ trash</div>
+      <fieldset class="theme" id="theme">
+        <legend>Theme</legend>
+        <label><input type="radio" name="theme" value="light"> Light</label>
+        <label><input type="radio" name="theme" value="dark"> Dark</label>
+        <label><input type="radio" name="theme" value="system"> System</label>
+      </fieldset>
       <div class="keys" id="helpVersion" hidden>reader <a target="_blank" rel="noopener"></a></div>
     </div>
 

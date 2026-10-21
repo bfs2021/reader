@@ -78,4 +78,8 @@
 .mk.mk-on.mk-underline, .mk.mk-on.mk-dotted { text-decoration-thickness: 0.17em; }
 .mk.mk-on.mk-wavy { text-decoration-thickness: 0.12em; }
 .mk.mk-on.mk-highlight { background: color-mix(in srgb, var(--mk-ink) 40%, transparent); }
+/* In the system's colours, a highlighter is the system's own mark. */
+@media (forced-colors: active) {
+  .mk-highlight, .mk.mk-on.mk-highlight { forced-color-adjust: none; background: Mark; color: MarkText; box-shadow: none; }
+}
 .gm-aside-cell.mk-on { border-left-color: var(--mk, var(--gm-accent)); }

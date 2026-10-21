@@ -22,7 +22,7 @@ function speaker() {
     },
     setInterval() {},
   });
-  run(window, 'static/speaker.js');
+  run(window, 'static/theme.js', 'static/speaker.js');
   const $ = (id) => window.document.getElementById(id);
   return { now, $, clock: window.clock, say: (data) => heard({ data }) };
 }

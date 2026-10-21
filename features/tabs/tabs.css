@@ -16,6 +16,9 @@
 .tab:hover { color: var(--gm-ink); }
 .tab > input { position: absolute; opacity: 0; pointer-events: none; margin: 0; }
 .tab:has(> input:focus-visible) { outline: 2px solid var(--gm-accent); outline-offset: 2px; }
+/* In the system's colours a transparent edge is drawn, so every tab would
+ * look picked: they keep their own (src/columns.css names them system ones). */
+@media (forced-colors: active) { .tab { forced-color-adjust: none; } }
 
 /* tabs: a row of them over the one pane showing */
 .tab-bar { display: flex; flex-wrap: wrap; gap: 0 1.2em; border-bottom: 1px solid var(--gm-rule); }
@@ -32,6 +35,12 @@
 .compare-pane { min-width: 0; }
 .compare-pane > .tab { margin-bottom: .5em; }
 .diff { border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* A word's tint alone says it differs; with more contrast asked for, or the
+ * system's own colours, it's underlined, and struck through where it's gone. */
+.tabs, .compare { --diff-added-line: none; --diff-removed-line: none; }
+@media (prefers-contrast: more), (forced-colors: active) {
+  .tabs, .compare { --diff-added-line: underline 0.12em; --diff-removed-line: line-through 0.1em; }
+}
 
 /* on paper, every tab's pane, one after another, each under its name */
 @media print {

@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { file, globals } from './dom.js';
+import { app, globals } from './dom.js';
 
-const window = globals(file('static/index.html'));
+const window = globals(app());
 const { document } = window;
 const { el, state } = await import('../static/app/state.js');
 const { wireGoTo, openGoTo } = await import('../static/app/goto.js');

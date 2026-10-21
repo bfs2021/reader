@@ -33,7 +33,7 @@ async function show(name, i, reveal) {
   shown[name] = i;
   frame.postMessage({
     type: 'render', css: deck.css, body: slide ? slide.body : '', base: deck.base, resetScroll: true,
-    reveal, dim: name === 'now',
+    reveal, dim: name === 'now', dark: Theme.dark(),
   }, '*');
 }
 
@@ -166,6 +166,8 @@ $('timer').addEventListener('click', (e) => {
   if (e.detail) $('timer').blur();
 });
 window.addEventListener('resize', fit);
+// The slides drawn again in a theme chosen in the app, or the system's new one.
+Theme.onChange(() => { if (deck.slides.length) draw({ fresh: true }); });
 fit();
 tick();
 setInterval(tick, 1000);

@@ -51,6 +51,11 @@
 }
 .sudoku-grid .marks span { display: grid; place-items: center; }
 .puzzle.solved .sudoku-grid { border-color: var(--gm-ok); }
+@media (forced-colors: active) {
+  .puzzle:focus-within .sudoku-grid .cursor { outline: 3px solid Highlight; outline-offset: -3px; }
+  .puzzle.pencil:focus-within .sudoku-grid .cursor { outline-style: dashed; }
+  .sudoku-grid .conflict { text-decoration: underline wavy; }
+}
 @media print { .sudoku-grid .cell { background: none !important; } }
 `;
 

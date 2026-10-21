@@ -1,6 +1,6 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { file, globals } from './dom.js';
+import { app, globals } from './dom.js';
 
 // A toast hides itself a few seconds on; here it waits to be told.
 mock.timers.enable({ apis: ['setTimeout'] });
@@ -8,7 +8,7 @@ mock.timers.enable({ apis: ['setTimeout'] });
 const ROW = 20;    // px, each row of the editor
 const WIDE = 40;   // characters to a row, before a line wraps
 
-const window = globals(file('static/index.html'));
+const window = globals(app());
 const { document } = window;
 const editor = document.getElementById('editor');
 editor.disabled = false;

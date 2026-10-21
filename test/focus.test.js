@@ -1,11 +1,11 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { file, globals } from './dom.js';
+import { app, globals } from './dom.js';
 
 // A toast hides itself a few seconds on; here it waits to be told.
 mock.timers.enable({ apis: ['setTimeout'] });
 
-const window = globals(file('static/index.html'));
+const window = globals(app());
 const { document } = window;
 // The server: a folder of three files, and whatever's asked of it done.
 let files = ['a.md', 'b.md', 'c.md'];

@@ -54,4 +54,6 @@ play, a recipe's multiplier) shows here as it's written, not as it works.
   of slides
 - [Export and print](exporting.md): one HTML file, paper, and keeping both
   in step on GitHub
+- [Light and dark](look.md): the theme, more contrast, and the system's
+  own colours
 - [Keys](keys.md)

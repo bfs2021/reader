@@ -5,8 +5,13 @@
  * against it, by WCAG's contrast ratio. An image alone says nothing; it's
  * taken for a light one.
  *
- * The preview frame inks each render (static/preview.js); an exported page
- * has this file inside it, and inks itself as it opens (src/export.js).
+ * A page with nothing behind it is drawn as the app's theme is, dark or
+ * light (static/theme.js): its background, when it has one, wins over the
+ * theme, so a light one stays light paper with dark ink in the dark theme.
+ *
+ * The preview frame inks each render, told the theme with it
+ * (static/preview.js); an exported page has this file inside it, and inks
+ * itself as it opens, light but for a dark background (src/export.js).
  */
 
 window.Ink = (() => {
@@ -34,11 +39,11 @@ window.Ink = (() => {
     return (rgb[3] ?? 1) > 0.5 && contrast(LIGHT_INK, rgb) > contrast(DARK_INK, rgb);
   }
 
-  /** Inks the page by its `.gm-bg`. */
-  function set() {
+  /** Inks the page by its `.gm-bg`, or, with none, dark when `dark` says so. */
+  function set(dark = false) {
     const bg = document.querySelector('.gm-bg');
     const rgb = bg && getComputedStyle(bg).backgroundColor.match(/[\d.]+/g)?.map(Number);
-    document.documentElement.classList.toggle('gm-dark', Boolean(rgb) && lightInk(rgb));
+    document.documentElement.classList.toggle('gm-dark', bg ? Boolean(rgb) && lightInk(rgb) : Boolean(dark));
   }
 
   return { lightInk, set };

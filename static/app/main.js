@@ -21,6 +21,7 @@ import { printDocument } from './exporting.js';
 import { wireLines, copyLines, goToLines } from './lines.js';
 import { wireOutline } from './outline.js';
 import { wireGoTo, openGoTo, isGoTo } from './goto.js';
+import { wireTheme } from './theme.js';
 
 state.previewReady = whenReady(el.preview);
 deck.stageReady = whenReady(el.stage);
@@ -133,6 +134,7 @@ function wire() {
   wireOutline();
   wireGoTo();
   wireDrawer();
+  wireTheme();
 
   el.filter.addEventListener('input', drawTree);
   el.files.addEventListener('keydown', onListKey);

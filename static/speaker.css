@@ -1,10 +1,28 @@
 /* the app's dark colours (style.css), and the document's family's for the
- * pace (src/columns.css): every colour here is named here */
+ * pace (src/columns.css): every colour here is named here. The speaker view
+ * is dark, for a darkened room, unless Light is chosen (static/theme.js);
+ * the slides on it are drawn as the room sees them, in the app's theme. */
 :root {
   --bg: #14130f; --panel: #201e1b; --ink: #ece6dc; --ink-bright: #fff; --ink-soft: #aba295;
   --line: #34302b; --accent: #c9a476; --paper: #fff; --warn: #f8926a;
   --ahead: #73b6fa; --on-pace: #81cfc2; --behind: #ecac5f;
+  color-scheme: dark;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+}
+:root[data-theme="dark"] { --paper: #22252b; }
+:root[data-chosen="light"] {
+  --bg: #efeae1; --panel: #fffdf9; --ink: #26221e; --ink-bright: #000; --ink-soft: #645b52;
+  --line: #e3dccf; --accent: #7a5c3e; --warn: #9d3106;
+  --ahead: #305dba; --on-pace: #006b5f; --behind: #8a5000;
+  color-scheme: light;
+}
+/* more contrast, as the system asks: text 7:1 or better (style.css) */
+@media (prefers-contrast: more) {
+  :root { --ink: #fff; --ink-soft: #cec9c2; --line: #716e6b; --accent: #d0b088; --warn: #f99f7c; }
+  :root[data-chosen="light"] {
+    --ink: #000; --ink-bright: #000; --ink-soft: #49423c; --line: #848078; --accent: #4f3c28; --warn: #712304;
+    --ahead: #264993; --on-pace: #004840; --behind: #704100;
+  }
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
