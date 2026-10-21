@@ -58,6 +58,8 @@ export function openGoTo() {
 function close({ restore = true } = {}) {
   if (el.goto.hidden) return;
   el.goto.hidden = true;
+  el.gotoInput.setAttribute('aria-expanded', 'false');
+  el.gotoInput.removeAttribute('aria-activedescendant');
   if (!restore) return;
   if (deck.open) el.deck.focus();
   else back?.focus({ preventScroll: true });
@@ -99,6 +101,9 @@ function draw() {
   el.gotoList.replaceChildren(...choices.map((c, i) => {
     const li = document.createElement('li');
     li.className = i === chosen ? 'on' : '';
+    li.id = `goto-${i}`;
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', String(i === chosen));
     li.style.setProperty('--depth', c.depth || 0);
     const label = document.createElement('span');
     label.className = 'name';
@@ -117,9 +122,15 @@ function draw() {
   if (!choices.length && el.gotoInput.value.trim()) {
     const li = document.createElement('li');
     li.className = 'none';
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-disabled', 'true');
     li.textContent = 'Nothing by that';
     el.gotoList.append(li);
   }
+  // The box keeps the keyboard; the place chosen in the list is read from it.
+  el.gotoInput.setAttribute('aria-expanded', String(el.gotoList.children.length > 0));
+  if (choices[chosen]) el.gotoInput.setAttribute('aria-activedescendant', `goto-${chosen}`);
+  else el.gotoInput.removeAttribute('aria-activedescendant');
   el.gotoList.children[chosen]?.scrollIntoView({ block: 'nearest' });
 }
 

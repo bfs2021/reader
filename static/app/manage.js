@@ -67,30 +67,36 @@ export function rename(p, { group = null } = {}) {
   input.focus();
   input.setSelectionRange(...(plan.select || [0, plan.value.length]));
 
+  // Done by the keyboard, the row has it back, under whatever it's called now.
+  const row = (path, name) => el.files.querySelector(group ? `.group[data-group="${CSS.escape(name)}"]` : `.file[data-path="${CSS.escape(path)}"]`);
   let done = false;
-  const finish = async (keep) => {
+  const finish = async (keep, { refocus = true } = {}) => {
     if (done) return;
     done = true;
     li.classList.remove('renaming');
     const name = input.value.trim();
-    if (!keep || !name || name === plan.value) return loadTree();
-    try {
-      const moves = plan.moves(name);
-      await saveIfOpen(moves.map((m) => m.from));
-      const out = await api('POST', '/api/rename', { moves });
-      await moved(out.moved);
-      el.files.querySelector(group ? `.group[data-group="${CSS.escape(name)}"]` : `.file[data-path="${CSS.escape(out.moved[0].to)}"]`)?.focus();
-    } catch (err) {
-      toast(err.message, true);
-      loadTree();
+    if (keep && name && name !== plan.value) {
+      try {
+        const moves = plan.moves(name);
+        await saveIfOpen(moves.map((m) => m.from));
+        const out = await api('POST', '/api/rename', { moves });
+        await moved(out.moved);
+        if (refocus) row(out.moved[0].to, name)?.focus();
+        return;
+      } catch (err) {
+        toast(err.message, true);
+      }
     }
+    await loadTree();
+    if (refocus) row(p, group)?.focus();
   };
   input.addEventListener('keydown', (e) => {
     e.stopPropagation();
     if (e.key === 'Enter') { e.preventDefault(); finish(true); }
     else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
   });
-  input.addEventListener('blur', () => finish(true));
+  // Clicked away from, it's left where it was clicked.
+  input.addEventListener('blur', () => finish(true, { refocus: false }));
 }
 
 /** What a row's name starts as, and the renames a new one means. */
@@ -135,17 +141,20 @@ export async function trash(p) {
     await saveIfOpen([p]);
     const paths = visiblePaths();
     const i = paths.indexOf(p);
+    const listed = el.files.contains(document.activeElement);
     const out = await api('POST', '/api/trash', { path: p });
     if (wasOpen) {
       state.current = null;
       state.saved = el.editor.value;
     }
     await loadTree();
+    const next = paths.slice(i + 1).concat(paths.slice(0, i).reverse()).find((q) => state.files.some((f) => f.path === q));
     if (wasOpen) {
-      const next = paths.slice(i + 1).concat(paths.slice(0, i).reverse()).find((q) => state.files.some((f) => f.path === q));
       if (next) await open(next);
       else closeFile('Nothing open.');
     }
+    // Its row is gone; the keyboard goes on to the one after it.
+    if (listed) ((next && el.files.querySelector(`.file[data-path="${CSS.escape(next)}"]`)) || el.filter).focus();
     toast(`${splitPath(p).name} is in the trash`, false, { label: 'Undo', run: () => restore(out.trash) });
   } catch (err) {
     toast(err.message, true);

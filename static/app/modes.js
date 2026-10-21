@@ -16,21 +16,39 @@ export function toggleSidebar(force) {
   if (NARROW.matches && force === undefined) return toggleDrawer();
   const hide = force ?? !el.split.classList.contains('no-sidebar');
   el.split.classList.toggle('no-sidebar', hide);
+  // The keyboard isn't left in a list that's gone.
+  if (hide && el.sidebar.contains(document.activeElement)) el.sidebarToggle.focus();
+  listShown();
   try { localStorage.setItem('reader:sidebar', hide ? 'hidden' : 'shown'); } catch { /* ignore */ }
 }
 
 /** The list over the panes, open or not, at a narrow width. */
 export function toggleDrawer(open = !el.split.classList.contains('list-open')) {
   el.split.classList.toggle('list-open', open);
+  listShown();
   if (open) el.filter.focus();
   else if (el.sidebar.contains(document.activeElement)) el.sidebarToggle.focus();
+}
+
+/** ☰ says whether the list is showing: beside the panes, or over them at a narrow width. */
+function listShown() {
+  const shown = NARROW.matches ? el.split.classList.contains('list-open') : !el.split.classList.contains('no-sidebar');
+  el.sidebarToggle.setAttribute('aria-expanded', String(shown));
+}
+
+export function toggleHelp(show = el.help.hidden) {
+  el.help.hidden = !show;
+  el.helpToggle.setAttribute('aria-expanded', String(show));
 }
 
 export function wireDrawer() {
   const close = () => {
     if (el.split.classList.contains('list-open')) toggleDrawer(false);
   };
-  NARROW.addEventListener('change', close);
+  NARROW.addEventListener('change', () => {
+    close();
+    listShown();
+  });
   el.sidebar.addEventListener('click', (e) => {
     if (e.target.closest('.file')) close();
   });
@@ -41,12 +59,13 @@ export function wireDrawer() {
   document.addEventListener('pointerdown', (e) => {
     if (!el.sidebar.contains(e.target) && !el.sidebarToggle.contains(e.target)) close();
   });
+  listShown();
 }
 
 export function restoreLayout() {
   try {
     if (localStorage.getItem('reader:sidebar') === 'hidden') toggleSidebar(true);
-    if (localStorage.getItem('reader:help') === 'shown') el.help.hidden = false;
+    if (localStorage.getItem('reader:help') === 'shown') toggleHelp(true);
     // 'read' is what work mode was called.
     if (['work', 'read'].includes(localStorage.getItem('reader:mode'))) setWorking(true);
     deck.notes = localStorage.getItem('reader:notes') === 'shown';

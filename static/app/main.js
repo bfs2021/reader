@@ -12,7 +12,7 @@ import { whenReady, showEmpty } from './render.js';
 import { save, saveFirst, saveOnLeave, reloadFromDisk, checkDisk } from './saving.js';
 import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
-import { toggleSidebar, toggleDrawer, wireDrawer, restoreLayout, setWorking } from './modes.js';
+import { toggleSidebar, toggleDrawer, toggleHelp, wireDrawer, restoreLayout, setWorking } from './modes.js';
 import { wirePages, paged, turn } from './pages.js';
 import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
 import { wireFit } from './fit.js';
@@ -143,12 +143,14 @@ function wire() {
     createFile(el.newName.value.trim());
   });
   el.newName.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') el.newForm.hidden = true;
+    if (e.key !== 'Escape') return;
+    el.newForm.hidden = true;
+    el.newBtn.focus();
   });
 
   el.sidebarToggle.addEventListener('click', () => toggleSidebar());
   el.helpToggle.addEventListener('click', () => {
-    el.help.hidden = !el.help.hidden;
+    toggleHelp();
     try { localStorage.setItem('reader:help', el.help.hidden ? 'hidden' : 'shown'); } catch { /* ignore */ }
   });
 
@@ -215,8 +217,9 @@ function onKey(e) {
   if (meta && !e.altKey && !e.shiftKey && key === 'p' && state.current?.type === 'md') { e.preventDefault(); print(); return; }
   if (meta && e.shiftKey && !e.altKey && key === 'c' && state.current?.type === 'md') { e.preventDefault(); copyLines(); return; }
   if (meta && e.key === '\\') { e.preventDefault(); toggleSidebar(); return; }
-  if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
-  if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }
+  // ⌘⌥, not ⌥ alone, which moves by a paragraph where there's typing.
+  if (meta && e.altKey && !e.shiftKey && e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
+  if (meta && e.altKey && !e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }
 
   if (document.activeElement !== el.editor) return;
   if (meta && !e.shiftKey && key === 'b') { e.preventDefault(); wrap('**', '**'); return; }

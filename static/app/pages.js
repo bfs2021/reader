@@ -119,15 +119,22 @@ function block(marks, from, to) {
 
 function draw() {
   const { pages, index } = book;
+  // A dot or a block clicked is drawn again: the keyboard goes on to the page's own dot.
+  const had = el.pageDots.contains(document.activeElement);
   const marks = pages.map((p, i) => mark(p.body, i));
   el.pageDots.replaceChildren(...layout(pages.length, index).map((m) => {
     const li = document.createElement('li');
     li.append('page' in m ? dot(marks[m.page], m.page, index) : block(marks, m.from, m.to));
     return li;
   }));
+  if (had) el.pageDots.querySelector('[aria-current="page"]')?.focus();
   const counted = marks.filter((m) => m.done != null);
   const done = counted.filter((m) => m.done).length;
   el.pageCount.textContent = `${index + 1} of ${pages.length}${counted.length ? ` · ${done} done` : ''}`;
+  // Back at the first page, or Next at the last, can't keep the keyboard.
+  const at = document.activeElement;
   el.pageBack.disabled = index === 0;
   el.pageNext.disabled = index === pages.length - 1;
+  if (at === el.pageBack && el.pageBack.disabled) el.pageNext.focus();
+  if (at === el.pageNext && el.pageNext.disabled) el.pageBack.focus();
 }
