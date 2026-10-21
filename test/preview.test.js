@@ -73,6 +73,39 @@ test('the document is the frame\'s main part, and its title the frame\'s', () =>
   assert.equal(document.title, 'Rendered document');
 });
 
+test('on a slide, Tab goes round its boxes and back out to the deck, and Space on one is the box\'s', () => {
+  const { document, window, show, send, posted } = preview();
+  show(render('* [ ] one\n* [ ] two\n').body, { deck: true });
+  const boxes = [...document.querySelectorAll('.task-box')];
+  const press = (key, keys = {}) => {
+    const e = new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...keys });
+    (document.activeElement ?? document.body).dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  const sent = () => posted.splice(0).filter((m) => m.type === 'key' || m.type === 'untab').map((m) => m.key ?? m.type);
+  send({ type: 'tab', back: false });
+  assert.equal(document.activeElement, boxes[0]);
+  assert.equal(press('Tab'), true);
+  assert.equal(document.activeElement, boxes[1]);
+  press(' ');
+  assert.deepEqual(sent(), [], 'Space works the box, and doesn\'t go up to the deck');
+  press('n');
+  assert.deepEqual(sent(), ['n']);
+  press('Tab');
+  assert.deepEqual(sent(), ['untab']);
+  send({ type: 'tab', back: true });
+  assert.equal(document.activeElement, boxes[1]);
+  press('Tab', { shiftKey: true });
+  assert.equal(document.activeElement, boxes[0]);
+});
+
+test('a slide with nothing to Tab to gives the keyboard straight back to the deck', () => {
+  const { show, send, posted } = preview();
+  show(render('Just words.\n').body, { deck: true });
+  send({ type: 'tab', back: false });
+  assert.deepEqual(posted.filter((m) => m.type === 'untab').length, 1);
+});
+
 test('the box that had the keyboard has it again once a render replaces it', () => {
   const { document, show } = preview();
   const md = '* [ ] one\n* [ ] two\n';

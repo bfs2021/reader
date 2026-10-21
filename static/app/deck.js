@@ -279,8 +279,13 @@ export function deckKey(e) {
     case 'f': case 'F': toggleFullscreen(); break;
     case 's': case 'S': openSpeaker(); break;
     case '?': toggleKeys(); break;
-    // Nothing else is in reach while presenting, so focus stays on the slides.
-    case 'Tab': el.deck.focus(); break;
+    // Into the slide, to its boxes, choices, fields and cards; past them, the
+    // stage gives the keyboard back to the deck (untab). Nothing else is in
+    // reach while presenting.
+    case 'Tab':
+      el.stage.focus();
+      el.stage.contentWindow.postMessage({ type: 'tab', back: e.shiftKey }, '*');
+      break;
     default: return false;
   }
   return true;
