@@ -34,7 +34,8 @@ title: Keys
 
 ## On the page
 
-With the rendered page clicked into, in a recipe's [steps to follow](recipes.md):
+With the rendered page clicked into, in a recipe's [steps to follow](recipes.md),
+and no box, button or link on it Tabbed to but a step's own:
 
 | | |
 | --- | --- |

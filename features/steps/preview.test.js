@@ -57,3 +57,34 @@ test('the keys are left alone with a modifier, while typing, and on a slide', ()
   deck.press('j');
   assert.equal(deck.lit(), 0);
 });
+
+test('the keys are the steps\' only on the page itself or a step\'s box, not on another control', () => {
+  const p = preview();
+  p.show(render(`${STEPS}\n* [ ] a plain box\n\n[a link](x.md)\n`).body);
+  const press = (key, on) => {
+    const e = new p.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+    on.dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  const lit = () => [...p.document.querySelectorAll('li.step')].findIndex((li) => li.classList.contains('step-current')) + 1;
+  assert.equal(press('j', p.document.querySelector('li.task:not(.step) .task-box')), false);
+  assert.equal(press('x', p.document.querySelector('a')), false);
+  assert.equal(lit(), 0);
+  assert.equal(press('j', p.document.querySelector('li.step .task-box')), true);
+  assert.equal(lit(), 1);
+});
+
+test('the lit step is the current one, and j, k and x say where they left the steps', () => {
+  const { press, steps, document } = page();
+  const said = () => document.querySelector('.steps-said')?.textContent.trim();
+  press('j');
+  assert.equal(steps()[0].getAttribute('aria-current'), 'step');
+  assert.equal(said(), 'Step 1 of 3: Chop.');
+  press('j');
+  assert.equal(steps()[0].hasAttribute('aria-current'), false);
+  assert.equal(said(), 'Step 2 of 3: Fry.');
+  press('x');
+  assert.equal(said(), 'Step 2 done. Step 3 of 3: Simmer.');
+  press('k');
+  assert.equal(said(), 'Step 2 of 3, done: Fry.');
+});

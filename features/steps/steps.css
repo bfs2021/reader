@@ -26,3 +26,4 @@ ol.badges > li.step-current {
 }
 ol.badges > li.step-current::before { box-shadow: 0 0 0 3px color-mix(in srgb, var(--badge) 35%, transparent); }
 @media print { ol.badges > li.step-current { background: none; box-shadow: none; } }
+.steps-said { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
