@@ -142,7 +142,8 @@ names it can't slip by:
 :::
 
 - The word is underlined where it's used, and hovering or focusing it shows
-  its item, amounts multiplied.
+  its item, amounts multiplied; Enter on it shows it or puts it away, and
+  Esc puts it away.
 - The lit step's ingredients are lit, in the step and in the list.
 - When the last step that names an ingredient is marked done, its box is
   marked too, in the same edit: a box with stages filled, a plain one

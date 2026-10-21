@@ -127,9 +127,12 @@ export function ingredients(md) {
   });
 
   md.renderer.rules.ingredient_key = (tokens, i) => `<span class="ingredient-key">${escapeHtml(tokens[i].content)}</span>`;
-  md.renderer.rules.ingredient_use = (tokens, i) => {
+  md.renderer.rules.ingredient_use = (tokens, i, options, env) => {
     const { key, recipe } = tokens[i].meta;
-    return `<span class="ingredient-use" tabindex="0" data-ingredient="${escapeAttr(key)}" data-recipe="${recipe}">${escapeHtml(tokens[i].content)}</span>`;
+    // A button that shows its item (preview.js); an exported page has no
+    // script to show it with.
+    const reach = env.exported ? '' : ' tabindex="0" role="button"';
+    return `<span class="ingredient-use"${reach} data-ingredient="${escapeAttr(key)}" data-recipe="${recipe}">${escapeHtml(tokens[i].content)}</span>`;
   };
 }
 
