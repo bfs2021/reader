@@ -181,8 +181,10 @@ function titled(body, src) {
 // Scaled to the window, and centered on it, like a projected slide. The
 // `:root` prefix outranks the preview frame's own pane-sized rules.
 const CSS = `
-/* sized by the window's width, or its height when it's wider than 16:9 */
-:root { --gm-base: clamp(14px, min(2.1vw, 3.73vh), 40px); }
+/* half by the window's width, or its height when it's wider than 16:9, and
+   half by the reader's own text size (at 1280×720): it fills a screen as a
+   slide does, and zooming in makes it bigger */
+:root { --gm-base: clamp(0.875rem, min(1.05vw, 1.87vh) + 0.84rem, 2.5rem); }
 :root body { overflow: hidden; }
 :root .gm-doc {
   max-width: none; min-height: 100vh; margin: 0;
