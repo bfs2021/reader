@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- *   reader <dir> [--port 8734] [--no-browser] [--host <address> --allow-host <name>]
+ *   reader <dir> [--port 8734] [--no-browser] [--open <file>] [--host <address> --allow-host <name>]
  *   reader export <file>... [--out <file>] [--no-draw]
  *
  * Serve a directory of markdown for reading and editing in the browser, or
@@ -12,7 +12,8 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createServer } from '../src/server.js';
 
-const USAGE = `usage: reader <dir> [--port 8734] [--no-browser] [--host <addr> --allow-host <name>]
+const USAGE = `usage: reader <dir> [--port 8734] [--no-browser] [--open <file>]
+                     [--host <addr> --allow-host <name>]
        reader export <file>... [--out <file>] [--no-draw]
 
   <dir>          the content directory to serve (default: current directory)

@@ -120,8 +120,10 @@ in the brackets are shown instead of the address.
 ## Other files
 
 A relative link to another markdown file opens it in reader, as a link
-does on the web. Images and links in a note resolve relative to that note,
-so `![](photo.jpg)` next to the file works.
+does on the web. `⌘`-click or `⇧`-click still opens it in a tab of its own,
+as text, and so does a link on a slide, so the deck doesn't give way to
+another file. Images and links in a note resolve relative to that note, so
+`![](photo.jpg)` next to the file works.
 
 ```markdown
 → [Spring Security 7](spring-security-7.md)
