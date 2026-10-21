@@ -50,3 +50,9 @@ test("the deck's foot reads on its white", () => {
   readable(style.match(/\.deck-foot \{[^}]*?[\s;]color: (#\w+)/)[1], '#ffffff', 'deck foot');
 });
 
+test("code's comments read on every ground code is drawn on", () => {
+  const comment = read('features/highlight/highlight.css').match(/--hl-comment: (#\w+)/)[1];
+  // the fence, a line picked out, output, a line of output picked out
+  for (const ground of ['#f7f6f3', '#f0ebde', '#eef1f5', '#dfe6ef']) readable(comment, ground, 'comment');
+});
+
