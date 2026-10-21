@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const style = read('static/style.css');
@@ -200,5 +200,29 @@ test('Good, Bad and Try, and ok and warn, stay apart under deuteranopia and prot
         assert.ok(d >= 0.07, `${theme}, ${name}: ${set[i]} and ${set[j]} are ${d.toFixed(3)} apart`);
       }
     }
+  }
+});
+
+test('no colour is written outside the blocks that name them', () => {
+  const blocks = [
+    [style, /^:root \{[^}]*\}|^@media \(prefers-color-scheme: dark\) \{\n {2}:root \{[^}]*\}\n\}/gm],
+    [speaker, /^:root \{[^}]*\}/gm],
+    [columns, /^\/\* colours, (light|dark) \*\/\n:root(\.gm-dark)? \{[^}]*\}/gm],
+  ];
+  const named = new Map(blocks.map(([css, re]) => [css, css.replace(re, '')]));
+  const files = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(new URL(`../${dir}`, import.meta.url), { withFileTypes: true })) {
+      const path = `${dir}/${e.name}`;
+      if (e.isDirectory()) { if (!['vendor', 'node_modules', 'icons'].includes(e.name)) walk(path); }
+      else if (/\.(css|js|html)$/.test(e.name) && !e.name.endsWith('.test.js')) files.push(path);
+    }
+  };
+  for (const dir of ['src', 'static', 'features']) walk(dir);
+  assert.ok(files.length > 50);
+  for (const path of files) {
+    const css = read(path);
+    const left = named.get(css) ?? css;
+    assert.doesNotMatch(left, /#[0-9a-f]{3,8}\b(?![\w-])/i, path);
   }
 });
