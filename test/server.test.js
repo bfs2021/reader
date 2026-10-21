@@ -31,6 +31,12 @@ test('serves the UI and the tree', async () => {
   assert.deepEqual(files.map((f) => f.path).sort(), ['doc.pdf', 'note.md']);
 });
 
+test("info says which reader this is, and where its notes are", async () => {
+  const { version } = await (await fetch(base + '/api/info')).json();
+  assert.match(version.label, /^v\d+\.\d+\.\d+(\+[0-9a-f]{7})?$/);
+  assert.match(version.url, /^https:\/\/github\.com\/jzheaux\/reader\/(releases\/tag|commit)\//);
+});
+
 test('render puts asides in the gutter column', async () => {
   const res = await json('POST', '/api/render', { text: '* a point\n\n~ my aside\n', path: 'note.md' });
   const out = await res.json();

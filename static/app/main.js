@@ -35,6 +35,7 @@ async function init() {
   state.root = info.root;
   el.rootName.textContent = info.name;
   el.rootName.title = info.root;
+  showVersion(info.version);
   await loadTree();
   go(rememberedDir(), null, { focus: false });
 
@@ -49,6 +50,23 @@ async function init() {
     if (first.path === wanted && line) goToLines(line, last);
   } else showEmpty('No markdown files here yet. Press New to start one.');
   window.addEventListener('hashchange', followHash);
+}
+
+/**
+ * Which reader this is, at the foot of the file list and in the help, where
+ * the list is out of sight: linked to its release notes, or to the commit a
+ * checkout is at.
+ */
+function showVersion({ label, url } = {}) {
+  if (!label) return;
+  const says = `reader ${label}, ${url.includes('/releases/') ? 'its release notes' : 'its commit'}`;
+  for (const a of [el.version, el.helpVersion.querySelector('a')]) {
+    a.textContent = label;
+    a.href = url;
+    a.title = says;
+    a.setAttribute('aria-label', says);
+  }
+  el.version.hidden = el.helpVersion.hidden = false;
 }
 
 /**

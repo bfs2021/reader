@@ -2,6 +2,7 @@
 /**
  *   reader <dir> [--port 8734] [--no-browser] [--open <file>] [--host <address> --allow-host <name>]
  *   reader export <file>... [--out <file>] [--no-draw]
+ *   reader --version
  *
  * Serve a directory of markdown for reading and editing in the browser, or
  * save documents in it as HTML (src/export-cli.js).
@@ -11,10 +12,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createServer } from '../src/server.js';
+import { version } from '../src/version.js';
 
 const USAGE = `usage: reader <dir> [--port 8734] [--no-browser] [--open <file>]
                      [--host <addr> --allow-host <name>]
        reader export <file>... [--out <file>] [--no-draw]
+       reader --version
 
   <dir>          the content directory to serve (default: current directory)
   --port <n>     port to listen on (default: 8734, or the next free one)
@@ -26,6 +29,8 @@ const USAGE = `usage: reader <dir> [--port 8734] [--no-browser] [--open <file>]
   --allow-host <name>
                  a name or address other devices reach this machine by, as
                  the browser will send it; repeat for more than one
+  --version      print reader's version: v0.0.2, or v0.0.2+abc1234 from a
+                 checkout that isn't at that release
 `;
 
 function parseArgs(argv) {
@@ -34,6 +39,9 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '-h' || a === '--help') {
       process.stdout.write(USAGE);
+      process.exit(0);
+    } else if (a === '--version') {
+      process.stdout.write(`${version().label}\n`);
       process.exit(0);
     } else if (a === '--port' || a === '-p') {
       opts.port = portNumber(argv[++i]);
