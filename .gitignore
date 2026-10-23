@@ -1,5 +1,7 @@
 node_modules/
 .DS_Store
 .reader/
-.claude/settings.local.json
+.claude/
 .issues/
+.claude/
+.notes/
