@@ -93,6 +93,7 @@ Present or present the file; after that, it's measured again as you edit.
 | `Home` / `End` | the first slide / the last slide whole |
 | `T` | notes under the slide |
 | `S` | speaker view: the current slide (steps to come drawn faintly), the next slide, notes, a timer, the time |
+| `R` | in the speaker view, restart the timer (or click the timer) |
 | `F` | full screen |
 | `Tab` / `⇧Tab` | the slide's boxes, choices, fields and cards, one by one, then back to the slides; `Space`, `Enter` and the arrows work the one Tabbed to |
 | `?` | these keys, at the foot of the slides; they show for a moment as you start, and when you hover there |
@@ -113,8 +114,8 @@ press `F` there.
 ## Pacing
 
 The speaker view's timer starts when you present from the first
-slide (click it, or press `R` there, to restart). Tell reader the plan and it says, under the
-timer, whether you're ahead of it, on it or behind:
+slide (click it, or press `R` there, to restart). Tell reader the plan and it
+says, under the timer, whether you're ahead of it, on it or behind:
 
 ```markdown
 ---
