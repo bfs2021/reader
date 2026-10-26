@@ -40,6 +40,7 @@ test('the count reads as the front matter\'s paging says, or n / total', () => {
 test('? shows the deck\'s keys at its foot, and puts them away again', () => {
   const stage = window.document.getElementById('deck');
   assert.match(stage.querySelector('.deck-keys').textContent, /\? these keys/);
+  assert.match(stage.querySelector('.deck-keys').textContent, /Tab the slide's boxes · \? these keys/);
   assert.equal(deckKey({ key: '?' }), true);
   assert.ok(stage.classList.contains('keys-shown'));
   deckKey({ key: '?' });
