@@ -23,7 +23,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { sections, escapeHtml, escapeAttr, addClass, split, eachText, escapeRegExp } from '../source.js';
+import { sections, multipliers, escapeHtml, escapeAttr, addClass, split, eachText, escapeRegExp } from '../source.js';
 
 const KEY = /(?<![\p{L}\p{N}_])!(\p{L}[\p{L}\p{N}'’-]*)/gu;
 
@@ -46,14 +46,8 @@ export function ingredients(md) {
     const tokens = state.tokens;
     const { list, of } = sections(state);
     const top = Math.min(...list.filter((s) => s.level).map((s) => s.level));
-    const scaled = new Set();
-    tokens.forEach((t, i) => {
-      if (t.type === 'inline' && t.children?.some((c) => c.type === 'multiplier')) scaled.add(of[i]);
-    });
-    const recipeOf = (section) => {
-      for (let s = section; s; s = s.parent) if (scaled.has(s)) return s;
-      return section.parent && section.level > top ? section.parent : section;
-    };
+    const { nearest } = multipliers(state, of);
+    const recipeOf = (section) => nearest(section) ?? (section.parent && section.level > top ? section.parent : section);
 
     // The keys, each in the item it's written in.
     const items = [];

@@ -26,7 +26,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { schemeRule } from '../scheme.js';
-import { sections, escapeHtml, escapeAttr } from '../source.js';
+import { sections, multipliers, escapeHtml, escapeAttr } from '../source.js';
 import { AMOUNT, multiply, readChoices } from './amount.js';
 
 const BEFORE = /[\w\\]/;
@@ -68,21 +68,13 @@ export function counts(md) {
     if (state.inlineMode) return;
     const { of } = sections(state);
     const shared = state.env.shared ?? state.env;
-    const inline = (fn) => state.tokens.forEach((block, i) => {
-      if (block.type === 'inline') for (const t of block.children ?? []) fn(t, of[i]);
-    });
-    const found = new Map();
-    inline((t, section) => {
-      if (t.type !== 'multiplier' || found.has(section)) return;
-      t.meta.id = shared.multipliers = (shared.multipliers ?? 0) + 1;
-      t.meta.key = `${state.env.file ?? ''}#${section.title}`;
-      found.set(section, t.meta);
-    });
-    inline((t, section) => {
-      if (t.type !== 'count') return;
-      let s = section;
-      while (s && !found.has(s)) s = s.parent;
-      t.meta.multiplier = s && found.get(s);
+    const { bySection, nearest } = multipliers(state, of);
+    for (const [section, meta] of bySection) {
+      meta.id = shared.multipliers = (shared.multipliers ?? 0) + 1;
+      meta.key = `${state.env.file ?? ''}#${section.title}`;
+    }
+    state.tokens.forEach((block, i) => {
+      for (const t of block.children ?? []) if (t.type === 'count') t.meta.multiplier = bySection.get(nearest(of[i]));
     });
   });
 

@@ -161,3 +161,21 @@ export function sections(state) {
   });
   return { list, of };
 }
+
+/**
+ * The multipliers of a parse's sections (features/count), `of` being
+ * `sections(state).of`: `bySection` holds each section's first, in document
+ * order, and `nearest(section)` is the nearest section around `section`,
+ * itself first, that has one (null for none).
+ */
+export function multipliers(state, of) {
+  const bySection = new Map();
+  state.tokens.forEach((block, i) => {
+    for (const t of block.children ?? []) if (t.type === 'multiplier' && !bySection.has(of[i])) bySection.set(of[i], t.meta);
+  });
+  const nearest = (section) => {
+    for (let s = section; s; s = s.parent) if (bySection.has(s)) return s;
+    return null;
+  };
+  return { bySection, nearest };
+}

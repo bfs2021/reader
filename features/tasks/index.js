@@ -28,7 +28,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, keepWritten, readLines, placeholder, splitText, sections, escapeHtml, escapeAttr, addClass } from '../source.js';
+import { beforeAsides, keepWritten, readLines, placeholder, splitText, sections, multipliers, escapeHtml, escapeAttr, addClass } from '../source.js';
 import { schemeRule } from '../scheme.js';
 
 const TASK = /^([ \t]*(?:>[ \t]*|~(?![^\s~])[ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
@@ -128,16 +128,13 @@ export function tasks(md) {
   md.core.ruler.push('task_reset_sections', (state) => {
     if (state.inlineMode) return;
     const { list, of } = sections(state);
-    const multipliers = new Map();
-    state.tokens.forEach((block, i) => {
-      for (const t of block.children ?? []) if (t.type === 'multiplier' && !multipliers.has(of[i])) multipliers.set(of[i], t.meta);
-    });
+    const { bySection, nearest } = multipliers(state, of);
     state.tokens.forEach((block, i) => {
       for (const t of block.children ?? []) {
         if (t.type !== 'task_reset') continue;
         const section = of[i];
         t.meta.section = section;
-        for (let s = section; s && !t.meta.multiplier; s = s.parent) t.meta.multiplier = multipliers.get(s);
+        t.meta.multiplier = bySection.get(nearest(section));
         const log = list.find((s) => LOG.test(s.title) && s !== section && under(s, section));
         if (log) t.meta.log = { at: logEnd(state, log), level: Math.min(6, log.level + 1) };
       }
