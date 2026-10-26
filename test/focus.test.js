@@ -13,9 +13,11 @@ globalThis.fetch = async (url, { body } = {}) => {
   const ask = String(url);
   const said = body && JSON.parse(body);
   if (ask.startsWith('/api/trash')) files = files.filter((p) => p !== said.path);
+  for (const { from, to } of ask.startsWith('/api/rename') ? said.moves : []) files = files.map((p) => (p === from ? to : p));
   const out = ask.startsWith('/api/info') ? { name: 'notes', root: '/notes' }
     : ask.startsWith('/api/tree') ? { files: files.map((path) => ({ path, type: 'md', mtime: 1 })) }
     : ask.startsWith('/api/trash') ? { trash: 't1' }
+    : ask.startsWith('/api/rename') ? { moved: said.moves }
     : { text: '# A\n', mtime: 1 };
   return { ok: true, json: async () => out };
 };
@@ -58,6 +60,22 @@ test('a rename called off by Esc, or left as it was by Enter, gives the keyboard
     press(input, key);
     await settled();
     assert.equal(document.activeElement, row('b.md'), key);
+  }
+});
+
+test('a file renamed gives the keyboard back to its row, under its new name', async () => {
+  // And back again, so the files are as they were for the tests after.
+  for (const [from, to] of [['b.md', 'z.md'], ['z.md', 'b.md']]) {
+    row(from).focus();
+    press(row(from), 'F2');
+    const input = el.files.querySelector('.name-edit');
+    input.value = to;
+    press(input, 'Enter');
+    await settled();
+    await settled();
+    await settled();
+    assert.equal(row(from), null);
+    assert.ok(document.activeElement === row(to), `the row for ${to} has the keyboard`);
   }
 });
 
