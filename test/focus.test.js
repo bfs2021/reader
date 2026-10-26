@@ -36,6 +36,11 @@ await settled();
 const row = (p) => el.files.querySelector(`.file[data-path="${p}"]`);
 const press = (target, key, opts = {}) => target.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true, ...opts }));
 
+test('without a version to show, neither the files list nor the help shows one', () => {
+  assert.equal(el.version.hidden, true);
+  assert.equal(el.helpVersion.hidden, true);
+});
+
 test('Esc in the New form gives the keyboard back to New', () => {
   el.newBtn.click();
   assert.equal(document.activeElement, el.newName);
