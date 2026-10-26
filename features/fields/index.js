@@ -158,8 +158,8 @@ export function fields(md) {
     const v = escapeHtml(value);
     return `<span class="field field-inline" data-line="${line}" data-text="${escapeAttr(text)}"`
       + ` data-head="${escapeAttr(`[@ ${label}`)}" data-start="${start}" data-end="${end}">`
-      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span>${unfilled(value, env)}`
-      + `<span class="field-label">${escapeHtml(label)}</span></span>`;
+      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span>`
+      + `<span class="field-label">${escapeHtml(label)}</span>${unfilled(value, env)}</span>`;
   };
 }
 

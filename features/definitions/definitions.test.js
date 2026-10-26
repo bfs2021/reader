@@ -43,10 +43,12 @@ test('a term with no meaning yet is a blank to fill in', () => {
   assert.match(body, /<span class="field def-blank" data-line="2" data-text="!REPL \(Venkat\):" data-head="!REPL \(Venkat\):"><span class="field-value" data-value="" tabindex="0" role="textbox" aria-label="REPL"><\/span><\/span><span class="def-name">Venkat<\/span>/);
 });
 
-test('on a slide, a term with no meaning yet isn\'t a box, and says it\'s blank', () => {
+test('on a slide, a term with no meaning yet isn\'t a box', () => {
   const { body } = slides('# One\n\n!REPL:\n\n---\n\n# Two\n').slides[0];
-  assert.match(body, /<span class="field-value" data-value=""><\/span><span class="field-blank">blank<\/span><\/span>/);
+  assert.match(body, /<span class="field-value" data-value=""><\/span><\/span>/);
   assert.doesNotMatch(body, /class="field-value"[^>]*(tabindex|role=)/);
+  // The stylesheet's "not yet defined" is what says it's empty.
+  assert.doesNotMatch(body, /field-blank/);
 });
 
 test('an acronym has the letters it is spelled with bolded', () => {

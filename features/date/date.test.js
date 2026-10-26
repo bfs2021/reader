@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { render } from '../../src/render.js';
+import { slides } from '../../src/slides.js';
 import { parseDate, readable } from './index.js';
 
 test('date: reads a day, and only a real one', () => {
@@ -22,6 +23,13 @@ test('date: shows as words, and knows where it was written', () => {
 test('date: an empty one is a blank to pick into', () => {
   const { body } = render('When: date:[] or date:[some day]\n');
   assert.match(body, /<span class="date date-blank" data-line="0" data-col="6" [^>]*>pick a date<\/span> or <span class="date date-blank" data-line="0" data-col="17" [^>]*>some day<\/span>/);
+});
+
+test('date: on a slide, where no calendar is shown, is only read, not a button', () => {
+  const { body } = slides('# One\n\nDue date:2026-11-10[], or date:[]\n\n---\n\n# Two\n').slides[0];
+  assert.match(body, /<time class="date" datetime="2026-11-10" data-line="\d+" data-col="4" data-text="[^"]*">November 10, 2026<\/time>/);
+  assert.match(body, /<span class="date date-blank" data-line="\d+" data-col="\d+" data-text="[^"]*">pick a date<\/span>/);
+  assert.doesNotMatch(body, /tabindex|role="button"|aria-haspopup/);
 });
 
 test('date: what is not a date, is escaped, or is in code stays as typed', () => {

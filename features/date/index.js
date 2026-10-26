@@ -91,12 +91,14 @@ export function dates(md) {
     if (meta && !state.env.__aside) all(meta);
   });
 
-  md.renderer.rules.date = (tokens, i) => {
+  md.renderer.rules.date = (tokens, i, opts, env) => {
     const { date, label, line, text, col } = tokens[i].meta;
     const shown = escapeHtml(label || readable(date) || 'pick a date');
     // What the preview needs to change it, and to be reached by keyboard.
+    // Not on a slide, where the deck shows no calendar: there it's only read.
+    const reached = env.deck ? '' : ' tabindex="0" role="button" aria-haspopup="dialog"';
     const editable = col == null ? ''
-      : ` data-line="${line}" data-col="${col}" data-text="${escapeAttr(text)}" tabindex="0" role="button" aria-haspopup="dialog"`;
+      : ` data-line="${line}" data-col="${col}" data-text="${escapeAttr(text)}"${reached}`;
     return date
       ? `<time class="date" datetime="${date}"${editable}>${shown}</time>`
       : `<span class="date date-blank"${editable}>${shown}</span>`;

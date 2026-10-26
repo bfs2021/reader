@@ -26,7 +26,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { beforeAsides, readLines, escapeHtml, escapeAttr, textToken } from '../source.js';
-import { typable, unfilled } from '../fields/index.js';
+import { typable } from '../fields/index.js';
 import { forms } from '../ingredients/index.js';
 
 // A term can't open with `[` (an image) and holds no colon or parentheses.
@@ -65,8 +65,10 @@ export function definitions(md) {
   };
   md.renderer.rules.def_blank = (tokens, i, opts, env) => {
     const { line, text, head, term } = tokens[i].meta;
+    // No unseen "blank" where it can't be filled in: the stylesheet's "not
+    // yet defined" already says it's empty, and is read out.
     return `<span class="field def-blank" data-line="${line}" data-text="${escapeAttr(text)}" data-head="${escapeAttr(head)}">`
-      + `<span class="field-value" data-value=""${typable(term, env)}></span>${unfilled('', env)}</span>`;
+      + `<span class="field-value" data-value=""${typable(term, env)}></span></span>`;
   };
   md.renderer.rules.def_initial = (tokens, i) => `<b class="def-initial">${escapeHtml(tokens[i].content)}</b>`;
   md.renderer.rules.def_use = (tokens, i, options, env) => {

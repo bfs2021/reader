@@ -95,7 +95,7 @@ test('on a slide or an exported page, no field is a box: it reads as its label a
     assert.doesNotMatch(body, /class="field-value"[^>]*(tabindex|role=)/, `on ${where}`);
     assert.match(body, /<span class="field-label">Name<\/span><span class="field-value" data-value="Josh">Josh<\/span><\/span>/, `on ${where}`);
     assert.match(body, /<span class="field-label">Thoughts<\/span><span class="field-value" data-value=""><\/span><span class="field-blank">blank<\/span><\/span>/, `on ${where}`);
-    assert.match(body, /<span class="field-value" data-value=""><\/span><span class="field-blank">blank<\/span><span class="field-label">age<\/span>/, `on ${where}`);
+    assert.match(body, /<span class="field-value" data-value=""><\/span><span class="field-label">age<\/span><span class="field-blank">blank<\/span>/, `on ${where}`);
     assert.match(body, /<span class="field-value" data-value="home">home<\/span><span class="field-label">a place<\/span>/, `on ${where}`);
     assert.equal(body.match(/field-blank/g).length, 2, `on ${where}, only the empty ones say so`);
     // A field of choices keeps its buttons, which still work on a slide.
