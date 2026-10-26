@@ -63,6 +63,11 @@ test('render gives a deck being worked through as pages, and a document as itsel
   assert.match(doc.body, /One/);
 });
 
+test('a deck\'s pages come with its title, for the page\'s frame', async () => {
+  const deck = await (await json('POST', '/api/render', { text: '---\ntitle: Talk\n---\n\n# One\n\n---\n\n# Two\n', pages: true })).json();
+  assert.equal(deck.title, 'Talk');
+});
+
 test('slides splits a deck and lifts its notes', async () => {
   const res = await json('POST', '/api/slides', { text: '# One\n\n<!-- hi -->\n\n---\n\n# Two\n', path: 'deck.md' });
   const out = await res.json();
