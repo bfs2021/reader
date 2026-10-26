@@ -43,6 +43,12 @@ test('a term with no meaning yet is a blank to fill in', () => {
   assert.match(body, /<span class="field def-blank" data-line="2" data-text="!REPL \(Venkat\):" data-head="!REPL \(Venkat\):"><span class="field-value" data-value="" tabindex="0" role="textbox" aria-label="REPL"><\/span><\/span><span class="def-name">Venkat<\/span>/);
 });
 
+test('on an exported page, a term with no meaning yet is a blank but not a box', () => {
+  const { body } = render('# Notes\n\n!REPL (Venkat):\n', { exported: true });
+  assert.match(body, /<span class="field def-blank"[^>]*><span class="field-value" data-value=""><\/span><\/span>/);
+  assert.doesNotMatch(body, /tabindex|role="textbox"|aria-label/);
+});
+
 test('on a slide, a term with no meaning yet isn\'t a box', () => {
   const { body } = slides('# One\n\n!REPL:\n\n---\n\n# Two\n').slides[0];
   assert.match(body, /<span class="field-value" data-value=""><\/span><\/span>/);
