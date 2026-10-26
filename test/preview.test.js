@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { render } from '../src/render.js';
+import { slides } from '../src/slides.js';
 import { preview } from './dom.js';
 
 const BASE = 'http://localhost:8734/content/notes/';
@@ -97,6 +98,54 @@ test('on a slide, Tab goes round its boxes and back out to the deck, and Space o
   assert.equal(document.activeElement, boxes[1]);
   press('Tab', { shiftKey: true });
   assert.equal(document.activeElement, boxes[0]);
+});
+
+/** A slide of `markdown` being presented, and the keys it sends up to the deck. */
+function presenting(markdown) {
+  const p = preview();
+  p.show(slides(`${markdown}\n---\n\n# Next\n`).slides[0].body, { deck: true });
+  const press = (key) => {
+    const e = new p.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+    (p.document.activeElement ?? p.document.body).dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  const sent = () => p.posted.splice(0).filter((m) => m.type === 'key' || m.type === 'untab').map((m) => m.key ?? m.type);
+  return { ...p, press, sent };
+}
+
+test('on a slide, Tab passes over a blank, which can\'t be filled in there, and a box keeps only Space from the deck', () => {
+  const { document, send, press, sent } = presenting('# One\n\nFill in: [@ answer here:]\n\n- [ ] A box\n');
+  send({ type: 'tab', back: false });
+  assert.ok(document.activeElement === document.querySelector('.task-box'), 'Tab reaches the box, not the blank');
+  press(' ');
+  assert.deepEqual(sent(), [], 'Space ticks the box');
+  assert.equal(press('ArrowRight'), true);
+  press('Enter');
+  assert.deepEqual(sent(), ['ArrowRight', 'Enter'], 'the box doesn\'t use them: they move the deck');
+  press('Tab');
+  assert.deepEqual(sent(), ['untab']);
+});
+
+test('on a slide, a choice keeps Space and the arrows from the deck, a link Enter, and anything else the keys it takes', () => {
+  const { document, press, sent } = presenting('# One\n\n@ Session: ( ) Sat AM ( ) Sat PM\n\n[a link](https://example.com)\n');
+  document.querySelector('.choice-box').focus();
+  press(' ');
+  press('ArrowDown');
+  press('Enter');
+  assert.deepEqual(sent(), ['Enter']);
+  document.querySelector('a').focus();
+  press('Enter');
+  press('ArrowRight');
+  assert.deepEqual(sent(), ['ArrowRight']);
+  // Something else Tab reaches, as a puzzle is, that takes ← and not →.
+  const mine = document.createElement('span');
+  mine.tabIndex = 0;
+  document.querySelector('.gm-doc').append(mine);
+  mine.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') e.preventDefault(); });
+  mine.focus();
+  press('ArrowLeft');
+  press('ArrowRight');
+  assert.deepEqual(sent(), ['ArrowRight']);
 });
 
 test('a slide with nothing to Tab to gives the keyboard straight back to the deck', () => {

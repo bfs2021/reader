@@ -465,8 +465,18 @@
   }, { passive: true });
 
   const DECK_KEYS = new Set([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace']);
-  // On a control, the keys that work it are its own, not the deck's.
-  const OWN_KEYS = new Set([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  // On a control, the keys that work it are its own, not the deck's: only
+  // those, so the rest still move the deck. Anything else Tab reaches by
+  // its tabindex, such as a puzzle, says which keys it took (preventDefault).
+  const ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+  const OWN_KEYS = [
+    ['input[type=checkbox]', [' ']],
+    ['input[type=radio]', [' ', ...ARROWS]],
+    ['a[href]', ['Enter']],
+    ['button, input[type=button], input[type=submit], input[type=reset]', [' ', 'Enter']],
+    ['input, select, textarea', [' ', 'Enter', ...ARROWS]],
+  ];
+  const owns = (n, key) => Boolean(n.matches && OWN_KEYS.find(([is]) => n.matches(is))?.[1].includes(key));
 
   /** What Tab reaches on a slide, in order: shown, and one radio button of a group. */
   function reachable() {
@@ -503,7 +513,7 @@
         tab(e.shiftKey, e.target);
         return;
       }
-      if (OWN_KEYS.has(e.key) && e.target !== document.body && e.target.matches?.(REACHABLE)) return;
+      if (owns(e.target, e.key)) return;
       if (DECK_KEYS.has(e.key)) e.preventDefault();
       const { key, code, metaKey, ctrlKey, altKey, shiftKey } = e;
       window.parent.postMessage({ type: 'key', key, code, metaKey, ctrlKey, altKey, shiftKey }, '*');

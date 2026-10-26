@@ -95,7 +95,7 @@ Present or present the file; after that, it's measured again as you edit.
 | `S` | speaker view: the current slide (steps to come drawn faintly), the next slide, notes, a timer, the time |
 | `R` | in the speaker view, restart the timer (or click the timer) |
 | `F` | full screen |
-| `Tab` / `⇧Tab` | the slide's boxes, choices, fields and cards, one by one, then back to the slides; `Space`, `Enter` and the arrows work the one Tabbed to |
+| `Tab` / `⇧Tab` | the slide's boxes, choices and cards, one by one, then back to the slides; the keys that work the one Tabbed to are its own (`Space` ticks a box), and the rest still move the slides |
 | `?` | these keys, at the foot of the slides; they show for a moment as you start, and when you hover there |
 | `Esc` | stop presenting |
 

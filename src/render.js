@@ -47,11 +47,12 @@ md.core.ruler.push('reader_lines', (state) => {
  * staged box's stages, features/tasks). `drawn` is what the preview frame
  * drew of the page, by feature (`{ mermaid: { text: svg } }`), to set into
  * it where the page will have nothing to draw it (export.js). `exported` is for a page that will
- * run no script of the app's, so draws nothing that would wait on one.
+ * run no script of the app's, so draws nothing that would wait on one. `deck` is for a slide
+ * being presented, where the deck keeps the page's fields shut.
  */
-export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, matter, drawn, exported = false } = {}) {
+export function render(src, { file, read, line = 0, shared = {}, asideKey, lines = false, background, fonts, matter, drawn, exported = false, deck = false } = {}) {
   const text = src || '';
-  const env = { lineBase: line, file, read, shared, asideKey, lines, matter, drawn, exported };
+  const env = { lineBase: line, file, read, shared, asideKey, lines, matter, drawn, exported, deck };
   const tokens = md.parse(text, env);
   const meta = env.frontMatter || {};
   const asides = env.asides || [];

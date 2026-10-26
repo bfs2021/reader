@@ -43,6 +43,12 @@ test('a term with no meaning yet is a blank to fill in', () => {
   assert.match(body, /<span class="field def-blank" data-line="2" data-text="!REPL \(Venkat\):" data-head="!REPL \(Venkat\):"><span class="field-value" data-value="" tabindex="0" role="textbox" aria-label="REPL"><\/span><\/span><span class="def-name">Venkat<\/span>/);
 });
 
+test('on a slide, a term with no meaning yet isn\'t a box, and says it\'s blank', () => {
+  const { body } = slides('# One\n\n!REPL:\n\n---\n\n# Two\n').slides[0];
+  assert.match(body, /<span class="field-value" data-value=""><\/span><span class="field-blank">blank<\/span><\/span>/);
+  assert.doesNotMatch(body, /class="field-value"[^>]*(tabindex|role=)/);
+});
+
 test('an acronym has the letters it is spelled with bolded', () => {
   const b = (letter) => `<b class="def-initial">${letter}</b>`;
   assert.equal(meaning(render('!SLAB: similar layers of abstraction').body), `${b('s')}imilar ${b('l')}ayers of ${b('a')}${b('b')}straction`);

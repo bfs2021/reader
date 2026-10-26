@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { render } from '../../src/render.js';
+import { slides } from '../../src/slides.js';
 
 test('@ lines become form fields that know their line and value', () => {
   const { body } = render('# Form\n\n@ My Name: Josh\n@ Date:\n@ Time: 10:30 -> *noon* <b>\n');
@@ -85,4 +86,20 @@ test('a blank is reached by the keyboard and read as a box named by its label, b
   assert.match(body, /<span class="field-value" data-value="Josh" tabindex="0" role="textbox" aria-label="Name">/);
   assert.match(body, /<span class="field-value" data-value="" tabindex="0" role="textbox" aria-label="age">/);
   assert.doesNotMatch(render(md, { exported: true }).body, /tabindex|role="textbox"/);
+});
+
+test('on a slide or an exported page, no field is a box: it reads as its label and its value, or says it\'s blank', () => {
+  const md = '@ Name: Josh\n@ Thoughts:\n\nI am [@ age] and [@ a place: home].\n\n@ Session: ( ) Sat AM (x) Sat PM\n';
+  const deck = `# One\n\n${md}\n---\n\n# Two\n`;
+  for (const [where, body] of [['a slide', slides(deck).slides[0].body], ['an exported page', render(md, { exported: true }).body]]) {
+    assert.doesNotMatch(body, /class="field-value"[^>]*(tabindex|role=)/, `on ${where}`);
+    assert.match(body, /<span class="field-label">Name<\/span><span class="field-value" data-value="Josh">Josh<\/span><\/span>/, `on ${where}`);
+    assert.match(body, /<span class="field-label">Thoughts<\/span><span class="field-value" data-value=""><\/span><span class="field-blank">blank<\/span><\/span>/, `on ${where}`);
+    assert.match(body, /<span class="field-value" data-value=""><\/span><span class="field-blank">blank<\/span><span class="field-label">age<\/span>/, `on ${where}`);
+    assert.match(body, /<span class="field-value" data-value="home">home<\/span><span class="field-label">a place<\/span>/, `on ${where}`);
+    assert.equal(body.match(/field-blank/g).length, 2, `on ${where}, only the empty ones say so`);
+    // A field of choices keeps its buttons, which still work on a slide.
+    assert.equal(body.match(/<input type="radio" class="choice-box"/g).length, 2, `on ${where}`);
+  }
+  assert.doesNotMatch(render(md).body, /field-blank/, 'in the editor, a blank is a box to fill in');
 });

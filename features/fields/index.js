@@ -76,12 +76,27 @@ function choices(line, head, value) {
 }
 
 /**
+ * Can a field be filled in where it's drawn? Not on a slide, which the deck
+ * keeps shut, nor on an exported page, which has no script to open it with.
+ */
+const fillable = (env) => !env.exported && !env.deck;
+
+/**
  * A blank's attributes, so it can be reached by the keyboard and is read as
  * a box named `label`: the preview opens it for typing when it's focused.
- * An exported page has no script to open it with.
+ * Where it can't be filled in, it's only read, as its label and its value.
  */
 export function typable(label, env) {
-  return env.exported ? '' : ` tabindex="0" role="textbox" aria-label="${escapeAttr(label)}"`;
+  return fillable(env) ? ` tabindex="0" role="textbox" aria-label="${escapeAttr(label)}"` : '';
+}
+
+/**
+ * Where a field can't be filled in, an empty one says so to a screen reader
+ * ("Thoughts: blank"), unseen. Kept out of the blank itself, which is
+ * drawn by whether it's empty.
+ */
+export function unfilled(value, env) {
+  return value || fillable(env) ? '' : '<span class="field-blank">blank</span>';
 }
 
 export function fields(md) {
@@ -134,7 +149,7 @@ export function fields(md) {
     const tall = lines > 1 ? ` data-lines="${lines}" style="--lines: ${lines}"` : '';
     return `${open}${tall}>`
       + `<span class="field-label">${escapeHtml(label)}</span>`
-      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span></span>`;
+      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span>${unfilled(value, env)}</span>`;
   };
 
   // The blank first, so the sentence lines up with what's written on it.
@@ -143,7 +158,7 @@ export function fields(md) {
     const v = escapeHtml(value);
     return `<span class="field field-inline" data-line="${line}" data-text="${escapeAttr(text)}"`
       + ` data-head="${escapeAttr(`[@ ${label}`)}" data-start="${start}" data-end="${end}">`
-      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span>`
+      + `<span class="field-value" data-value="${v}"${typable(label, env)}>${v}</span>${unfilled(value, env)}`
       + `<span class="field-label">${escapeHtml(label)}</span></span>`;
   };
 }

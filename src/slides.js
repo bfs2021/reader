@@ -66,7 +66,7 @@ export function slides(src, { file, read } = {}) {
     const own = liftBackground(lifted.notes);
     const moved = liftTransition(own.notes);
     const { notes, at, budget } = readNotes(moved.notes);
-    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, matter: meta });
+    const r = render(lifted.body, { file, read, line, shared, asideKey: key, background: own.background ?? behind, fonts: meta, matter: meta, deck: true });
     css ||= `${r.css}\n${CSS}`;
     out.push({ body: titled(unmast(r.body), lifted.body), notes, notesHtml: renderNotes(notes), line, at, budget, transition: moved.transition ?? leaving });
   }
