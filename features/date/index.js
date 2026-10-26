@@ -16,11 +16,10 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, keepWritten, readLines, placeholder, splitText, escapeHtml, escapeAttr } from '../source.js';
+import { beforeAsides, keepWritten, readLines, placeholder, MARKS, splitText, escapeHtml, escapeAttr } from '../source.js';
 
 const DATE = /(?<![\w\\])date:(\d{4}-\d{2}-\d{2})?\[([^\]\n]*)\]/g;
-const OPEN = '\uE013';
-const CLOSE = '\uE014';
+const [OPEN, CLOSE] = MARKS.date;
 const PLACED = new RegExp(`${OPEN}(\\d+)${CLOSE}`, 'g');
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 

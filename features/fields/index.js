@@ -30,12 +30,11 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, placeholder, splitText, escapeHtml, escapeAttr } from '../source.js';
+import { beforeAsides, readLines, placeholder, MARKS, splitText, escapeHtml, escapeAttr } from '../source.js';
 
 const FIELD = /^@[ \t]+([^:\n]*?[^:\s])[ \t]*(:+)[ \t]*(.*?)[ \t]*$/;
 const HEAD = /^@[ \t]+[^:\n]*?[^:\s][ \t]*:+/;
-const OPEN = '\uE010';
-const CLOSE = '\uE012';
+const [OPEN, CLOSE] = MARKS.fields;
 const PLACED = new RegExp(`${OPEN}(\\d+)${CLOSE}`, 'g');
 const MARK = /\(([ xX])\)/g;
 const INLINE = /\[@[ \t]+([^\]:\n]*?[^\]:\s])[ \t]*(?::[ \t]*([^\]\n]*?))?[ \t]*\](?![([])/g;

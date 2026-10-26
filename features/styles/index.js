@@ -26,14 +26,13 @@
  */
 
 import fs from 'node:fs';
-import { beforeAsides, fenced } from '../source.js';
+import { beforeAsides, fenced, MARKS } from '../source.js';
 import { LAYOUTS, OPEN as LAYOUT_OPEN, DIVIDER, CLOSE as LAYOUT_CLOSE } from '../layout.js';
 import { marking, markSpan } from '../marks/mark.js';
 
 const DIV = /^[ \t]{0,3}:::(?:[ \t]+([\w-]+(?:[ \t]+[\w-]+)*))?[ \t]*$/;
 const NAMES = /^\{([\w-]+(?:[ \t]+[\w-]+)*)\}/;
-const OPEN = '\uE002';
-const CLOSE = '\uE003';
+const [OPEN, CLOSE] = MARKS.styles;
 const MARK = new RegExp(`${OPEN}([^${CLOSE}]*)${CLOSE}`, 'g');
 // What opens a line's block, for the marker to go after.
 // An aside's `~` can carry aliases and the words it's about: `~c[the lazy dog] `.

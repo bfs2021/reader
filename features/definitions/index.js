@@ -25,17 +25,16 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, escapeHtml, escapeAttr, textToken, split, eachText, escapeRegExp } from '../source.js';
+import { beforeAsides, readLines, MARKS, escapeHtml, escapeAttr, textToken, split, eachText, escapeRegExp } from '../source.js';
 import { typable } from '../fields/index.js';
 import { forms } from '../ingredients/index.js';
 
 // A term can't open with `[` (an image) and holds no colon or parentheses.
 // A name may hold a link, whose address is in parentheses of its own.
 const DEF = /^\\?![ \t]*([^\s[!:()][^:()\n]*?)[ \t]*(?:\(((?:[^()\n]|\([^()\n]*\))*)\)[ \t]*)?:(?:[ \t]+(.*?))?[ \t]*$/;
-const OPEN = '\uE030';
-const CLOSE = '\uE031';
+const [OPEN, CLOSE] = MARKS.definitions;
 // A `:::` block's marker (features/styles) may come before the placeholder.
-const STYLED = '\uE002[^\uE003]*\uE003';
+const STYLED = `${MARKS.styles[0]}[^${MARKS.styles[1]}]*${MARKS.styles[1]}`;
 const PLACED = new RegExp(`^(${STYLED})?${OPEN}(\\d+)${CLOSE}`);
 
 // Words an acronym skips, unless it needs their letter.

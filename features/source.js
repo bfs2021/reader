@@ -55,6 +55,25 @@ export function readLines(state, fn) {
   state.src = lines.map((line, n) => (code(line) ? line : fn(line, base + n, lines, n))).join('\n');
 }
 
+/**
+ * The private-use characters each feature marks the text with, in one
+ * table so no two pick the same: a placeholder's two, or a marker's one.
+ */
+export const MARKS = {
+  tasks: ['\uE000', '\uE001'],
+  styles: ['\uE002', '\uE003'],
+  attributions: ['\uE007'],
+  sizes: ['\uE00E', '\uE00F'],
+  fields: ['\uE010', '\uE012'],
+  date: ['\uE013', '\uE014'],
+  // A layout block's start, a divider between its parts, and its end (layout.js).
+  layout: ['\uE021', '\uE022', '\uE023'],
+  definitions: ['\uE030', '\uE031'],
+};
+
+/** `s` with any placeholders taken out, for the words alone. */
+export const unplaced = (s) => s.replace(/[\uE000-\uF8FF]\d*[\uE000-\uF8FF]?/g, '');
+
 /** The placeholder for item `k`, between `open` and `close`. */
 export const placeholder = (open, close, k) => `${open}${k}${close}`;
 
@@ -153,7 +172,7 @@ export function sections(state) {
       const level = Number(t.tag.slice(1));
       const line = lineOf(t);
       for (; at.level >= level; at = at.parent) at.end = line;
-      const title = (state.tokens[i + 1]?.content ?? '').replace(/[\uE000-\uF8FF]\d*[\uE000-\uF8FF]?/g, '').trim();
+      const title = unplaced(state.tokens[i + 1]?.content ?? '').trim();
       at = { level, title, line, end: Infinity, parent: at };
       list.push(at);
     }

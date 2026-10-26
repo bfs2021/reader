@@ -15,11 +15,11 @@
  */
 
 import fs from 'node:fs';
-import { beforeAsides, readLines, addClass } from '../source.js';
+import { beforeAsides, readLines, addClass, MARKS } from '../source.js';
 
 const ATTRIBUTION = /^([ \t]*(?:~[ \t]*|~[^\s~]+[ \t]+)*(?:>[ \t]*)+)(?:--|\u2014)[ \t]+(?=\S)/;
 const QUOTED = /^[ \t]*(?:~[ \t]*|~[^\s~]+[ \t]+)*>/;
-const BYLINE = '\uE007';
+const [BYLINE] = MARKS.attributions;
 
 export function attributions(md) {
   beforeAsides(md, 'attribution_lines', (state) => readLines(state, (line, n, lines, i) => {

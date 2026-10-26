@@ -24,12 +24,11 @@
  */
 
 import { isOutput, readNotes } from './highlight/callouts.js';
+import { MARKS } from './source.js';
 
 export const LAYOUTS = ['columns', 'tabs', 'compare'];
 
-export const OPEN = '\uE021';
-export const DIVIDER = '\uE022';
-export const CLOSE = '\uE023';
+export const [OPEN, DIVIDER, CLOSE] = MARKS.layout;
 
 /** A line of the source, after its indent. */
 const text = (state, n) => state.src.slice(state.bMarks[n] + state.tShift[n], state.eMarks[n]);

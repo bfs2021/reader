@@ -28,14 +28,13 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, keepWritten, readLines, placeholder, splitText, sections, multipliers, escapeHtml, escapeAttr, addClass } from '../source.js';
+import { beforeAsides, keepWritten, readLines, placeholder, MARKS, unplaced, splitText, sections, multipliers, escapeHtml, escapeAttr, addClass } from '../source.js';
 import { schemeRule } from '../scheme.js';
 
 const TASK = /^([ \t]*(?:>[ \t]*|~(?![^\s~])[ \t]*|~[^\s~]+[ \t]+)*(?:[-*+]|\d{1,9}[.)])[ \t]+)(?:((?:\[[ xX]\]){1,9})|\(([ xX])\))(?=[ \t]|$)/;
 const NAMED = new Set(['count', 'ingredient_key', 'ingredient_use']);
 const HEADING = /^( {0,3}#{1,6}[ \t]+)\[([ xX])\](?=[ \t]|$)/;
-const OPEN = '\uE000';
-const CLOSE = '\uE001';
+const [OPEN, CLOSE] = MARKS.tasks;
 const PLACED = new RegExp(`${OPEN}(\\d+)${CLOSE}`, 'g');
 const AT_HEAD = new RegExp(`^${OPEN}(\\d+)${CLOSE}[ \\t]?`);
 
@@ -217,14 +216,9 @@ function stageBox({ line, stage, lines, stages, name, exported }) {
  * label around them would make every link among them tick the box too.
  */
 function nameOf(children) {
-  return children
-    // Words other features set apart (a count, an ingredient) carry theirs too.
-    .filter((t) => t.type === 'text' || t.type === 'code_inline' || NAMED.has(t.type))
-    .map((t) => t.content)
-    .join('')
-    .replace(/[\uE000-\uF8FF]\d*[\uE000-\uF8FF]?/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  // Words other features set apart (a count, an ingredient) carry theirs too.
+  const words = children.filter((t) => t.type === 'text' || t.type === 'code_inline' || NAMED.has(t.type)).map((t) => t.content);
+  return unplaced(words.join('')).replace(/\s+/g, ' ').trim();
 }
 
 export default {
