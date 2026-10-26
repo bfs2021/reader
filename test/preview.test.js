@@ -116,15 +116,49 @@ test('the box that had the keyboard has it again once a render replaces it', () 
 });
 
 test('the keyboard comes back to the box it left, once the edit that took it is made', () => {
-  const { document, show, send } = preview();
+  const { window, document, show, send } = preview();
   const md = '* [ ] one\n* [ ] two\n';
   show(render(md).body);
   const box = document.querySelectorAll('.task-box')[1];
   box.focus();
   // Ticking it takes the keyboard out of the frame, to the editor.
-  box.blur();
+  leave(window, box);
   show(render(md.replace('[ ] two', '[x] two')).body);
   assert.equal(document.activeElement, document.body);
   send({ type: 'refocus' });
   assert.equal(document.activeElement, document.querySelectorAll('.task-box')[1]);
+});
+
+/** Takes the keyboard from `node` out of the frame altogether, as to the editor. */
+function leave(window, node) {
+  node.blur();
+  window.dispatchEvent(new window.Event('blur'));
+}
+
+test('a box left by a click on the page isn\'t given the keyboard back', async () => {
+  const { window, document, show, send } = preview();
+  show(render('* [ ] one\n\nSome text.\n').body);
+  const box = document.querySelector('.task-box');
+  box.focus();
+  // A click on the text: the keyboard is on the page, still in the frame.
+  box.blur();
+  await new Promise((r) => window.setTimeout(r));
+  // Then a step ticked with x takes it from the page to the editor, and back.
+  window.dispatchEvent(new window.Event('blur'));
+  send({ type: 'refocus' });
+  // (Not assert.equal: a failure would print the whole box.)
+  assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
+});
+
+test('a box the keyboard left the frame from is forgotten once it\'s back in the frame', () => {
+  const { window, document, show, send } = preview();
+  show(render('* [ ] one\n* [ ] two\n').body);
+  const [one, two] = document.querySelectorAll('.task-box');
+  one.focus();
+  leave(window, one);
+  two.focus();
+  two.blur();
+  send({ type: 'refocus' });
+  // (Not assert.equal: a failure would print the whole box.)
+  assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
 });

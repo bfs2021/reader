@@ -240,11 +240,20 @@
   }
   // Where the keyboard was as it left the frame: a box ticked passes it
   // through the editor and back (app/editing.js), and the page may be drawn
-  // again meanwhile.
+  // again meanwhile. Only leaving the frame counts: a click on the page's
+  // text leaves a control too, and that control isn't to be brought back.
+  // Leaving shows as the frame's own blur straight after the control's
+  // (document.hasFocus() is still true as the control's comes). Once the
+  // keyboard is somewhere in the frame again, the control is forgotten.
   let left = null;
   document.addEventListener('focusout', (e) => {
-    if (!e.relatedTarget) left = { node: e.target, place: placeOf(e.target) };
+    if (e.relatedTarget) return;
+    const was = { node: e.target, place: placeOf(e.target) };
+    const away = () => { left = was; };
+    window.addEventListener('blur', away, { once: true });
+    setTimeout(() => window.removeEventListener('blur', away));
   });
+  document.addEventListener('focusin', () => { left = null; });
   function giveBack() {
     if (!left) return;
     if (left.node.isConnected) {
