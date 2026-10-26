@@ -7,8 +7,8 @@ import { app, globals } from './dom.js';
 const window = globals(app());
 const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
-const { deck } = await import('../static/app/state.js');
-const { paging, steps, deckKey } = await import('../static/app/deck.js');
+const { deck, el, state } = await import('../static/app/state.js');
+const { paging, steps, deckKey, go, revealed } = await import('../static/app/deck.js');
 
 /** Each thing a slide's steps show, by the step it shows with: [step, its text]. */
 function stepped(body) {
@@ -85,4 +85,31 @@ test('an aside appears with the last step of the passage it sits beside', () => 
 test('an aside beside a passage with no steps of its own gets none', () => {
   const body = '<header class="slide-title"><h1>T</h1></header><section class="gm-pair"><div class="gm-speaker"></div><div class="gm-asides"><p>aside</p></div></section>';
   assert.deepEqual(stepped(body), { steps: 0, shown: [] });
+});
+
+test('the deck says what each step showed after where it is, and only where it is going back', async () => {
+  // The stage is asked what to say, and says it back as `says` would.
+  const asked = [];
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => asked.push(m) }, configurable: true });
+  state.current = { path: 'talk.md', type: 'md' };
+  Object.assign(deck, { open: true, stageReady: null, meta: {}, css: '', index: 0, reveal: 0, notes: false, channel: null });
+  deck.slides = [{ body: '', steps: 3, notesHtml: '' }, { body: '', steps: 0, notesHtml: '' }];
+  const said = async (move, says) => {
+    asked.length = 0;
+    move();
+    await deck.stageReady;
+    await null;
+    const { say } = asked.at(-1);
+    if (say) revealed({ ...say, says: says(say) });
+    return el.deckSays.textContent;
+  };
+  assert.equal(await said(() => go(0, 1), (s) => (s.from === 0 ? 'the first point' : '?')), 'Slide 1 of 2, step 1 of 3: the first point');
+  assert.equal(await said(() => go(0, 3), (s) => (s.from === 1 ? 'the second point Thoughts: blank' : '?')), 'Slide 1 of 2, step 3 of 3: the second point Thoughts: blank');
+  assert.equal(await said(() => go(1, 0), (s) => (s.title ? 'Two' : '?')), 'Slide 2 of 2: Two');
+  assert.equal(await said(() => go(0, 3), (s) => (s.title ? 'One' : '?')), 'Slide 1 of 2, step 3 of 3: One');
+  assert.equal(await said(() => go(0, 2), () => '?'), 'Slide 1 of 2, step 2 of 3');
+  // What the stage says of a step the deck has since moved on from isn't said.
+  revealed({ index: 0, reveal: 3, says: 'late' });
+  assert.equal(el.deckSays.textContent, 'Slide 1 of 2, step 2 of 3');
+  deck.open = false;
 });

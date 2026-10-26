@@ -10,7 +10,7 @@
   const base = document.getElementById('base');
   let dim = false;      // steps not yet shown are faint rather than hidden
 
-  function reveal(k) {
+  function reveal(k, say) {
     hideLater(k);
     // A slide too big even when shrunk scrolls, so what was just revealed
     // is brought into view.
@@ -18,6 +18,69 @@
       const shown = [...document.querySelectorAll('[data-step]')].filter((n) => Number(n.dataset.step) <= k);
       shown.at(-1)?.scrollIntoView({ block: 'nearest' });
     }
+    // The deck says what just showed, in its live region: a new slide its
+    // title, a step what's in it.
+    if (say) window.parent.postMessage({ type: 'revealed', ...say, says: say.title ? title() : shownSince(say.from, k) }, '*');
+  }
+
+  // What a step says is read as a screen reader would read it: an image by
+  // its alt, a field by its label and value, nothing hidden from it, and no
+  // more than a sentence or two of a long one (a table, a column).
+  const LONG = 200;
+  const BLOCK = /^(ADDRESS|ARTICLE|ASIDE|BLOCKQUOTE|BR|DD|DIV|DL|DT|FIGCAPTION|FIGURE|FOOTER|H[1-6]|HEADER|HR|LI|OL|P|PRE|SECTION|TABLE|TD|TH|TR|UL)$/;
+
+  /** The slide's title: the heading the server set apart, or an opening one that isn't a step. */
+  function title() {
+    const h = document.querySelector('.slide-title') || document.querySelector('.gm-doc :is(h1, h2, h3, h4, h5, h6)');
+    return h && !h.closest('[data-step]') ? short(spoken(h, Infinity)) : '';
+  }
+
+  /** What the steps after `from`, up to the `k`th, showed; or the lines a fence moved its highlight to. */
+  function shownSince(from, k) {
+    const fresh = (n) => n && Number(n.dataset.step) > from && Number(n.dataset.step) <= k;
+    const nodes = [...document.querySelectorAll('[data-step]')]
+      .filter((n) => fresh(n) && !fresh(n.parentElement.closest('[data-step]')));
+    const moved = (pre) => [...pre.querySelectorAll('.line.hl')].map((line) => spoken(line, k)).join(' ');
+    const says = nodes.map((n) => (n.matches('pre[data-focus-steps]') ? moved(n) : spoken(n, k)));
+    if (!nodes.length) {
+      for (const pre of document.querySelectorAll('pre[data-focus-steps]')) {
+        const shows = Number(pre.closest('[data-step]')?.dataset.step);
+        if (shows < k && k < shows + Number(pre.dataset.focusSteps)) says.push(moved(pre));
+      }
+    }
+    return short(says.join(' '));
+  }
+
+  /** The text of `node` as it's heard, steps after the `k`th left out. */
+  function spoken(node, k) {
+    if (node.nodeType === Node.TEXT_NODE) return node.data;
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+    if (node.hidden || node.getAttribute('aria-hidden') === 'true' || Number(node.dataset.step) > k) return '';
+    if (node.tagName === 'IMG') return node.alt || '';
+    if (node.matches('.field')) return field(node, k);
+    // A caption that only repeats its image's alt is said once.
+    if (node.tagName === 'FIGCAPTION' && node.textContent.trim() === node.parentElement.querySelector('img')?.alt.trim()) return '';
+    const text = [...node.childNodes].map((n) => spoken(n, k)).join('');
+    return BLOCK.test(node.tagName) ? ` ${text} ` : text;
+  }
+
+  /** A field as its label and what's in it: `Name: Josh`, `Thoughts: blank`. */
+  function field(node, k) {
+    const label = node.querySelector(':scope > .field-label');
+    const value = node.querySelector(':scope > .field-value');
+    let said = value ? spoken(value, k).trim() : '';
+    // An empty definition says so only through the stylesheet.
+    if (!said) said = node.matches('.def-blank') ? 'not yet defined' : 'blank';
+    return label ? ` ${spoken(label, k).trim()}: ${said} ` : ` ${said} `;
+  }
+
+  /** `text` in one line, cut to a sentence or two if it's long. */
+  function short(text) {
+    const line = text.replace(/\s+/g, ' ').trim();
+    if (line.length <= LONG) return line;
+    const cut = line.slice(0, LONG);
+    const sentence = cut.match(/^.*[.!?](?=\s)/)?.[0];
+    return sentence && sentence.length > LONG / 4 ? sentence : `${cut.replace(/\s+\S*$/, '')}…`;
   }
 
   /** Hides (or dims) the steps after the `k`th, and moves a fence's highlight. */
@@ -299,7 +362,7 @@
     document.documentElement.classList.toggle('deck', Preview.deck);
     fit();
     if (m.measure != null) settled().then(() => fit(m.measure));
-    if (m.reveal != null) reveal(m.reveal);
+    if (m.reveal != null) reveal(m.reveal, m.say);
     marks = null;
     if (m.lines != null) lines = m.lines;
     if (m.resetScroll) {
@@ -356,8 +419,8 @@
         window.parent.postMessage({ type: 'drawn', drawn: Preview.drawn() }, '*');
       })();
     } else if (m.type === 'reveal') {
-      if (waiting) waiting.reveal = m.reveal;
-      else reveal(m.reveal);
+      if (waiting) Object.assign(waiting, { reveal: m.reveal }, m.say && { say: m.say });
+      else reveal(m.reveal, m.say);
     } else if (m.type === 'scroll') {
       follow(m.line);
     } else if (m.type === 'refocus') {

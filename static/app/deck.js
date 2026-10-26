@@ -62,7 +62,7 @@ export async function present() {
     openSpeaker();
   }
   announce();
-  await showSlide();
+  await showSlide({ say: { title: true } });
 }
 
 export async function loadDeck() {
@@ -130,23 +130,41 @@ function step(node, n) {
   return n + Math.max(0, ...fences.map((fence) => Number(fence.dataset.focusSteps) - 1));
 }
 
-/** Puts the current slide on the stage; with `render: false`, only its reveal. */
-export async function showSlide({ render = true, transition } = {}) {
+/**
+ * Puts the current slide on the stage; with `render: false`, only its reveal.
+ * With `say`, the stage says back what it showed: `{ title: true }` for a
+ * slide just come to, `{ from }` for the steps after `from`.
+ */
+export async function showSlide({ render = true, transition, say } = {}) {
   const i = deck.index;
   const slide = deck.slides[i];
   await deck.stageReady;
   if (!deck.open || deck.index !== i) return;
+  if (say) say = { ...say, index: i, reveal: deck.reveal };
   el.stage.contentWindow.postMessage(render
-    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark() }
-    : { type: 'reveal', reveal: deck.reveal }, '*');
+    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark(), say }
+    : { type: 'reveal', reveal: deck.reveal, say }, '*');
   el.deckCount.textContent = paging(i);
-  // Said aloud as it changes, the slide's number and how far into it.
-  const where = `Slide ${i + 1} of ${deck.slides.length}`;
-  el.stage.title = where;
-  el.deckSays.textContent = deck.reveal ? `${where}, step ${Math.min(deck.reveal, slide.steps)} of ${slide.steps}` : where;
+  // Said aloud as it changes, the slide's number and how far into it; and
+  // what showed, once the stage says (revealed).
+  el.stage.title = `Slide ${i + 1} of ${deck.slides.length}`;
+  if (!say) el.deckSays.textContent = where();
   el.deckNotes.innerHTML = slide.notesHtml;
   el.deckNotes.hidden = !deck.notes || !slide.notes;
   deck.channel?.postMessage({ type: 'go', index: i, reveal: deck.reveal });
+}
+
+/** Where the deck is: `Slide 2 of 5, step 1 of 4`. */
+function where() {
+  const slide = deck.slides[deck.index];
+  const at = `Slide ${deck.index + 1} of ${deck.slides.length}`;
+  return deck.reveal ? `${at}, step ${Math.min(deck.reveal, slide.steps)} of ${slide.steps}` : at;
+}
+
+/** The stage showed what it was asked to say: said after where the deck is, unless the deck has moved on. */
+export function revealed({ index, reveal, says }) {
+  if (!deck.open || index !== deck.index || reveal !== deck.reveal) return;
+  el.deckSays.textContent = says ? `${where()}: ${says}` : where();
 }
 
 /** `paging: Slide %d / %d` from the front matter, as `slides` reads it. */
@@ -165,9 +183,12 @@ export function go(i, reveal = 0) {
   if (index === deck.index && shown === deck.reveal) return;
   const render = index !== deck.index;
   const transition = between(deck.index, index);
+  // A slide come to says its title; a step shown, what's in it. A step
+  // hidden shows nothing new, and only where the deck is is said.
+  const say = render ? { title: true } : shown > deck.reveal ? { from: deck.reveal } : undefined;
   deck.index = index;
   deck.reveal = shown;
-  showSlide({ render, transition });
+  showSlide({ render, transition, say });
 }
 
 const BACKWARDS = { up: 'down', down: 'up', left: 'right', right: 'left' };

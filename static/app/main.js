@@ -14,7 +14,7 @@ import { toast, updateCursor } from './status.js';
 import { replaceSelection, wrap, insertLink, toLineEdge, applyEdit, onEditorInput } from './editing.js';
 import { toggleSidebar, toggleDrawer, toggleHelp, wireDrawer, restoreLayout, setWorking } from './modes.js';
 import { wirePages, paged, turn } from './pages.js';
-import { present, back, next, deckKey, onSpeakerMessage } from './deck.js';
+import { present, back, next, deckKey, onSpeakerMessage, revealed } from './deck.js';
 import { wireFit } from './fit.js';
 import { wireSync } from './sync.js';
 import { printDocument } from './exporting.js';
@@ -108,6 +108,7 @@ function wire() {
       else if (e.data?.type === 'click') (e.data.left ? back : next)();
       else if (e.data?.type === 'edit') applyEdit(e.data, { fromStage: true });
       else if (e.data?.type === 'untab') el.deck.focus();
+      else if (e.data?.type === 'revealed') revealed(e.data);
       return;
     }
     if (e.source !== el.preview.contentWindow) return;

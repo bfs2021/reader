@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { render } from '../src/render.js';
 import { slides } from '../src/slides.js';
-import { preview } from './dom.js';
+import { preview, app, globals } from './dom.js';
 
 const BASE = 'http://localhost:8734/content/notes/';
 
@@ -225,4 +225,46 @@ test('a blank written into a definition is gone, and Enter on it opens nothing a
   assert.equal(document.querySelectorAll('textarea').length, 0, 'no blank is open');
   // (Not assert.equal: a failure would print the whole blank.)
   assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
+});
+
+// The deck numbers a slide's steps before it sends it to the stage.
+globals(app());
+const { steps: numbered } = await import('../static/app/deck.js');
+
+/** What the stage says back as each of `steps` shows, asked as the deck asks. */
+function saying(markdown, ...steps) {
+  const p = preview();
+  p.show(numbered(slides(`${markdown}\n---\n\n# Next\n`).slides[0].body).body, { deck: true, reveal: 0, say: { title: true, index: 0, reveal: 0 } });
+  const says = [];
+  let at = 0;
+  const heard = () => says.push(...p.posted.splice(0).filter((m) => m.type === 'revealed').map((m) => m.says));
+  heard();
+  for (const k of steps) {
+    p.send({ type: 'reveal', reveal: k, say: { from: at, index: 0, reveal: k } });
+    at = k;
+    heard();
+  }
+  return says;
+}
+
+test('on a slide, a reveal says back what it showed: the title, then each step', () => {
+  assert.deepEqual(saying('# One\n\n- the first point\n- the second point\n\n@ Thoughts:\n\n@ Name: Josh\n', 1, 2, 3, 4),
+    ['One', 'the first point', 'the second point', 'Thoughts: blank', 'Name: Josh']);
+});
+
+test('an image says its alt, a blank in a sentence its hint, and a definition not looked up says so', () => {
+  assert.deepEqual(saying('# Pictures\n\n![a cat on a mat](cat.png)\n\nFill in [@ a hint] here.\n\n!grace:\n', 1, 2, 3),
+    ['Pictures', 'a cat on a mat', 'Fill in a hint: blank here.', 'grace not yet defined']);
+});
+
+test('a fence that moves its highlight says the lines it moves to; a later step hidden isn\'t said with its own', () => {
+  assert.deepEqual(saying('# Code\n\n```js {1|2}\nlet a\nlet b\n```\n\n- outer\n  - inner\n', 1, 2, 3, 4),
+    ['Code', 'let a', 'let b', 'outer', 'inner']);
+});
+
+test('several steps shown at once are said together, and a long one is cut to a sentence or two', () => {
+  const long = `${'This is a sentence of some length. '.repeat(10)}`;
+  const [, both, cut] = saying(`# Many\n\nOne.\n\nTwo.\n\n${long}\n`, 2, 3);
+  assert.equal(both, 'One. Two.');
+  assert.ok(cut.length <= 200 && cut.endsWith('length.'), cut);
 });
