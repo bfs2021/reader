@@ -74,6 +74,16 @@ test('the keys are the steps\' only on the page itself or a step\'s box, not on 
   assert.equal(lit(), 1);
 });
 
+test('x marks the lit step done with the keyboard on a step\'s own box, as Tab leaves it', () => {
+  const { press, steps, posted, document } = page();
+  const box = document.querySelector('li.step .task-box');
+  box.focus();
+  assert.equal(press('j', {}, box), true);
+  assert.equal(press('x', {}, box), true);
+  assert.deepEqual(posted.filter((m) => m.type === 'edit').map((m) => m.edits.map((e) => e.after[0])), [['1) [x] Chop.']]);
+  assert.deepEqual(steps().map((li) => li.classList.contains('step-done')), [true, false, false]);
+});
+
 test('the lit step is the current one, and j, k and x say where they left the steps', () => {
   const { press, steps, document } = page();
   const said = () => document.querySelector('.steps-said')?.textContent.trim();
