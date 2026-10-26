@@ -149,6 +149,16 @@ test("the deck's foot reads on its paper, light or dark", () => {
   for (const t of [light, dark]) readable(t[ink], t[ground], 'deck foot');
 });
 
+test("a page's dot, and a block of ten, stand out from the pages bar at 3:1", () => {
+  // a page not done yet is only its ring: a control, so not --ink-faint
+  for (const head of ['.page-dot::before {', '.page-block {']) {
+    const [, ring] = block(style, head).match(/border: [^;]*var\(--([\w-]+)\)/);
+    for (const [theme, t] of [['light', light], ['dark', dark], ['light, more contrast', appMore.light], ['dark, more contrast', appMore.dark]]) {
+      readable(t[ring], t.panel, `${theme} ${head} --${ring} on --panel`, 3);
+    }
+  }
+});
+
 test("the document's inks read on its paper and every ground on it, light and dark", () => {
   for (const [theme, t] of Object.entries(doc)) {
     for (const ground of ['paper', 'wash', 'well', 'th', 'stripe', 'lit']) {
