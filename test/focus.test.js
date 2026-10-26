@@ -23,8 +23,10 @@ globalThis.fetch = async (url, { body } = {}) => {
 const { el, state, deck } = await import('../static/app/state.js');
 const { setPages } = await import('../static/app/pages.js');
 const { deckKey } = await import('../static/app/deck.js');
-Object.defineProperty(el.preview, 'contentWindow', { value: { postMessage() {} } });
-// The stage keeps what it's sent.
+const { applyEdit } = await import('../static/app/editing.js');
+// The page and the stage keep what they're sent.
+const framed = [];
+Object.defineProperty(el.preview, 'contentWindow', { value: { postMessage: (m) => framed.push(m) } });
 const staged = [];
 Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => staged.push(m) } });
 await import('../static/app/main.js');
@@ -87,6 +89,16 @@ test('a page dot clicked gives the keyboard to the dot of the page turned to, an
   el.pageNext.focus();
   el.pageNext.click();
   assert.equal(document.activeElement, el.pageBack);
+});
+
+test('a box ticked on the page gets the keyboard back after its edit', () => {
+  // happy-dom has no execCommand, so the edit is made by setRangeText.
+  document.execCommand = () => false;
+  el.preview.focus();
+  applyEdit({ edits: [{ from: 0, to: 1, before: ['# A'], after: ['# B'] }], undo: true });
+  assert.equal(el.editor.value, '# B\n');
+  assert.ok(document.activeElement === el.preview, 'the page has the keyboard back');
+  assert.deepEqual(framed.at(-1), { type: 'refocus' });
 });
 
 test('Tab in a deck takes the keyboard into the slide, and the slide gives it back to the deck', () => {
