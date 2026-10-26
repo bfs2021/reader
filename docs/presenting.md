@@ -101,6 +101,7 @@ Present or present the file; after that, it's measured again as you edit.
 | `S` | speaker view: the current slide (steps to come drawn faintly), the next slide, notes, a timer, the time |
 | `R` | in the speaker view, restart the timer (or click the timer) |
 | `F` | full screen |
+| `⌘+` / `⌘−` / `⌘0` | the slides' text a step bigger, a step smaller, or back to 100% (Ctrl on Windows and Linux); it starts at 100% each time you present, and the speaker view's slides follow |
 | `Tab` / `⇧Tab` | the slide's boxes, choices and cards, one by one, then back to the slides; the keys that work the one Tabbed to are its own (`Space` ticks a box), and the rest still move the slides |
 | `?` | these keys, at the foot of the slides; they show for a moment as you start, and when you hover there |
 | `Esc` | stop presenting |

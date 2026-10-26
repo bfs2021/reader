@@ -139,3 +139,22 @@ test('the pace is said aloud when it changes, not as it counts', () => {
   assert.equal(heard(), '3:20 behind plan');
   assert.equal($('pace-heard').getAttribute('role'), 'status');
 });
+
+test('the speaker view\'s Now and Next are at the room\'s text size', async () => {
+  const { $, say } = speaker();
+  const window = $('now').ownerDocument.defaultView;
+  const sent = { now: [], next: [] };
+  for (const name of ['now', 'next']) {
+    const frame = { postMessage: (m) => sent[name].push(m) };
+    Object.defineProperty($(name), 'contentWindow', { value: frame, configurable: true });
+    window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'ready' }, source: frame }));
+  }
+  say({ type: 'deck', open: true, index: 0, reveal: 0, scale: 1.25, slides: [{ body: 'a' }, { body: 'b' }], meta: {} });
+  await new Promise((done) => setTimeout(done));
+  assert.deepEqual([sent.now.at(-1).type, sent.now.at(-1).scale], ['render', 1.25]);
+  assert.deepEqual([sent.next.at(-1).type, sent.next.at(-1).scale], ['render', 1.25]);
+  say({ type: 'scale', scale: 1.5 });
+  await new Promise((done) => setTimeout(done));
+  assert.deepEqual([sent.now.at(-1).type, sent.now.at(-1).scale], ['reveal', 1.5]);
+  assert.deepEqual([sent.next.at(-1).type, sent.next.at(-1).scale], ['reveal', 1.5]);
+});

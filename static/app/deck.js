@@ -46,6 +46,7 @@ export async function present() {
   // Start on the slide being edited, so ⌘⇧. shows the one under the cursor.
   deck.index = Math.max(0, deck.slides.findLastIndex((s) => s.line <= line));
   deck.reveal = 0;
+  deck.scale = 1;
   deck.open = true;
   el.editor.readOnly = true;
   deck.returnTo = document.activeElement;
@@ -142,8 +143,8 @@ export async function showSlide({ render = true, transition, say } = {}) {
   if (!deck.open || deck.index !== i) return;
   if (say) say = { ...say, index: i, reveal: deck.reveal };
   el.stage.contentWindow.postMessage(render
-    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark(), say }
-    : { type: 'reveal', reveal: deck.reveal, say }, '*');
+    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark(), scale: deck.scale, say }
+    : { type: 'reveal', reveal: deck.reveal, scale: deck.scale, say }, '*');
   el.deckCount.textContent = paging(i);
   // Said aloud as it changes, the slide's number and how far into it; and
   // what showed, once the stage says (revealed).
@@ -271,7 +272,7 @@ export function openSpeaker() {
 /** Tell the speaker view everything; it may have just opened. */
 export function announce() {
   deck.channel?.postMessage({
-    type: 'deck', open: deck.open, css: deck.css, meta: deck.meta, end: deck.end, index: deck.index, reveal: deck.reveal,
+    type: 'deck', open: deck.open, css: deck.css, meta: deck.meta, end: deck.end, index: deck.index, reveal: deck.reveal, scale: deck.scale,
     slides: deck.slides, base: baseFor(state.current.path), path: state.current.path,
   });
 }
@@ -283,8 +284,36 @@ export function onSpeakerMessage(e) {
   else if (m.type === 'key') deckKey(m);
 }
 
+// The slides' text size, a step at a time by ⌘+ and ⌘−, through the
+// browser's own steps for its zoom; ⌘0 puts it back. It starts at 100% each
+// time the deck opens.
+const SCALES = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+
+/** ⌘+, ⌘− and ⌘0: the slides' text a step bigger, a step smaller, or 100%. True if the key was one of them. */
+function sizeKey(e) {
+  if (!(e.metaKey || e.ctrlKey) || e.altKey) return false;
+  const at = SCALES.indexOf(deck.scale);
+  if (e.key === '=' || e.key === '+') resize(SCALES[Math.min(SCALES.length - 1, at + 1)]);
+  else if (e.key === '-') resize(SCALES[Math.max(0, at - 1)]);
+  else if (e.key === '0') resize(1);
+  else return false;
+  return true;
+}
+
+/**
+ * Sets the slides' text size, on the stage and in the speaker view, and says
+ * it: only it, as the slide and its steps are where they were.
+ */
+function resize(scale) {
+  deck.scale = scale;
+  el.stage.contentWindow.postMessage({ type: 'reveal', reveal: deck.reveal, scale }, '*');
+  deck.channel?.postMessage({ type: 'scale', scale });
+  el.deckSays.textContent = `Text ${Math.round(scale * 100)}%`;
+}
+
 /** Keys while presenting. True if the key was the deck's. */
 export function deckKey(e) {
+  if (sizeKey(e)) return true;
   if (e.metaKey || e.ctrlKey || e.altKey) return false;
   switch (e.key) {
     case 'n': case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter':

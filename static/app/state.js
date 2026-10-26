@@ -54,6 +54,7 @@ export const deck = {
   index: 0,
   reveal: 0,            // how many of this slide's steps are showing
   notes: false,         // the notes strip under the slide
+  scale: 1,             // the slides' text size, by ⌘+ and ⌘−
   stageReady: null,
   channel: null,        // talks to the speaker view
   returnTo: null,       // what had focus before Present

@@ -69,21 +69,21 @@ test('slides renders each slide without a masthead and keeps its notes', () => {
   assert.match(out.slides[1].body.replace(/<\/?span[^>]*>/g, ''), /&lt;!-- not a note --&gt;/);
   assert.equal(out.slides[1].notes, '');
   assert.equal(out.slides[2].notes, 'only notes,\n  indented');
-  assert.match(out.css, /--gm-base: clamp/);
+  assert.match(out.css, /--gm-base: calc\(clamp/);
 });
 
-test('a slide\'s text fills the window as it did, and zooming in makes it bigger', () => {
-  const [min, vw, vh, rem, max] = /--gm-base: clamp\(([\d.]+)rem, min\(([\d.]+)vw, ([\d.]+)vh\) \+ ([\d.]+)rem, ([\d.]+)rem\)/
+test('a slide\'s text fills the window, times the deck\'s own text size', () => {
+  const [min, vw, vh, max, scale] = /--gm-base: calc\(clamp\(([\d.]+)px, min\(([\d.]+)vw, ([\d.]+)vh\), ([\d.]+)px\) \* var\(--reader-text-scale, ([\d.]+)\)\)/
     .exec(slides('# One\n').css).slice(1).map(Number);
-  // On a screen `w`×`h` at `zoom`, with the browser's 16px text: how big it looks.
-  const looks = (w, h, zoom = 1) => zoom * Math.min(Math.max(min * 16, Math.min(vw * w / zoom, vh * h / zoom) / 100 + rem * 16), max * 16);
-  // As big as 2.1vw, as it was, on the speaker view's 1280×720.
+  // On a screen `w`×`h`, with the deck's text at `k`: how big it looks.
+  const looks = (w, h, k = scale) => k * Math.min(Math.max(min, Math.min(vw * w, vh * h) / 100), max);
+  // 40px on a 1920×1080 projector, and 2.1vw on the speaker view's 1280×720.
+  assert.ok(Math.abs(looks(1920, 1080) - 40) < 0.1);
   assert.ok(Math.abs(looks(1280, 720) - 26.88) < 0.1);
   assert.ok(Math.abs(looks(1280, 900) - 26.88) < 0.1);
   assert.ok(Math.abs(looks(1600, 720) - 26.88) < 0.1);
-  assert.ok(looks(1920, 1080) > looks(1280, 720));
-  assert.ok(looks(1280, 720, 2) > 1.45 * looks(1280, 720));
-  assert.ok(looks(1280, 720, 4) > 2 * looks(1280, 720));
+  // ⌘+ to 125% makes it a quarter bigger again.
+  assert.ok(Math.abs(looks(1920, 1080, 1.25) - 50) < 0.1);
 });
 
 test('a slide\'s opening heading is set apart from the rest, unless it is all headings', () => {

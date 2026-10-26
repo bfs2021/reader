@@ -8,7 +8,7 @@ const window = globals(app());
 const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
 const { deck, el, state } = await import('../static/app/state.js');
-const { paging, steps, deckKey, go, revealed } = await import('../static/app/deck.js');
+const { paging, steps, deckKey, go, revealed, showSlide } = await import('../static/app/deck.js');
 
 /** Each thing a slide's steps show, by the step it shows with: [step, its text]. */
 function stepped(body) {
@@ -40,7 +40,7 @@ test('the count reads as the front matter\'s paging says, or n / total', () => {
 test('? shows the deck\'s keys at its foot, and puts them away again', () => {
   const stage = window.document.getElementById('deck');
   assert.match(stage.querySelector('.deck-keys').textContent, /\? these keys/);
-  assert.match(stage.querySelector('.deck-keys').textContent, /Tab the slide's boxes · \? these keys/);
+  assert.match(stage.querySelector('.deck-keys').textContent, /Tab the slide's boxes · ⌘\+ ⌘− text size · \? these keys/);
   assert.equal(deckKey({ key: '?' }), true);
   assert.ok(stage.classList.contains('keys-shown'));
   deckKey({ key: '?' });
@@ -113,4 +113,41 @@ test('the deck says what each step showed after where it is, and only where it i
   revealed({ index: 0, reveal: 3, says: 'late' });
   assert.equal(el.deckSays.textContent, 'Slide 1 of 2, step 2 of 3');
   deck.open = false;
+});
+
+test('⌘+ and ⌘− step the slides\' text through the browser\'s steps, ⌘0 puts it back, and each says only the size', async () => {
+  const asked = [];
+  const told = [];
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => asked.push(m) }, configurable: true });
+  state.current = { path: 'talk.md', type: 'md' };
+  Object.assign(deck, { open: true, stageReady: null, meta: {}, css: '', index: 0, reveal: 1, scale: 1, notes: false, channel: { postMessage: (m) => told.push(m) } });
+  deck.slides = [{ body: '', steps: 3, notesHtml: '' }];
+  const press = (key, keys = { metaKey: true }) => {
+    asked.length = told.length = 0;
+    assert.equal(deckKey({ key, ...keys }), true, `${key} is the deck's`);
+    return el.deckSays.textContent;
+  };
+  assert.equal(press('='), 'Text 110%');
+  assert.equal(press('+', { metaKey: true, shiftKey: true }), 'Text 125%');
+  assert.equal(press('=', { ctrlKey: true }), 'Text 150%');
+  // The stage and the speaker view are told, and the slide stays at its step.
+  assert.deepEqual(asked, [{ type: 'reveal', reveal: 1, scale: 1.5 }]);
+  assert.deepEqual(told, [{ type: 'scale', scale: 1.5 }]);
+  press('=');
+  press('=');
+  assert.equal(press('='), 'Text 200%', 'no bigger than 200%');
+  assert.equal(press('0'), 'Text 100%');
+  for (let i = 0; i < 4; i++) press('-');
+  assert.equal(press('-'), 'Text 50%');
+  assert.equal(press('-'), 'Text 50%', 'no smaller than 50%');
+  // A slide drawn afresh is drawn at the size it came to.
+  await showSlide();
+  assert.equal(asked.at(-1).type, 'render');
+  assert.equal(asked.at(-1).scale, 0.5);
+  // Without ⌘, - and 0 aren't the deck's; with ⌥, nor is ⌘=.
+  assert.equal(deckKey({ key: '-' }), false);
+  assert.equal(deckKey({ key: '=', metaKey: true, altKey: true }), false);
+  assert.equal(deck.scale, 0.5);
+  deck.open = false;
+  deck.channel = null;
 });

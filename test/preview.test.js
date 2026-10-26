@@ -268,3 +268,40 @@ test('several steps shown at once are said together, and a long one is cut to a 
   assert.equal(both, 'One. Two.');
   assert.ok(cut.length <= 200 && cut.endsWith('length.'), cut);
 });
+
+test('on a slide, ⌘+, ⌘− and ⌘0 go up to the deck and don\'t zoom the browser; off one, they\'re the browser\'s', () => {
+  const { window, document, sent } = presenting('# One\n\n- [ ] A box\n');
+  const zoom = (key, keys = {}) => {
+    const e = new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, metaKey: true, ...keys });
+    (document.activeElement ?? document.body).dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  document.querySelector('.task-box').focus();
+  assert.equal(zoom('='), true);
+  assert.equal(zoom('+', { shiftKey: true }), true);
+  assert.equal(zoom('-', { metaKey: false, ctrlKey: true }), true);
+  assert.equal(zoom('0'), true);
+  assert.deepEqual(sent(), ['=', '+', '-', '0']);
+  const page = preview();
+  page.show('<p>Not a slide.</p>');
+  const e = new page.window.KeyboardEvent('keydown', { key: '=', metaKey: true, bubbles: true, cancelable: true });
+  page.document.body.dispatchEvent(e);
+  assert.equal(e.defaultPrevented, false);
+});
+
+test('a slide\'s text is at the deck\'s size, from its render and from a reveal', () => {
+  const { document, show, send, posted } = preview();
+  const scale = () => document.documentElement.style.getPropertyValue('--reader-text-scale');
+  const fitted = () => posted.splice(0).filter((m) => m.type === 'fit').length;
+  show(slides('# One\n').slides[0].body, { deck: true, scale: 1.25 });
+  assert.equal(scale(), '1.25');
+  fitted();
+  // Bigger text may not fit as it did: the slide is fitted again.
+  send({ type: 'reveal', reveal: 0, scale: 1.5 });
+  assert.equal(scale(), '1.5');
+  assert.equal(fitted(), 1);
+  send({ type: 'reveal', reveal: 0, scale: 1.5 });
+  assert.equal(fitted(), 0, 'a step shown at the same size isn\'t fitted again');
+  show('<p>Not a slide.</p>');
+  assert.equal(scale(), '1');
+});

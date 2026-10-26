@@ -152,6 +152,14 @@
     return lo;
   }
 
+  /** The deck's text size (⌘+ and ⌘−), for the slide's stylesheet. True if it changed. */
+  function scaleTo(scale = 1) {
+    const root = document.documentElement.style;
+    const was = root.getPropertyValue('--reader-text-scale');
+    root.setProperty('--reader-text-scale', String(scale));
+    return was !== String(scale);
+  }
+
   function fit(measure) {
     const root = document.documentElement;
     root.classList.remove('fit-wrap', 'fit-over');
@@ -360,6 +368,7 @@
     hidePeek();
     Preview.deck = Boolean(m.deck);
     document.documentElement.classList.toggle('deck', Preview.deck);
+    scaleTo(m.scale);
     fit();
     if (m.measure != null) settled().then(() => fit(m.measure));
     if (m.reveal != null) reveal(m.reveal, m.say);
@@ -419,8 +428,11 @@
         window.parent.postMessage({ type: 'drawn', drawn: Preview.drawn() }, '*');
       })();
     } else if (m.type === 'reveal') {
-      if (waiting) Object.assign(waiting, { reveal: m.reveal }, m.say && { say: m.say });
-      else reveal(m.reveal, m.say);
+      if (waiting) Object.assign(waiting, { reveal: m.reveal }, m.say && { say: m.say }, m.scale && { scale: m.scale });
+      else {
+        if (scaleTo(m.scale)) fit();
+        reveal(m.reveal, m.say);
+      }
     } else if (m.type === 'scroll') {
       follow(m.line);
     } else if (m.type === 'refocus') {
@@ -589,6 +601,8 @@
     if (turning) e.preventDefault();
     if ((meta && ['s', 'p', '\\'].includes(e.key.toLowerCase())) || (meta && e.code === 'Period') || (e.ctrlKey && e.key.toLowerCase() === 'g')
       || (meta && e.altKey && ['ArrowUp', 'ArrowDown'].includes(e.key))) e.preventDefault();
+    // On a slide, ⌘+, ⌘− and ⌘0 size the slides' text, not the browser's zoom.
+    if (Preview.deck && meta && !e.altKey && ['=', '+', '-', '0'].includes(e.key)) e.preventDefault();
     const { key, code, metaKey, ctrlKey, altKey, shiftKey } = e;
     window.parent.postMessage({ type: 'key', key, code, metaKey, ctrlKey, altKey, shiftKey }, '*');
   });
