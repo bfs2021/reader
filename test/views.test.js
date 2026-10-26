@@ -4,13 +4,14 @@ import { page, run } from './dom.js';
 
 /**
  * A page of two preview frames with views.js loaded: `told[i]` is what the
- * i-th frame has been told, and `ask(i, data)` sends what it asks.
+ * i-th frame has been told of views (or, with `of: 'picked'`, of picks), and
+ * `ask(i, data)` sends what it asks.
  */
-function app({ stored, storage = true } = {}) {
+function app({ stored, storage = true, of = 'viewed' } = {}) {
   const window = page('<iframe></iframe><iframe></iframe>');
   const told = [[], []];
   const frames = [...window.document.querySelectorAll('iframe')].map((f, i) => {
-    const w = { postMessage: (m) => told[i].push(structuredClone(m)) };
+    const w = { postMessage: (m) => m.type === of && told[i].push(structuredClone(m)) };
     Object.defineProperty(f, 'contentWindow', { value: w });
     return w;
   });
@@ -20,7 +21,7 @@ function app({ stored, storage = true } = {}) {
   }
   run(window, 'static/views.js');
   const ask = (i, data) => window.dispatchEvent(new window.MessageEvent('message', { data, source: frames[i] ?? {} }));
-  const latest = (i) => told[i].at(-1)?.views;
+  const latest = (i) => told[i].at(-1)?.[of === 'picked' ? 'keys' : 'views'];
   return { window, told, ask, latest };
 }
 
@@ -72,4 +73,19 @@ test('without storage, views are kept as long as the page lasts', () => {
   assert.throws(() => window.localStorage);
   ask(0, { type: 'view', key: 'a', value: '2' });
   assert.deepEqual(latest(1), { a: '2' });
+});
+
+test('a version picked is kept, latest first, and every frame told', () => {
+  const { window, told, ask, latest } = app({ of: 'picked' });
+  assert.deepEqual(told, [[{ type: 'picked', keys: [] }], [{ type: 'picked', keys: [] }]]);
+  ask(0, { type: 'pick', key: 'KJV' });
+  ask(1, { type: 'pick', key: 'RSV' });
+  ask(0, { type: 'pick', key: 'KJV' });
+  assert.deepEqual(latest(1), ['KJV', 'RSV']);
+  assert.deepEqual(JSON.parse(window.localStorage.getItem('reader:tabs')), ['KJV', 'RSV']);
+  assert.equal(window.localStorage.getItem('reader:views'), null);
+  for (let i = 0; i < 60; i++) ask(0, { type: 'pick', key: `k${i}` });
+  assert.equal(latest(0).length, 50);
+  ask(1, { type: 'picks' });
+  assert.equal(told[1].at(-1).keys[0], 'k59');
 });

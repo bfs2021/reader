@@ -3,7 +3,7 @@
  * block that has one of the same name. The names picked are remembered,
  * latest first, so each block shows the one picked most lately of those it
  * has; a block with none of them shows its first. The frame, sandboxed, has
- * no storage, so the page it's in keeps them (static/picks.js): it's asked
+ * no storage, so the page it's in keeps them (static/views.js): it's asked
  * for them as the frame loads, told of each pick, and says when they change.
  * Runs in the preview frame.
  */
