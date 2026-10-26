@@ -90,6 +90,20 @@ test('a maze says which ways are open where a key left it', () => {
   saysFirst(said, 'Open down, left, right');
 });
 
+test('a maze counts one step as a step', () => {
+  const { host, press, document } = playing(`\`\`\`maze
++--+--+--+
+|S       |
++  +  +  +
+|       E|
++--+--+--+
+\`\`\`
+`);
+  host.focus();
+  press('ArrowRight');
+  assert.match(document.querySelector('.puzzle-bar').textContent, /^1 step · /);
+});
+
 test('a word search says which letter a key left it on, and where a word being circled starts', () => {
   const { host, press, said } = playing(`\`\`\`wordsearch
 B E L I E V E

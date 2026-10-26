@@ -363,7 +363,7 @@
 
         const done = isSolved(m);
         host.classList.toggle('solved', done);
-        bar.textContent = done ? 'You made it through! 🎉' : flash || `${m.path.length - 1} steps · ? for keys`;
+        bar.textContent = done ? 'You made it through! 🎉' : flash || `${m.path.length - 1} ${m.path.length === 2 ? 'step' : 'steps'} · ? for keys`;
         help.hidden = !ui.help;
       }
 
