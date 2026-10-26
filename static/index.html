@@ -6,7 +6,9 @@
 <title>reader</title>
 <!-- before the stylesheet, so the page is drawn in the look chosen from the first -->
 <script src="/theme.js"></script>
+<script src="/overview.js"></script>
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/overview.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>📖</text></svg>">
 </head>
 <body>
@@ -106,12 +108,14 @@
 <div class="deck" id="deck" tabindex="-1" role="dialog" aria-modal="true" aria-label="Slides" hidden>
   <iframe id="stage" src="/preview.html" title="Slide" tabindex="-1" sandbox="allow-scripts"></iframe>
   <div class="deck-notes" id="deckNotes" hidden></div>
-  <footer class="deck-foot">
+  <footer class="deck-foot" id="deckFoot">
     <span id="deckBy"></span>
-    <span class="deck-keys">n p step · N slide end · P slide start · T notes · S speaker view · F full screen · Tab the slide's boxes · ⌘+ ⌘− text size · ? these keys · Esc done</span>
+    <span class="deck-keys">n p step · N slide end · P slide start · O overview · T notes · S speaker view · F full screen · Tab the slide's boxes · ⌘+ ⌘− text size · ? these keys · Esc done</span>
     <span id="deckCount"></span>
-    <span class="vh" id="deckSays" role="status"></span>
   </footer>
+  <div class="overview" id="overview" hidden></div>
+  <!-- out of the foot, which is inert under the overview, so it's still heard -->
+  <span class="vh" id="deckSays" role="status"></span>
 </div>
 
 <div class="goto" id="goto" role="dialog" aria-label="Go to" hidden>

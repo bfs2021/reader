@@ -2,7 +2,7 @@
  * The speaker view: a window of its own (speaker.html) that follows the deck
  * being presented over a BroadcastChannel, and can drive it. It shows the
  * current slide (steps to come drawn faintly), the next slide, the notes, a
- * timer and the time.
+ * timer and the time; and with O, every slide, to pick one from.
  */
 const $ = (id) => document.getElementById(id);
 const channel = new BroadcastChannel('reader-deck');
@@ -120,8 +120,36 @@ function pace(elapsed) {
   }
 }
 
+// O lays every slide out as a thumbnail, here and not in the room: those
+// done faded, the one showing ringed (see overview.js). The deck goes to the
+// slide picked, from its start.
+let back = null;  // what had the keyboard before
+const overview = Overview.create($('overview'), {
+  draw: (i) => ({
+    type: 'render', css: deck.css, body: deck.slides[i].body, base: deck.base, resetScroll: true,
+    deck: true, reveal: Infinity, dark: Theme.dark(), scale: deck.scale,
+  }),
+  number: (i) => Overview.number(deck.meta?.paging, i, deck.slides.length),
+  say: (text) => { $('overview-heard').textContent = text; },
+  pick: (i) => channel.postMessage({ type: 'go', index: i, reveal: 0 }),
+  closed() {
+    $('speaker').inert = !deck.open;
+    if (back?.isConnected) back.focus();
+  },
+  done: true,
+});
+
+function openOverview() {
+  if (!deck.open || overview.isOpen) return;
+  back = document.activeElement;
+  $('speaker').inert = true;
+  overview.open(deck.slides, deck.index);
+}
+
 channel.addEventListener('message', (e) => {
   const m = e.data || {};
+  // A deck sent afresh may not have the slides the overview has.
+  if (m.type === 'deck' || m.type === 'end') overview.close();
   if (m.type === 'deck') {
     // A deck opened on its first slide is the talk starting: so is the timer.
     if (m.open && !deck.open && m.index === 0) started = Date.now();
@@ -131,6 +159,7 @@ channel.addEventListener('message', (e) => {
   } else if (m.type === 'go') {
     deck.index = m.index;
     deck.reveal = m.reveal;
+    overview.mark(m.index);
     draw();
     tick();
   } else if (m.type === 'scale') {
@@ -157,6 +186,11 @@ const MOVES = new Set(['n', 'N', 'p', 'P', 'ArrowRight', 'ArrowDown', 'PageDown'
   'ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'Home', 'End']);
 window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (overview.isOpen) {
+    if (overview.key(e)) e.preventDefault();
+    return;
+  }
+  if (e.key === 'o' || e.key === 'O') return openOverview();
   // The timer's own Enter and Space restart it.
   if (e.target === $('timer') && (e.key === 'Enter' || e.key === ' ')) return;
   if (e.key === 'r' || e.key === 'R') return restart();

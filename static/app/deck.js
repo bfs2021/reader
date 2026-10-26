@@ -98,6 +98,7 @@ const FOCUS = 'pre[data-focus-steps]';
  * Numbers a slide's steps: `data-step="k"` on everything that appears with
  * the k-th press. An aside appears with the last step of the passage it sits
  * beside. Done here, once per deck, so the stage and the speaker view agree.
+ * Also the slide's title, as the stage says it, for the overview.
  */
 export function steps(body) {
   const doc = new DOMParser().parseFromString(`<body>${body}</body>`, 'text/html');
@@ -116,7 +117,9 @@ export function steps(body) {
     if (n === before) continue;
     for (const aside of pair.querySelectorAll(':scope > .gm-asides > *')) aside.dataset.step = n;
   }
-  return { body: doc.body.innerHTML, steps: n };
+  const heading = doc.querySelector('.slide-title') || doc.querySelector('.gm-doc :is(h1, h2, h3, h4, h5, h6)');
+  const title = heading && !heading.closest('[data-step]') ? heading.textContent.trim().replace(/\s+/g, ' ') : '';
+  return { body: doc.body.innerHTML, steps: n, title };
 }
 
 /**
@@ -170,10 +173,7 @@ export function revealed({ index, reveal, says }) {
 
 /** `paging: Slide %d / %d` from the front matter, as `slides` reads it. */
 export function paging(i) {
-  const n = deck.slides.length;
-  const fmt = deck.meta.paging && deck.meta.paging.includes('%d') ? deck.meta.paging : '%d / %d';
-  let k = 0;
-  return fmt.replace(/%d/g, () => String(k++ ? n : i + 1));
+  return Overview.number(deck.meta.paging, i, deck.slides.length);
 }
 
 /** Shows slide `i` with `reveal` of its steps; `Infinity` for all of them. */
@@ -220,6 +220,7 @@ export const backWhole = () => move(moves.backWhole);
 
 export function closeDeck() {
   if (!deck.open) return;
+  overview?.close();
   deck.open = false;
   el.deck.hidden = true;
   el.bar.inert = el.split.inert = false;
@@ -227,6 +228,32 @@ export function closeDeck() {
   deck.channel?.postMessage({ type: 'end' });
   setWorking(state.working);
   if (document.activeElement === document.body) (deck.returnTo?.isConnected && deck.returnTo !== document.body ? deck.returnTo : el.presentBtn).focus();
+}
+
+// O lays every slide out as a thumbnail, over the stage, to pick one from
+// (see static/overview.js): it goes to the slide picked, from its start.
+// While it's out, the rest of the deck is out of reach, and the keys are its.
+let overview = null;
+
+export function openOverview() {
+  overview ??= Overview.create(el.overview, {
+    draw: (i) => ({
+      type: 'render', css: deck.css, body: deck.slides[i].body, base: baseFor(state.current.path), resetScroll: true,
+      deck: true, reveal: Infinity, dark: Theme.dark(), scale: deck.scale,
+    }),
+    number: paging,
+    say: (text) => { el.deckSays.textContent = text; },
+    pick: (i) => go(i, 0),
+    closed() {
+      el.stage.inert = el.deckNotes.inert = el.deckFoot.inert = false;
+      if (!deck.open) return;
+      el.deck.focus();
+      el.deckSays.textContent = where();
+    },
+  });
+  if (overview.isOpen) return;
+  el.stage.inert = el.deckNotes.inert = el.deckFoot.inert = true;
+  overview.open(deck.slides, deck.index);
 }
 
 // The keys in the foot show for a while as the deck opens, and from then
@@ -313,6 +340,7 @@ function resize(scale) {
 
 /** Keys while presenting. True if the key was the deck's. */
 export function deckKey(e) {
+  if (overview?.isOpen) return overview.key(e);
   if (sizeKey(e)) return true;
   if (e.metaKey || e.ctrlKey || e.altKey) return false;
   switch (e.key) {
@@ -322,6 +350,7 @@ export function deckKey(e) {
       back(); break;
     case 'N': nextWhole(); break;
     case 'P': backWhole(); break;
+    case 'o': case 'O': openOverview(); break;
     case 'Home': go(0, 0); break;
     case 'End': go(deck.slides.length - 1, Infinity); break;
     case 'Escape': closeDeck(); break;

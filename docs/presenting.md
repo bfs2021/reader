@@ -110,6 +110,7 @@ Present or present the file; after that, it's measured again as you edit.
 | `N` | the rest of this slide; if it's all showing, the next slide whole |
 | `P` | back to the start of this slide; if it's already there, the start of the previous slide |
 | `Home` / `End` | the first slide / the last slide whole |
+| `O` | the overview: every slide at once, to pick one from (below) |
 | `T` | notes under the slide |
 | `S` | speaker view: the current slide (steps to come drawn faintly), the next slide, notes, a timer, the time |
 | `R` | in the speaker view, restart the timer (or click the timer) |
@@ -121,6 +122,24 @@ Present or present the file; after that, it's measured again as you edit.
 
 `n` and `p` undo each other exactly, so a clicker's back button takes back
 what its forward button did.
+
+## Overview
+
+`O` lays out every slide as a thumbnail, numbered as `paging:` says, with
+its title when you hover it. The slide showing is ringed and has the
+highlight. Move the highlight with the arrows (`↑` `↓` a row, `←` `→` a
+slide) and `Home` and `End`; `Enter`, or a click, goes to that slide from
+its start, and `Esc` goes back to where you were. It's handy for a backup
+slide at question time, or for rehearsing.
+
+A thumbnail is the slide as the stage draws it, every step showing, at the
+text size and fit the slides have. A screen reader hears "Overview, slide 3
+of 12" as it opens, and each slide's number and title as the highlight
+moves.
+
+`O` in the speaker view opens it there instead, out of the room's sight.
+There the slides already done are faded and ticked, apart from those still
+to come.
 
 ## Two screens
 

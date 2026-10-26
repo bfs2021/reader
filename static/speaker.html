@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🎤</text></svg>">
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="/speaker.css">
+<link rel="stylesheet" href="/overview.css">
 </head>
 <body>
   <main id="speaker">
@@ -30,14 +31,17 @@
         <span class="pace" id="pace" hidden></span>
         <span class="vh" id="pace-heard" role="status"></span>
         <span class="time" id="time"></span>
-        <span class="hint">n p step · N slide end · P slide start · R or a click on the timer restarts it</span>
+        <span class="hint">n p step · N slide end · P slide start · O overview · R or a click on the timer restarts it</span>
       </div>
     </section>
     <section class="notes" id="notes"></section>
   </main>
+  <div class="overview" id="overview" hidden></div>
+  <span class="vh" id="overview-heard" role="status"></span>
   <div class="waiting" id="waiting">Waiting for the deck. Press Present in reader, then S.</div>
 
 <script src="/views.js"></script>
+<script src="/overview.js"></script>
 <script src="/speaker.js"></script>
 </body>
 </html>

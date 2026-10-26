@@ -20,6 +20,7 @@ export const el = {
   pages: $('pages'), pageBack: $('pageBack'), pageNext: $('pageNext'), pageDots: $('pageDots'), pageCount: $('pageCount'),
   goto: $('goto'), gotoInput: $('gotoInput'), gotoList: $('gotoList'),
   deck: $('deck'), stage: $('stage'), deckNotes: $('deckNotes'), deckBy: $('deckBy'), deckCount: $('deckCount'), deckSays: $('deckSays'), bar: $('bar'),
+  deckFoot: $('deckFoot'), overview: $('overview'),
 };
 
 export const RENDER_DELAY = 100;

@@ -189,3 +189,164 @@ test('⌘+ and ⌘− step the slides\' text through the browser\'s steps, ⌘0 
   deck.open = false;
   deck.channel = null;
 });
+
+/** A deck of `n` slides open on slide `index`, the stage's messages in `asked`. */
+function presenting(n, { index = 0, reveal = 0, meta = {} } = {}) {
+  const asked = [];
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => asked.push(m) }, configurable: true });
+  state.current = { path: 'talk.md', type: 'md' };
+  Object.assign(deck, { open: true, stageReady: null, meta, css: '', index, reveal, scale: 1, notes: false, channel: null });
+  deck.slides = Array.from({ length: n }, (_, i) => ({ body: `<h1>S${i + 1}</h1>`, steps: 2, notesHtml: '', title: `Title ${i + 1}` }));
+  el.deck.hidden = false;
+  el.deck.focus();
+  return asked;
+}
+
+const options = () => [...el.overview.querySelectorAll('[role="option"]')];
+
+test('the overview\'s keys are among the deck\'s at its foot', () => {
+  assert.match(el.deck.querySelector('.deck-keys').textContent, /P slide start · O overview · T notes/);
+});
+
+test('O lays out every slide, numbered as paging says, the one showing highlighted, and says so', () => {
+  presenting(12, { index: 2, meta: { paging: 'Slide %d / %d' } });
+  assert.equal(deckKey({ key: 'O' }), true);
+  assert.ok(!el.overview.hidden);
+  assert.equal(options().length, 12);
+  assert.deepEqual(options().slice(0, 2).map((o) => o.querySelector('.overview-number').textContent), ['Slide 1 / 12', 'Slide 2 / 12']);
+  // Its title on hover, and as its name.
+  assert.equal(options()[0].title, 'Title 1');
+  assert.equal(options()[0].getAttribute('aria-label'), 'Slide 1 of 12: Title 1');
+  const now = options()[2];
+  assert.ok(now.classList.contains('now'));
+  assert.equal(now.getAttribute('aria-current'), 'true');
+  assert.equal(now.getAttribute('aria-label'), 'Slide 3 of 12: Title 3 (now)');
+  // The keyboard is on it, the only one in reach (a roving tabindex).
+  assert.ok(window.document.activeElement === now, 'the slide showing has the keyboard');
+  assert.deepEqual(options().map((o) => o.tabIndex).filter((t) => t === 0), [0]);
+  assert.equal(now.getAttribute('aria-selected'), 'true');
+  assert.equal(el.deckSays.textContent, 'Overview, slide 3 of 12');
+  // The rest of the deck is out of reach under it; what it says isn't.
+  assert.ok(el.stage.inert && el.deckNotes.inert && el.deckFoot.inert);
+  assert.equal(el.deckSays.closest('[inert]'), null);
+  deckKey({ key: 'Escape' });
+  deck.open = false;
+});
+
+test('the arrows, Home and End move the highlight and say each slide come to; nothing else moves', () => {
+  const asked = presenting(12, { index: 2 });
+  deckKey({ key: 'o' });
+  // Laid out four to a row.
+  options().forEach((o, i) => Object.defineProperty(o, 'offsetTop', { value: Math.floor(i / 4) * 100, configurable: true }));
+  const at = () => options().findIndex((o) => o === window.document.activeElement);
+  deckKey({ key: 'ArrowRight' });
+  assert.equal(at(), 3);
+  assert.equal(el.deckSays.textContent, 'Slide 4 of 12: Title 4');
+  deckKey({ key: 'ArrowDown' });
+  assert.equal(at(), 7);
+  deckKey({ key: 'ArrowLeft' });
+  deckKey({ key: 'ArrowUp' });
+  assert.equal(at(), 2);
+  deckKey({ key: 'ArrowUp' });
+  assert.equal(at(), 2, 'no row above the first');
+  deckKey({ key: 'End' });
+  assert.equal(at(), 11);
+  assert.equal(el.deckSays.textContent, 'Slide 12 of 12: Title 12');
+  deckKey({ key: 'Home' });
+  assert.equal(at(), 0);
+  assert.equal(options()[0].tabIndex, 0);
+  assert.equal(options()[2].tabIndex, -1);
+  assert.equal(options()[0].getAttribute('aria-selected'), 'true');
+  assert.ok(options()[2].classList.contains('now'), 'the slide showing stays marked');
+  // The deck stays where it was underneath.
+  deckKey({ key: 'n' });
+  assert.deepEqual([deck.index, deck.reveal, asked.length], [2, 0, 0]);
+  deckKey({ key: 'Escape' });
+  deck.open = false;
+});
+
+test('Enter goes to the highlighted slide from its start, and gives the keyboard back to the deck', async () => {
+  const asked = presenting(12, { index: 2, reveal: 1 });
+  deckKey({ key: 'O' });
+  deckKey({ key: 'ArrowRight' });
+  deckKey({ key: 'ArrowRight' });
+  assert.equal(deckKey({ key: 'Enter' }), true);
+  assert.ok(el.overview.hidden);
+  assert.deepEqual([deck.index, deck.reveal], [4, 0]);
+  await deck.stageReady;
+  await null;
+  assert.equal(asked.at(-1).type, 'render');
+  assert.equal(asked.at(-1).body, '<h1>S5</h1>');
+  assert.equal(asked.at(-1).reveal, 0);
+  assert.ok(window.document.activeElement === el.deck, 'the deck has the keyboard');
+  assert.ok(!el.stage.inert && !el.deckNotes.inert && !el.deckFoot.inert);
+  // The slide showing, picked, starts over.
+  deckKey({ key: 'n' });
+  deckKey({ key: 'O' });
+  deckKey({ key: 'Enter' });
+  assert.deepEqual([deck.index, deck.reveal], [4, 0]);
+  deck.open = false;
+});
+
+test('a click on a thumbnail goes to that slide from its start', () => {
+  presenting(12, { index: 0 });
+  deckKey({ key: 'O' });
+  options()[6].click();
+  assert.ok(el.overview.hidden);
+  assert.deepEqual([deck.index, deck.reveal], [6, 0]);
+  deck.open = false;
+});
+
+test('Esc puts the overview away and the deck is where it was, and says so', () => {
+  const asked = presenting(12, { index: 3, reveal: 1 });
+  deckKey({ key: 'O' });
+  deckKey({ key: 'ArrowRight' });
+  assert.equal(deckKey({ key: 'Escape' }), true);
+  assert.ok(el.overview.hidden);
+  assert.equal(options().length, 0);
+  assert.deepEqual([deck.index, deck.reveal, asked.length], [3, 1, 0]);
+  assert.ok(window.document.activeElement === el.deck, 'the deck has the keyboard');
+  assert.equal(el.deckSays.textContent, 'Slide 4 of 12, step 1 of 2');
+  // Esc again is the deck's own: done presenting.
+  deckKey({ key: 'Escape' });
+  assert.equal(deck.open, false);
+});
+
+test('a thumbnail is drawn as it comes into view, the slide whole, at the deck\'s text size and fit', () => {
+  // What comes into view is what the test says.
+  let seen = null;
+  const IO = window.IntersectionObserver;
+  window.IntersectionObserver = class {
+    constructor(fn) { seen = (targets) => fn(targets.map((target) => ({ target, isIntersecting: true }))); }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  presenting(30, { index: 0 });
+  deck.scale = 1.25;
+  deckKey({ key: 'O' });
+  assert.equal(el.overview.querySelectorAll('iframe').length, 0, 'none drawn till they\'re seen');
+  seen(options().slice(0, 2));
+  assert.equal(el.overview.querySelectorAll('iframe').length, 2);
+  const frame = options()[1].querySelector('iframe');
+  assert.equal(frame.getAttribute('aria-hidden'), 'true');
+  assert.equal(frame.tabIndex, -1);
+  const drawn = [];
+  Object.defineProperty(frame, 'contentWindow', { value: { postMessage: (m) => drawn.push(m) }, configurable: true });
+  window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'ready' }, source: frame.contentWindow }));
+  assert.equal(drawn.length, 1);
+  assert.equal(drawn[0].body, '<h1>S2</h1>');
+  assert.equal(drawn[0].reveal, Infinity);
+  assert.equal(drawn[0].scale, 1.25);
+  assert.equal(drawn[0].deck, true);
+  deckKey({ key: 'Escape' });
+  deck.open = false;
+  window.IntersectionObserver = IO;
+});
+
+test('a slide\'s title is its opening heading, as the stage says it', () => {
+  const [one, two, three] = bodies('# One *more*\n\nhi\n\n---\n\nno heading\n\n---\n\n## Two\n');
+  assert.equal(steps(one).title, 'One more');
+  assert.equal(steps(two).title, '');
+  assert.equal(steps(three).title, 'Two');
+});

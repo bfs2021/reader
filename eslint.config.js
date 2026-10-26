@@ -32,13 +32,13 @@ export default [
   // (its own, the puzzles' and the features') are classic scripts sharing
   // `window.Preview` and `window.Puzzles`, Mermaid's `window.mermaid`, and
   // `window.Ink` (ink.js). The app and the speaker view have `window.Theme`
-  // (theme.js).
+  // (theme.js) and `window.Overview` (overview.js).
   {
     files: ['static/app/*.js', 'static/edits.js'],
-    languageOptions: { sourceType: 'module', globals: { ...globals.browser, Theme: 'readonly' } },
+    languageOptions: { sourceType: 'module', globals: { ...globals.browser, Theme: 'readonly', Overview: 'readonly' } },
   },
   {
-    files: ['static/preview-api.js', 'static/preview.js', 'static/ink.js', 'static/theme.js', 'static/speaker.js', 'static/picks.js', 'static/views.js', 'static/awake.js', ...FRAME],
-    languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly', Ink: 'readonly', Theme: 'readonly' } },
+    files: ['static/preview-api.js', 'static/preview.js', 'static/ink.js', 'static/theme.js', 'static/speaker.js', 'static/overview.js', 'static/picks.js', 'static/views.js', 'static/awake.js', ...FRAME],
+    languageOptions: { sourceType: 'script', globals: { ...globals.browser, Preview: 'readonly', Puzzles: 'readonly', mermaid: 'readonly', Ink: 'readonly', Theme: 'readonly', Overview: 'readonly' } },
   },
 ];

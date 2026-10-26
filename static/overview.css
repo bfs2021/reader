@@ -1,0 +1,36 @@
+/* The overview of a deck's slides (overview.js), over the stage in the app
+ * and over the speaker view, in the colours each page names. */
+.overview {
+  position: absolute; inset: 0; z-index: 2; overflow: auto;
+  padding: 16px 24px 32px; background: var(--bg); color: var(--ink); cursor: auto;
+}
+.overview-hint { margin: 0 0 14px; font-size: 13px; color: var(--ink-soft); }
+.overview-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px 18px;
+  list-style: none; margin: 0; padding: 0;
+}
+.overview-slide { padding: 6px; border-radius: 8px; cursor: pointer; outline: none; }
+.overview-slide:focus-visible, .overview-slide[aria-selected="true"]:focus { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* Rendered at projector size and scaled down, as the speaker view's are. */
+.overview-screen {
+  position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+  background: var(--paper); border-radius: 4px; box-shadow: 0 0 0 1px var(--line);
+}
+.overview-screen iframe {
+  position: absolute; top: 0; left: 0; border: 0; pointer-events: none;
+  width: 1280px; height: 720px; transform-origin: 0 0;
+}
+/* the slide being shown, ringed and labelled; in the speaker view, those
+ * done faded and ticked */
+.overview-slide.now .overview-screen { outline: 3px solid var(--ink-soft); outline-offset: 3px; }
+.overview-slide.done .overview-screen { opacity: .5; }
+.overview-number { display: block; margin-top: 6px; font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.overview-slide.now .overview-number { color: var(--ink); font-weight: 600; }
+.overview-number[data-state="now"]::after { content: " · now"; }
+.overview-number[data-state="done"]::before { content: "✓ "; }
+
+@media (forced-colors: active) {
+  .overview-slide:focus-visible, .overview-slide[aria-selected="true"]:focus { outline-color: Highlight; }
+  .overview-slide.now .overview-screen { outline: 3px dashed CanvasText; }
+  .overview-screen { border: 1px solid CanvasText; }
+}

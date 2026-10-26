@@ -5,16 +5,17 @@ import { file, run } from './dom.js';
 /**
  * The speaker view, loaded as speaker.html loads it, on a clock that reads
  * `now.seconds`: `say` sends it a message from the deck, as the
- * BroadcastChannel would.
+ * BroadcastChannel would, and `sent` is what it sends the deck.
  */
 function speaker() {
   const now = { seconds: 0 };
+  const sent = [];
   let heard = null;
   const window = file('static/speaker.html');
   Object.assign(window, {
     BroadcastChannel: class {
       addEventListener(type, fn) { heard = fn; }
-      postMessage() {}
+      postMessage(m) { sent.push({ ...m }); }
     },
     Date: class {
       static now() { return now.seconds * 1000; }
@@ -22,9 +23,10 @@ function speaker() {
     },
     setInterval() {},
   });
-  run(window, 'static/theme.js', 'static/speaker.js');
+  run(window, 'static/theme.js', 'static/overview.js', 'static/speaker.js');
   const $ = (id) => window.document.getElementById(id);
-  return { now, $, clock: window.clock, say: (data) => heard({ data }) };
+  const press = (key) => window.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  return { now, $, sent, press, window, clock: window.clock, say: (data) => heard({ data }) };
 }
 
 test('the waiting message makes the speaker sections inert until a deck opens', () => {
@@ -157,4 +159,49 @@ test('the speaker view\'s Now and Next are at the room\'s text size', async () =
   await new Promise((done) => setTimeout(done));
   assert.deepEqual([sent.now.at(-1).type, sent.now.at(-1).scale], ['reveal', 1.5]);
   assert.deepEqual([sent.next.at(-1).type, sent.next.at(-1).scale], ['reveal', 1.5]);
+});
+
+test('O lays out every slide here, those done apart from those to come, and Enter has the deck go to one from its start', () => {
+  const { $, sent, press, window, say } = speaker();
+  const slides = Array.from({ length: 6 }, (_, i) => ({ body: '', steps: 1, title: `Title ${i + 1}` }));
+  say({ type: 'deck', open: true, index: 2, reveal: 1, slides, meta: { paging: '%d' } });
+  $('timer').focus();
+  press('O');
+  const options = [...$('overview').querySelectorAll('[role="option"]')];
+  assert.ok(!$('overview').hidden);
+  assert.equal(options.length, 6);
+  assert.equal(options[0].querySelector('.overview-number').textContent, '1');
+  assert.deepEqual(options.map((o) => (o.classList.contains('done') ? 'done' : o.classList.contains('now') ? 'now' : '')), ['done', 'done', 'now', '', '', '']);
+  assert.equal(options[0].getAttribute('aria-label'), 'Slide 1 of 6: Title 1 (done)');
+  assert.equal(options[3].getAttribute('aria-label'), 'Slide 4 of 6: Title 4');
+  assert.ok(window.document.activeElement === options[2], 'the slide showing has the keyboard');
+  assert.equal($('overview-heard').textContent, 'Overview, slide 3 of 6');
+  assert.ok($('speaker').inert, 'the rest is out of reach');
+  // The keys are its: they don't move the deck.
+  press('ArrowRight');
+  assert.equal($('overview-heard').textContent, 'Slide 4 of 6: Title 4');
+  assert.deepEqual(sent.filter((m) => m.type === 'key'), []);
+  // The deck moving on marks the slides afresh.
+  say({ type: 'go', index: 3, reveal: 0 });
+  assert.ok(options[2].classList.contains('done') && options[3].classList.contains('now'));
+  press('ArrowRight');
+  press('Enter');
+  assert.ok($('overview').hidden);
+  assert.deepEqual(sent.at(-1), { type: 'go', index: 4, reveal: 0 });
+  assert.ok(!$('speaker').inert);
+  assert.ok(window.document.activeElement === $('timer'), 'the keyboard is back where it was');
+});
+
+test('Esc puts the overview away here, the deck where it was', () => {
+  const { $, sent, press, say } = speaker();
+  say({ type: 'deck', open: true, index: 0, reveal: 0, slides: [{ body: '' }, { body: '' }], meta: {} });
+  press('o');
+  press('ArrowRight');
+  press('Escape');
+  assert.ok($('overview').hidden);
+  assert.deepEqual(sent.filter((m) => m.type === 'go'), []);
+  // With no deck open, there's nothing to lay out.
+  say({ type: 'end' });
+  press('o');
+  assert.ok($('overview').hidden);
 });

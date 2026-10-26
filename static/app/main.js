@@ -123,7 +123,7 @@ function wire() {
   wireFit();
   el.presentBtn.addEventListener('click', present);
   el.deck.addEventListener('click', (e) => {
-    if (e.target.closest('.deck-notes, .deck-foot')) return;
+    if (e.target.closest('.deck-notes, .deck-foot, .overview')) return;
     (e.clientX < window.innerWidth / 3 ? back : next)();
   });
   if ('BroadcastChannel' in window) {
