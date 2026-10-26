@@ -13,7 +13,7 @@ export const el = {
   split: $('split'), sidebar: $('sidebar'), filter: $('filter'), files: $('files'),
   newBtn: $('newBtn'), crumbs: $('crumbs'), newForm: $('newForm'), newName: $('newName'),
   preview: $('preview'), pdfView: $('pdfView'), empty: $('empty'),
-  writePane: $('writePane'), editor: $('editor'), gutter: $('gutter'), gutterToggle: $('gutterToggle'),
+  editor: $('editor'), gutter: $('gutter'), gutterToggle: $('gutterToggle'),
   conflict: $('conflict'), reloadBtn: $('reloadBtn'), overwriteBtn: $('overwriteBtn'),
   dirtyDot: $('dirtyDot'), counts: $('counts'), cursor: $('cursor'), measure: $('measure'), toast: $('toast'),
   workBtn: $('workBtn'), presentBtn: $('presentBtn'), presentWrap: $('presentWrap'), fitPop: $('fitPop'),
@@ -40,7 +40,6 @@ export const state = {
   openSeq: 0,           // drops superseded file opens
   saving: Promise.resolve(),
   previewReady: null,
-  pendingRender: null,
   working: false,       // work mode: rendered full width, filled in but not edited
 };
 

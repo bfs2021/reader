@@ -129,16 +129,15 @@ function firstTokenAtOrAfter(tokens, line) {
 
 /**
  * Resolve every aside's anchor line to the token index its column cut belongs
- * at. Returns asides annotated with `cut` (token index) and `blockStart`
- * (source line of the block they are commenting on), in document order.
+ * at. Returns asides annotated with `cut` and `endCut` (the token indexes
+ * where the block they are commenting on starts and ends), in document order.
  */
 export function resolveAnchors(tokens, asides) {
   return asides.map((a) => {
     const block = lastBlockBefore(tokens, a.anchor);
-    if (!block) return { ...a, blockStart: 0, cut: 0, endCut: 0 };
+    if (!block) return { ...a, cut: 0, endCut: 0 };
     return {
       ...a,
-      blockStart: block.map[0],
       // Open the row at the start of the block being commented on...
       cut: firstTokenAtOrAfter(tokens, block.map[0]),
       // ...and close it at the end of that block, so whatever the speaker said
