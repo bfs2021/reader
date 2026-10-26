@@ -13,18 +13,11 @@ import { columns } from './columns.js';
 import { readBackground, backdrop, CSS as BACKGROUND_CSS } from './background.js';
 import { fontCss } from './fonts.js';
 import { FEATURES } from '../features/index.js';
-import { schemeLinks } from '../features/scheme.js';
 
 // Features that read the file as written (and asides) go before the rest.
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true, breaks: false });
 for (const f of FEATURES.filter((f) => f.plugin && f.raw)) md.use(f.plugin);
 for (const f of FEATURES.filter((f) => f.plugin && !f.raw)) md.use(f.plugin);
-schemeLinks(md, {
-  name: 'rfc',
-  scheme: 'rfc',
-  path: /\d{1,5}(?:#[\w.-]+)?/,
-  link: rfcLink,
-});
 md.core.ruler.push('reader_lines', (state) => {
   if (state.env.lines && !state.inlineMode && !state.env.__aside) markLines(state.tokens, state.env);
 });
@@ -96,27 +89,6 @@ function markLines(tokens, env) {
     t.attrSet('data-line', String(base + (env.sourceLines?.[t.map[0]] ?? t.map[0])));
   }
 }
-
-const RFC_EDITOR = 'https://www.rfc-editor.org/rfc';
-
-/**
- * `rfc:9110[]` and `rfc:9110#section-15.5[]` -> links to the RFC Editor,
- * labelled "RFC 9110" and "RFC 9110 §15.5" unless the brackets say otherwise.
- * `path` is what follows the colon: the number, then any `#anchor`.
- */
-export function rfcLink(path, label) {
-  const [num, anchor] = path.split('#');
-  const n = String(Number(num));
-  const text = label.trim();
-  const href = `${RFC_EDITOR}/rfc${n}.html${anchor ? `#${anchor}` : ''}`;
-  if (text) return { href, label: text };
-  const section = anchor && /^(section|appendix)-(.+)$/i.exec(anchor);
-  if (!section) return { href, label: `RFC ${n}` };
-  const where = section[1].toLowerCase() === 'section' ? `§${section[2]}` : `Appendix ${section[2]}`;
-  return { href, label: `RFC ${n} ${where}` };
-}
-
-
 
 const FIGURE = /<p((?: data-line="\d+")?)>(<img src="[^"]*" alt="([^"]*)"(?: title="([^"]*)")?(?: style="[^"]*")?>)<\/p>/g;
 
