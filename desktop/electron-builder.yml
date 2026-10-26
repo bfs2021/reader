@@ -1,0 +1,47 @@
+# The installers: a .dmg for macOS, an .exe for Windows, an AppImage for
+# Linux, each built on its own platform (npm run dist).
+#
+# The app is reader's own checkout, one directory up: its package.json is
+# the app's, giving the version and the dependencies that ship; this one
+# has only what builds it.
+appId: io.github.jzheaux.reader
+productName: Reader
+copyright: Copyright © Josh Cummings
+directories:
+  app: ..
+  output: dist
+extraMetadata:
+  main: desktop/main.js
+  productName: Reader
+  author:
+    name: Josh Cummings
+  homepage: https://jzheaux.github.io/reader/
+files:
+  - package.json
+  - src/**
+  - static/**
+  - features/**
+  - desktop/main.js
+  - desktop/folders.js
+  - '!**/*.test.js'
+  - LICENSE
+mac:
+  target: [dmg, zip]
+  category: public.app-category.productivity
+  # Signed for no one yet: ad hoc, which Apple silicon needs to run it at all.
+  # Opened the first time from System Settings → Privacy & Security.
+  identity: '-'
+  hardenedRuntime: false
+dmg:
+  title: Reader
+win:
+  target: nsis
+nsis:
+  # Installed for this user alone, no administrator needed, and started.
+  oneClick: true
+  perMachine: false
+  runAfterFinish: true
+linux:
+  target: AppImage
+  category: Office
+artifactName: Reader-${version}-${os}-${arch}.${ext}

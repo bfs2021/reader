@@ -4,6 +4,20 @@ title: Install and run
 
 ← [Contents](index.md)
 
+## The desktop app
+
+To use reader without a terminal, download the installer for your computer
+from the [latest release](https://github.com/jzheaux/reader/releases/latest):
+the `.dmg` for a Mac (`arm64` for Apple silicon, `x64` for Intel), the `.exe`
+for Windows, the `.AppImage` for Linux. It asks for a folder of documents the
+first time, and opens the one you had last after that. File → Open Folder…
+(`⌘O`) opens another, each in its window, and File → Open Recent the ones
+before.
+
+It isn't signed yet, so the first time, a Mac says it can't check it: open
+System Settings → Privacy & Security and choose Open Anyway. Windows says it
+protected your PC: choose More info, then Run anyway.
+
 ## Install
 
 Node 22.13+.

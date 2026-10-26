@@ -4,7 +4,7 @@ import globals from 'globals';
 const FRAME = ['features/*/preview.js', 'features/puzzles/kinds/*.js'];
 
 export default [
-  { ignores: ['node_modules/', 'static/vendor/', 'features/*/vendor/'] },
+  { ignores: ['node_modules/', 'static/vendor/', 'features/*/vendor/', 'desktop/dist/'] },
   js.configs.recommended,
   {
     linterOptions: { reportUnusedDisableDirectives: 'error' },
@@ -21,10 +21,10 @@ export default [
       ],
     },
   },
-  // The server, the CLI, the renderer's features and the tests,
-  // less what features draw into the preview frame, which has no Node.
+  // The server, the CLI, the desktop app, the renderer's features and the
+  // tests, less what features draw into the preview frame, which has no Node.
   {
-    files: ['bin/**/*.js', 'src/**/*.js', 'features/**/*.js', 'test/**/*.js', '*.config.js'],
+    files: ['bin/**/*.js', 'src/**/*.js', 'desktop/*.js', 'features/**/*.js', 'test/**/*.js', '*.config.js'],
     ignores: FRAME,
     languageOptions: { sourceType: 'module', globals: globals.node },
   },

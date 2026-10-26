@@ -1,0 +1,16 @@
+{
+  "name": "reader-desktop",
+  "productName": "Reader",
+  "private": true,
+  "type": "module",
+  "description": "reader as a desktop app: its server behind a window of its own.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
+  }
+}

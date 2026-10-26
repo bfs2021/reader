@@ -30,6 +30,7 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | `src/export.js` | a document as one HTML file, to keep, send or print: its stylesheet and images inside it, a deck as its pages |
 | `action.yml` | the GitHub Action |
 | `Dockerfile` | the Docker image, serving `/docs`; its page on Docker Hub is `docs/docker.md` |
+| `desktop/` | the desktop app: `main.js` (a window and a server for each folder opened, and the menus), `folders.js` (the folders opened, each on a port of its own), `electron-builder.yml` (the installers) |
 | `src/server.js` | HTTP API and static files |
 | `src/content.js` | the content directory: listing, safe paths, saves, backups, the trash, branching, renaming and promoting versions |
 | `src/render.js` | markdown → `{css, body}` for the preview: one markdown-it, with every feature, laid out in columns |
@@ -59,6 +60,19 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 
 PDF.js is vendored in `static/vendor/`, Mermaid in `features/mermaid/vendor/`, and the sites' marks in `features/social/icons/`; their versions and licenses are noted there.
 
+## The desktop app
+
+`desktop/` is reader in a window of its own, for those who'd rather not
+run a server: Electron, starting `src/server.js` for each folder opened.
+It has its own `package.json`, for Electron and what builds it; what it
+ships is this checkout, with the dependencies in the one above.
+
+```console
+$ cd desktop && npm install
+$ npm start -- ~/Documents/notes      # run it from the checkout
+$ npm run dist                        # the installer for this platform, in desktop/dist
+```
+
 ## Releasing
 
 Each version has a milestone, titled with the version (`0.0.1`), that closes
@@ -80,6 +94,11 @@ Then it pushes the image, built from the tag, to Docker Hub as
 hand with a released version to push it again). Only the newest `vX.Y.Z` tag
 also moves `:latest` and writes [`docs/docker.md`](docs/docker.md) as the
 overview, however the workflow was started, so pushing an older release again
-leaves them where they are. It signs in with the repository's
+leaves them where they are.
+
+And it builds the desktop app's installers on macOS, Windows and Linux and
+adds them to the release ([Desktop](.github/workflows/desktop.yml); run that
+by hand with a released version to build them again). The Docker workflow
+signs in with the repository's
 `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, the token a Docker Hub
 access token with Read, Write and Delete.
