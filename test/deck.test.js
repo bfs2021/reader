@@ -64,6 +64,27 @@ test('the deck\'s keys show for five seconds as presenting starts', async () => 
   mock.timers.reset();
 });
 
+test('the slides\' text is at 100% each time the deck opens', async () => {
+  // The keys shown as it opens would otherwise keep the test waiting five seconds.
+  mock.timers.enable({ apis: ['setTimeout'] });
+  const asked = [];
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => asked.push(m) }, configurable: true });
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ css: '', meta: {}, slides: [{ body: '<h1>One</h1>', notes: '', notesHtml: '', line: 0 }] }) });
+  state.current = { path: 'talk.md', type: 'md' };
+  el.editor.value = '# One\n';
+  deck.scale = 1.5;
+  for (const time of ['first', 'again']) {
+    asked.length = 0;
+    await present();
+    assert.equal(deck.scale, 1, time);
+    assert.equal(asked.at(-1).scale, 1, `the slide is drawn at 100%, ${time}`);
+    // Left bigger, it's back to 100% when the deck opens again.
+    deckKey({ key: '=', metaKey: true });
+    closeDeck();
+  }
+  mock.timers.reset();
+});
+
 test('each block is a step, and so is each list item and each column; the title isn\'t', () => {
   const [first, second] = bodies('# Title\n\nA paragraph.\n\n- one\n- two\n\n> a quote\n\n---\n\n::: columns\nleft\n+++\nright\n:::\n');
   assert.deepEqual(stepped(first), { steps: 4, shown: [[1, 'A paragraph.'], [2, 'one'], [3, 'two'], [4, 'a quote']] });
