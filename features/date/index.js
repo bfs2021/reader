@@ -95,8 +95,9 @@ export function dates(md) {
     const { date, label, line, text, col } = tokens[i].meta;
     const shown = escapeHtml(label || readable(date) || 'pick a date');
     // What the preview needs to change it, and to be reached by keyboard.
-    // Not on a slide, where the deck shows no calendar: there it's only read.
-    const reached = env.deck ? '' : ' tabindex="0" role="button" aria-haspopup="dialog"';
+    // Not on a slide, where the deck shows no calendar, nor on an exported
+    // page, which has no script to show one with: there it's only read.
+    const reached = env.deck || env.exported ? '' : ' tabindex="0" role="button" aria-haspopup="dialog"';
     const editable = col == null ? ''
       : ` data-line="${line}" data-col="${col}" data-text="${escapeAttr(text)}"${reached}`;
     return date

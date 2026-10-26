@@ -32,6 +32,12 @@ test('date: on a slide, where no calendar is shown, is only read, not a button',
   assert.doesNotMatch(body, /tabindex|role="button"|aria-haspopup/);
 });
 
+test('date: on an exported page, with no calendar to show, is only read, not a button', () => {
+  const { body } = render('Due date:2026-11-10[]\n', { exported: true });
+  assert.match(body, /<time class="date" datetime="2026-11-10"[^>]*>November 10, 2026<\/time>/);
+  assert.doesNotMatch(body, /tabindex|role="button"|aria-haspopup/);
+});
+
 test('date: what is not a date, is escaped, or is in code stays as typed', () => {
   const { body } = render('date:2026-02-30[] update:2026-11-10[] \\date:2026-11-10[] `date:2026-11-10[]`\n\n```\ndate:2026-11-10[]\n```\n\n    date:2026-11-10[]\n');
   assert.doesNotMatch(body, /class="date"/);
