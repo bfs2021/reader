@@ -23,7 +23,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { sections, escapeHtml, escapeAttr, addClass, textToken } from '../source.js';
+import { sections, escapeHtml, escapeAttr, addClass, split, eachText, escapeRegExp } from '../source.js';
 
 const KEY = /(?<![\p{L}\p{N}_])!(\p{L}[\p{L}\p{N}'’-]*)/gu;
 
@@ -37,8 +37,6 @@ export function forms(key) {
   if (k.endsWith('s')) all.add(k.slice(0, -1));
   return [...all];
 }
-
-const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export function ingredients(md) {
   // Before an escaped `\!` joins the text after it, and after a defined
@@ -105,7 +103,7 @@ export function ingredients(md) {
     for (const [recipe, keyed] of recipes) {
       const byForm = new Map();
       for (const item of keyed) for (const key of item.keys) for (const f of forms(key)) byForm.set(f, key.toLowerCase());
-      const find = new RegExp(`(?<![\\p{L}\\p{N}_!])(?:${[...byForm.keys()].sort((a, b) => b.length - a.length).map(escape).join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
+      const find = new RegExp(`(?<![\\p{L}\\p{N}_!])(?:${[...byForm.keys()].sort((a, b) => b.length - a.length).map(escapeRegExp).join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
       const used = new Set();
       tokens.forEach((t, i) => {
         if (t.type !== 'inline' || inItem.has(i) || !within(of[i], recipe)) return;
@@ -134,34 +132,6 @@ export function ingredients(md) {
     const reach = env.exported ? '' : ' tabindex="0" role="button"';
     return `<span class="ingredient-use"${reach} data-ingredient="${escapeAttr(key)}" data-recipe="${recipe}">${escapeHtml(tokens[i].content)}</span>`;
   };
-}
-
-/** Calls `fn` on each text child of `inline` outside a link, putting in its place what it returns. */
-function eachText(inline, fn) {
-  const out = [];
-  let link = 0;
-  for (const child of inline.children ?? []) {
-    if (child.type === 'link_open') link++;
-    if (child.type === 'link_close') link--;
-    out.push(...(child.type === 'text' && !link ? fn(child) : [child]));
-  }
-  inline.children = out;
-}
-
-/** `child`'s text split at each match of `pattern`, `make(m)` in its place. */
-function split(state, child, pattern, make) {
-  const out = [];
-  let last = 0;
-  for (const m of child.content.matchAll(pattern)) {
-    const made = make(m);
-    if (!made) continue;
-    if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
-    out.push(made);
-    last = m.index + m[0].length;
-  }
-  if (!last) return [child];
-  if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
-  return out;
 }
 
 export default {

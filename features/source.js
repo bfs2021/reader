@@ -66,29 +66,46 @@ export const placeholder = (open, close, k) => `${open}${k}${close}`;
 export function splitText(state, pattern, make) {
   for (const block of state.tokens) {
     if (block.type !== 'inline' || !block.children) continue;
-    const out = [];
-    for (const child of block.children) {
-      pattern.lastIndex = 0;
-      const found = child.type === 'text' && pattern.test(child.content);
-      // matchAll starts from where test() left off.
-      pattern.lastIndex = 0;
-      if (!found) {
-        out.push(child);
-        continue;
-      }
-      let last = 0;
-      for (const m of child.content.matchAll(pattern)) {
-        const token = make(Number(m[1]), state);
-        if (!token) continue;
-        if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
-        out.push(token);
-        last = m.index + m[0].length;
-      }
-      if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
-    }
-    block.children = out;
+    block.children = block.children.flatMap((child) => (child.type === 'text' ? split(state, child, pattern, (m) => make(Number(m[1]), state)) : [child]));
   }
 }
+
+/**
+ * `child`'s text split at each match of `pattern` (a global regex),
+ * `make(m)` in its place: a token, or null to leave the match as text.
+ * The child itself, alone, if nothing was made.
+ */
+export function split(state, child, pattern, make) {
+  const out = [];
+  let last = 0;
+  // matchAll starts from the pattern's lastIndex.
+  pattern.lastIndex = 0;
+  for (const m of child.content.matchAll(pattern)) {
+    const made = make(m);
+    if (!made) continue;
+    if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
+    out.push(made);
+    last = m.index + m[0].length;
+  }
+  if (!last) return [child];
+  if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
+  return out;
+}
+
+/** Calls `fn` on each text child of `inline` outside a link, putting in its place what it returns. */
+export function eachText(inline, fn) {
+  const out = [];
+  let link = 0;
+  for (const child of inline.children ?? []) {
+    if (child.type === 'link_open') link++;
+    if (child.type === 'link_close') link--;
+    out.push(...(child.type === 'text' && !link ? fn(child) : [child]));
+  }
+  inline.children = out;
+}
+
+/** `s` with what a regex reads as syntax escaped, to match as written. */
+export const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** A text token saying `content`. */
 export function textToken(state, content) {

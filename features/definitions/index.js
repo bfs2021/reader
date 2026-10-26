@@ -25,7 +25,7 @@
 
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { beforeAsides, readLines, escapeHtml, escapeAttr, textToken } from '../source.js';
+import { beforeAsides, readLines, escapeHtml, escapeAttr, textToken, split, eachText, escapeRegExp } from '../source.js';
 import { typable } from '../fields/index.js';
 import { forms } from '../ingredients/index.js';
 
@@ -177,36 +177,19 @@ function uses(state) {
   for (const t of known.keys()) {
     for (const f of t === t.toLowerCase() ? forms(t) : [t, `${t}s`]) if (!written.has(f)) written.set(f, t);
   }
-  const escaped = [...written.keys()].sort((a, b) => a.length - b.length).map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const escaped = [...written.keys()].sort((a, b) => a.length - b.length).map(escapeRegExp);
   const find = new RegExp(`(?<![\\p{L}\\p{N}_])!(?:${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
   const term = (text) => (known.has(text) ? text : written.get(text) ?? written.get(text.toLowerCase()));
 
   for (const block of state.tokens) {
-    if (block.type !== 'inline' || !block.children) continue;
-    if (block.meta?.definition) continue;
-    const out = [];
-    let link = 0;
-    for (const child of block.children) {
-      if (child.type === 'link_open') link++;
-      if (child.type === 'link_close') link--;
-      if (child.type !== 'text' || link) {
-        out.push(child);
-        continue;
-      }
-      let last = 0;
-      for (const m of child.content.matchAll(find)) {
-        const t = term(m[0].slice(1));
-        if (!t) continue;
-        if (m.index > last) out.push(textToken(state, child.content.slice(last, m.index)));
-        const use = new state.Token('def_use', 'span', 0);
-        use.meta = { text: m[0].slice(1), term: t, senses: known.get(t) };
-        out.push(use);
-        last = m.index + m[0].length;
-      }
-      if (last === 0) out.push(child);
-      else if (last < child.content.length) out.push(textToken(state, child.content.slice(last)));
-    }
-    block.children = out;
+    if (block.type !== 'inline' || !block.children || block.meta?.definition) continue;
+    eachText(block, (child) => split(state, child, find, (m) => {
+      const t = term(m[0].slice(1));
+      if (!t) return null;
+      const use = new state.Token('def_use', 'span', 0);
+      use.meta = { text: m[0].slice(1), term: t, senses: known.get(t) };
+      return use;
+    }));
   }
 }
 
