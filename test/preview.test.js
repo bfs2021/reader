@@ -162,3 +162,18 @@ test('a box the keyboard left the frame from is forgotten once it\'s back in the
   // (Not assert.equal: a failure would print the whole box.)
   assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
 });
+
+test('a blank written into a definition is gone, and Enter on it opens nothing after it', () => {
+  const { window, document, show } = preview();
+  const md = '# Words\n\n!Foo:\n!Bar:\n\n- [ ] A box\n';
+  show(render(md).body);
+  document.querySelector('.def-blank .field-value').focus();
+  const input = document.activeElement;
+  input.value = 'a thing';
+  input.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  // The meaning is written, and the file's new text brings a render.
+  show(render(md.replace('!Foo:', '!Foo: a thing')).body);
+  assert.equal(document.querySelectorAll('textarea').length, 0, 'no blank is open');
+  // (Not assert.equal: a failure would print the whole blank.)
+  assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
+});

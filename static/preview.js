@@ -225,18 +225,22 @@
     }
   }
 
-  // What the keyboard can reach, in order: the control that had it is found
-  // again by its place among them, as the same kind, once a render has
-  // replaced it.
+  // What the keyboard can reach: the control that had it is found again,
+  // once a render has replaced it, by its line (its own `data-line`, or that
+  // of the nearest element around it with one), its kind, and its place
+  // among the controls of that kind on that line. Nothing there means the
+  // control is gone, and the keyboard stays on the page.
   const REACHABLE = 'a[href], button, input, select, textarea, [tabindex]';
   const kind = (n) => `${n.tagName} ${n.className}`;
-  const placeOf = (n) => (n && n !== document.body && document.body.contains(n)
-    ? { k: [...document.body.querySelectorAll(REACHABLE)].indexOf(n), kind: kind(n) } : null);
+  const lineOf = (n) => n.closest('[data-line]')?.dataset.line ?? null;
+  const alike = (line, k) => [...document.body.querySelectorAll(REACHABLE)]
+    .filter((n) => lineOf(n) === line && kind(n) === k);
+  const controlAt = (n) => (n && n !== document.body && document.body.contains(n)
+    ? { line: lineOf(n), kind: kind(n), k: alike(lineOf(n), kind(n)).indexOf(n) } : null);
   function refocus(was) {
     // A feature may have put the keyboard somewhere itself (a field, a puzzle).
     if (!was || was.k < 0 || (document.activeElement && document.activeElement !== document.body)) return;
-    const now = document.body.querySelectorAll(REACHABLE)[was.k];
-    if (now && kind(now) === was.kind) now.focus({ preventScroll: true });
+    alike(was.line, was.kind)[was.k]?.focus({ preventScroll: true });
   }
   // Where the keyboard was as it left the frame: a box ticked passes it
   // through the editor and back (app/editing.js), and the page may be drawn
@@ -248,7 +252,7 @@
   let left = null;
   document.addEventListener('focusout', (e) => {
     if (e.relatedTarget) return;
-    const was = { node: e.target, place: placeOf(e.target) };
+    const was = { node: e.target, place: controlAt(e.target) };
     const away = () => { left = was; };
     window.addEventListener('blur', away, { once: true });
     setTimeout(() => window.removeEventListener('blur', away));
@@ -267,7 +271,7 @@
   /** Puts a render in place: the page, its steps, its fit and its scroll. */
   function draw(m) {
     const y = window.scrollY;
-    const had = placeOf(document.activeElement);
+    const had = controlAt(document.activeElement);
     if (m.base) base.href = m.base;
     if (theme.textContent !== m.css) theme.textContent = m.css;
     dim = Boolean(m.dim);
