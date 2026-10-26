@@ -46,7 +46,5 @@
     show(document);
   });
   Preview.register({ restore: (root) => show(root) });
-  /** For other features: the multiple a multiplier is set to. */
-  Preview.multiple = (multiplier) => Number(picked(multiplier));
   window.parent.postMessage({ type: 'views' }, '*');
 })();

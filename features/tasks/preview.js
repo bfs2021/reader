@@ -6,11 +6,12 @@
  * click fills the next stage, or empties a full box, and a shift-click
  * goes back one. A reset button clears every box on its lines, and a log
  * button beside it adds a heading for today, with the multiple picked. Runs in
- * the preview frame, and lends other features `Preview.stageLine` and
- * `Preview.setStage`, to move a staged box with an edit of their own.
+ * the preview frame, and lends other features `Preview.boxLine`,
+ * `Preview.stageLine` and `Preview.setStage`, to move a box with an edit of
+ * their own.
  */
 (() => {
-  const boxLine = (b, on) => {
+  const boxLine = Preview.boxLine = (b, on) => {
     const line = Number(b.dataset.line);
     // `defaultChecked` is what the file said when the page was drawn.
     return { from: line, to: line + 1, before: [b.defaultChecked ? b.dataset.on : b.dataset.off], after: [on ? b.dataset.on : b.dataset.off] };

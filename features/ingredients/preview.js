@@ -96,8 +96,7 @@
         edits.push(Preview.stageLine(staged, staged.children.length));
         Preview.setStage(staged, staged.children.length);
       } else if (plain && !plain.defaultChecked) {
-        const line = Number(plain.dataset.line);
-        edits.push({ from: line, to: line + 1, before: [plain.dataset.off], after: [plain.dataset.on] });
+        edits.push(Preview.boxLine(plain, true));
         plain.checked = plain.defaultChecked = true;
       }
     }
