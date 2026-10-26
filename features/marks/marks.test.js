@@ -88,6 +88,12 @@ test('in braces: a topic, a style, or both; a color is the mark\'s; a lone lette
   assert.match(render('[x]{red}\n').body, /<span style="color: red">x<\/span>/);
 });
 
+test("the words an aside chose are marked for the page to keep readable only in a colour an author wrote that isn't the family's", () => {
+  const page = (topic) => render(`-----\ntopic t: tone, ${topic}\n-----\n\nthe quick fox\n~t[quick] hm\n`).body;
+  assert.match(page('gold'), /<q class="mk-about">quick<\/q>/);
+  assert.match(page('#ffd700'), /<q class="mk-about gm-own">quick<\/q>/);
+});
+
 test('an aside about words keeps its place in a ::: block', () => {
   const { body } = render(`${KEY}::: slategray\nthe quick fox\n~a[the quick fox] all of it\n:::\n`);
   assert.match(body, /<span class="mk mk-circle"[^>]*>the quick fox<\/span>/);

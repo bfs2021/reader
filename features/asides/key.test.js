@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { preprocess } from './preprocess.js';
-import { readEntry, makeKey, attribute, inFamily } from './key.js';
+import { readEntry, makeKey, attribute, inFamily, ownColor } from './key.js';
 import { render } from '../../src/render.js';
 import { slides } from '../../src/slides.js';
 
@@ -49,6 +49,20 @@ test("a colour an author names is the family's hue for it, which reads in light 
   assert.deepEqual([...key.values()].map((e) => e.color), ['var(--gm-amber)', 'var(--gm-blue)', '#ffd700']);
   const { body } = render('-----\nreviewer j: Josh, gold\ntopic c: Coherence, yellow\n-----\n\nWords.\n\n~jc Hm.\n');
   assert.match(body, /<span class="gm-who" style="--by: var\(--gm-amber\)">Josh <b>1<\/b><\/span><span class="gm-topic" style="--topic: var\(--gm-amber\)">Coherence <b>1<\/b><\/span>/);
+});
+
+test("a colour an author wrote that isn't the family's is marked for the page to keep readable, and the family's isn't", () => {
+  assert.equal(ownColor('#ffd700'), true);
+  assert.equal(ownColor('papayawhip'), true);
+  assert.equal(ownColor('var(--gm-amber)'), false);
+  assert.equal(ownColor('var(--gm-key-1)'), false);
+  assert.equal(ownColor(null), false);
+  const { body } = render('-----\nreviewer j: Josh, gold\nreviewer m: Maria, #ffd700\ntopic c: Coherence\ntopic s: Style, papayawhip\n-----\n\nWords.\n\n~jc Hm.\n~ms So.\n');
+  // the legend: gold is the family's amber, and Coherence a dealt colour, both drawn as they're defined
+  assert.match(body, /<div class="gm-legend"><span class="gm-who" style="--by: var\(--gm-amber\)">Josh <b>1<\/b><\/span><span class="gm-who gm-own" style="--by: #ffd700">Maria <b>1<\/b><\/span><span class="gm-topic" style="--topic: var\(--gm-key-8\)">Coherence <b>1<\/b><\/span><span class="gm-topic gm-own" style="--topic: papayawhip">Style <b>1<\/b><\/span><\/div>/);
+  // and an aside's chips
+  assert.match(body, /<span class="gm-by"><span class="gm-who">Josh<\/span><span class="gm-topic" style="--topic: var\(--gm-key-8\)">Coherence<\/span><\/span>Hm./);
+  assert.match(body, /<span class="gm-by"><span class="gm-who gm-own">Maria<\/span><span class="gm-topic gm-own" style="--topic: papayawhip">Style<\/span><\/span>So./);
 });
 
 test('a run of aliases: the reviewer, the topics, and any not declared', () => {

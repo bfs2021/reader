@@ -59,6 +59,15 @@ export function inFamily(color) {
   return (color && HUES.get(color.toLowerCase())) || color;
 }
 
+/**
+ * Whether `color` is one an author wrote that isn't the family's: a `#hex`,
+ * or a name not listed. The page keeps that one readable, and draws the
+ * family's exactly as it's defined (src/columns.css).
+ */
+export function ownColor(color) {
+  return Boolean(color) && !color.startsWith('var(--gm-');
+}
+
 /** A front matter line declaring an alias -> `{ kind, alias, name, color, style }`, or null. */
 export function readEntry(line) {
   const m = ENTRY.exec(line);

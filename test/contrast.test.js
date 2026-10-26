@@ -296,9 +296,17 @@ test('a colour an author names reads as text, in light and dark, and at 7:1 with
     ['dark, more contrast', merge(base, more, darker, moreDark), docMore.dark, 7],
   ];
   const CAP = 'oklch(from var(--$) clamp(var(--gm-key-l-min), l, var(--gm-key-l-max)) min(c, var(--gm-key-c-max)) h)';
-  assert.ok(columns.includes(`.gm-who { background: ${CAP.replace('$', 'by, var(--gm-accent)')}`), 'a chip');
-  assert.ok(columns.includes(`.gm-topic { color: ${CAP.replace('$', 'topic, var(--gm-accent)')}`), 'a pill');
-  assert.ok(read('features/marks/marks.css').includes(`.mk-about { color: color-mix(in srgb, ${CAP.replace('$', 'mk, var(--gm-ink-soft)')} 55%, var(--gm-ink)); }`), 'the words an aside chose');
+  const marksCss = read('features/marks/marks.css');
+  assert.ok(columns.includes(`.gm-who.gm-own { background: ${CAP.replace('$', 'by')}`), 'a chip');
+  assert.ok(columns.includes(`.gm-topic.gm-own { color: ${CAP.replace('$', 'topic')}`), 'a pill');
+  assert.ok(marksCss.includes(`.mk-about.gm-own { color: color-mix(in srgb, ${CAP.replace('$', 'mk')} 55%, var(--gm-ink)); }`), 'the words an aside chose');
+  // only there: the family, and the colours dealt from it, are drawn exactly as they're defined
+  for (const css of [columns, marksCss]) {
+    for (const [rule] of css.matchAll(/^.*oklch\(from var\(--(?:by|topic|mk)\b.*$/gm)) assert.match(rule, /^ *\.(?:gm-who|gm-topic|mk-about)\.gm-own \{/, rule);
+  }
+  assert.match(columns, /\n\.gm-who \{ color: var\(--gm-paper\); background: var\(--by, var\(--gm-accent\)\); \}/);
+  assert.match(columns, /\n\.gm-topic \{ color: var\(--topic, var\(--gm-accent\)\);/);
+  assert.match(marksCss, /\n {2}color: color-mix\(in srgb, var\(--mk, var\(--gm-ink-soft\)\) 55%, var\(--gm-ink\)\);/);
   // every hue, vivid, deep and pale, and what the issue found: gold on white, navy on the dark
   const hsl = (h, l) => {
     const f = (n) => {
@@ -412,7 +420,7 @@ test("in the system's own colours, what a ground or a shadow said is said anothe
   assert.match(under(read('features/tabs/tabs.css')), /\.tab \{ forced-color-adjust: none; \}/);
   assert.match(under(columns), /\.gm-who, ol\.badges > li:not\(\.gm-cont\)::before/);
   // a reviewer's chip, and a mark's line, in whatever colour an author named
-  assert.match(under(columns), /\.gm-who \{ background: CanvasText; \}/);
+  assert.match(under(columns), /\.gm-who, \.gm-who\.gm-own \{ background: CanvasText; \}/);
   assert.match(under(read('features/marks/marks.css')), /\.mk-lines path \{ stroke: CanvasText; \}/);
 });
 

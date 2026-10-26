@@ -22,6 +22,7 @@
 
 import { preprocess } from './preprocess.js';
 import { escapeHtml } from '../source.js';
+import { ownColor } from './key.js';
 
 export function asides(md) {
   md.core.ruler.after('normalize', 'aside_extract', (state) => {
@@ -47,14 +48,18 @@ export function asideTokens(md, aside, env) {
   return md.parse(aside.text, { ...env, asides: null, __aside: true });
 }
 
+// A chip's or a pill's class, `gm-own` for a colour an author wrote that
+// isn't the family's, for the page to keep readable (src/columns.css).
+const chipClass = (kind, color) => `${kind}${ownColor(color) ? ' gm-own' : ''}`;
+
 /**
  * Who an aside is from and what it's about, as chips: the reviewer's name,
  * a pill for each topic, and each alias that isn't declared, with a `?`.
  */
 export function byChips(by) {
   const chips = [];
-  if (by.who) chips.push(`<span class="gm-who">${escapeHtml(by.who.name)}</span>`);
-  for (const t of by.topics) chips.push(`<span class="gm-topic" style="--topic: ${escapeHtml(t.color)}">${escapeHtml(t.name)}</span>`);
+  if (by.who) chips.push(`<span class="${chipClass('gm-who', by.who.color)}">${escapeHtml(by.who.name)}</span>`);
+  for (const t of by.topics) chips.push(`<span class="${chipClass('gm-topic', t.color)}" style="--topic: ${escapeHtml(t.color)}">${escapeHtml(t.name)}</span>`);
   for (const c of by.unknown) chips.push(`<span class="gm-unknown" title="Not declared in the front matter">${escapeHtml(c)}?</span>`);
   return `<span class="gm-by">${chips.join('')}</span>`;
 }
@@ -72,8 +77,8 @@ export function legend(asides, key) {
   if (!counts.size) return '';
   const used = [...(key?.values() || [])].filter((e) => counts.has(e));
   const chip = (e) => e.kind === 'reviewer'
-    ? `<span class="gm-who" style="--by: ${escapeHtml(e.color)}">${escapeHtml(e.name)} <b>${counts.get(e)}</b></span>`
-    : `<span class="gm-topic" style="--topic: ${escapeHtml(e.color)}">${escapeHtml(e.name)} <b>${counts.get(e)}</b></span>`;
+    ? `<span class="${chipClass('gm-who', e.color)}" style="--by: ${escapeHtml(e.color)}">${escapeHtml(e.name)} <b>${counts.get(e)}</b></span>`
+    : `<span class="${chipClass('gm-topic', e.color)}" style="--topic: ${escapeHtml(e.color)}">${escapeHtml(e.name)} <b>${counts.get(e)}</b></span>`;
   return `<div class="gm-legend">${used.map(chip).join('')}</div>`;
 }
 
