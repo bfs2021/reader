@@ -13,7 +13,8 @@
  *
  *   ~#c This contradicts §2.        Josh, about Coherence
  *
- * A colour after the name (a CSS name or `#hex`) is the alias's own, and a
+ * A colour after the name (a CSS name or `#hex`) is the alias's own, a
+ * common name drawn in the family's hue for it (see `inFamily`), and a
  * topic can name how it marks the words its asides choose (`circle`,
  * `underline` or `highlight`; see features/marks); the
  * rest are dealt from a palette in the order they're declared, reviewers
@@ -33,6 +34,30 @@ export const STYLES = ['circle', 'underline', 'dotted', 'wavy', 'highlight'];
 // The family's hues (src/columns.css), which read as text on the page,
 // light or dark, and the page on them.
 const PALETTE = Array.from({ length: 8 }, (_, i) => `var(--gm-key-${i + 1})`);
+
+// The colour names an author is likely to write, each to the family's hue
+// nearest it. The family's green is a teal, so a plain green is its moss.
+const FAMILY = {
+  red: ['red', 'crimson', 'maroon'],
+  amber: ['amber', 'orange', 'gold', 'yellow', 'brown'],
+  moss: ['moss', 'green', 'lime', 'olive'],
+  green: ['teal', 'cyan', 'turquoise'],
+  blue: ['blue', 'navy'],
+  violet: ['violet', 'purple', 'indigo'],
+  rose: ['rose', 'pink', 'magenta'],
+  slate: ['slate', 'grey', 'gray'],
+};
+const HUES = new Map(Object.entries(FAMILY).flatMap(([hue, names]) => names.map((n) => [n, `var(--gm-${hue})`])));
+
+/**
+ * A colour an author names -> the family's hue for it, which reads as text
+ * in light and dark (`gold` -> `var(--gm-amber)`); any other, a `#hex` or a
+ * name not listed, as it's written, for the page to keep readable
+ * (src/columns.css).
+ */
+export function inFamily(color) {
+  return (color && HUES.get(color.toLowerCase())) || color;
+}
 
 /** A front matter line declaring an alias -> `{ kind, alias, name, color, style }`, or null. */
 export function readEntry(line) {
@@ -56,7 +81,7 @@ export function makeKey(entries) {
   for (const e of entries) {
     if (key.has(e.alias)) continue;
     const k = dealt[e.kind]++ % PALETTE.length;
-    key.set(e.alias, { ...e, color: e.color || PALETTE[e.kind === 'reviewer' ? k : PALETTE.length - 1 - k] });
+    key.set(e.alias, { ...e, color: inFamily(e.color) || PALETTE[e.kind === 'reviewer' ? k : PALETTE.length - 1 - k] });
   }
   return key;
 }

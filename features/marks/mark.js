@@ -6,7 +6,7 @@
  * can read them without taking in the rest.
  */
 
-import { STYLES } from '../asides/key.js';
+import { STYLES, inFamily } from '../asides/key.js';
 
 /**
  * The names in braces -> `{ style, topic, rest }`, the names that aren't
@@ -30,10 +30,12 @@ export function marking(names, key) {
 
 /**
  * Makes `token`, a span's opening, the mark: drawn in `style`, in `color` if
- * there is one. It's a mark to a screen reader, and its topic, if it has one,
- * is said with it and shows on hover, not only by its colour and pen.
+ * there is one (the family's hue for it, if it has one). It's a mark to a
+ * screen reader, and its topic, if it has one, is said with it and shows on
+ * hover, not only by its colour and pen.
  */
 export function markSpan(token, { style, color, topic }) {
+  color = inFamily(color);
   token.attrJoin('class', `mk mk-${style}`);
   token.attrSet('role', 'mark');
   if (topic) token.attrSet('title', topic);

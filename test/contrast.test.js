@@ -258,6 +258,67 @@ test('Good, Bad and Try, and ok and warn, stay apart under deuteranopia and prot
   }
 });
 
+/** OKLab -> #hex, each channel clipped to sRGB, as a browser draws a colour out of its gamut. */
+const fromOklab = ([L, a, b]) => {
+  const [l, m, s] = [L + 0.3963377774 * a + 0.2158037573 * b, L - 0.1055613458 * a - 0.0638541728 * b, L - 0.0894841775 * a - 1.291485548 * b].map((v) => v ** 3);
+  const c = [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+  const gamma = (v) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
+  return toHex(c.map((v) => 255 * gamma(Math.min(1, Math.max(0, v)))));
+};
+/** `hex` in OKLCH, its lightness clamped to `lo`..`hi` and its chroma to `cmax`, as oklch(from ...) makes it. */
+const capped = (hex, { lo, hi, cmax }) => {
+  const [L, a, b] = oklab(hex);
+  const c = Math.hypot(a, b);
+  const k = c ? Math.min(c, cmax) / c : 0;
+  return fromOklab([Math.min(hi, Math.max(lo, L)), a * k, b * k]);
+};
+
+test('a colour an author names reads as text, in light and dark, and at 7:1 with more contrast asked for', () => {
+  // the bounds, and the rules that draw with them
+  const BOUNDS = '/* How light a colour an author names';
+  const set = (css) => {
+    const d = declared(css);
+    return { lo: d['gm-key-l-min'], hi: d['gm-key-l-max'], cmax: d['gm-key-c-max'] };
+  };
+  const base = set(block(after(columns, BOUNDS), ':root {'));
+  const darker = set(block(after(columns, BOUNDS), ':root.gm-dark {'));
+  const more = set(block(after(after(columns, BOUNDS), MORE), ':root {'));
+  const moreDark = set(block(after(after(columns, BOUNDS), MORE), ':root.gm-dark {'));
+  const merge = (...sets) => Object.fromEntries(['lo', 'hi', 'cmax'].map((k) => [k, Number(sets.findLast((x) => x[k] !== undefined)[k])]));
+  const themes = [
+    ['light', merge(base), doc.light, 4.5],
+    ['dark', merge(base, darker), doc.dark, 4.5],
+    ['light, more contrast', merge(base, more), docMore.light, 7],
+    ['dark, more contrast', merge(base, more, darker, moreDark), docMore.dark, 7],
+  ];
+  const CAP = 'oklch(from var(--$) clamp(var(--gm-key-l-min), l, var(--gm-key-l-max)) min(c, var(--gm-key-c-max)) h)';
+  assert.ok(columns.includes(`.gm-who { background: ${CAP.replace('$', 'by, var(--gm-accent)')}`), 'a chip');
+  assert.ok(columns.includes(`.gm-topic { color: ${CAP.replace('$', 'topic, var(--gm-accent)')}`), 'a pill');
+  assert.ok(read('features/marks/marks.css').includes(`.mk-about { color: color-mix(in srgb, ${CAP.replace('$', 'mk, var(--gm-ink-soft)')} 55%, var(--gm-ink)); }`), 'the words an aside chose');
+  // every hue, vivid, deep and pale, and what the issue found: gold on white, navy on the dark
+  const hsl = (h, l) => {
+    const f = (n) => {
+      const k = (n + h / 30) % 12;
+      return 255 * (l - Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1)));
+    };
+    return toHex([f(0), f(8), f(4)]);
+  };
+  const colours = ['#ffd700', '#000080', '#ffffff', '#000000', '#808080'];
+  for (let h = 0; h < 360; h += 10) for (const l of [0.2, 0.5, 0.8]) colours.push(hsl(h, l));
+  for (const [theme, bounds, t, least] of themes) {
+    for (const c of colours) {
+      const ink = capped(c, bounds);
+      readable(ink, t['gm-paper'], `${theme}: ${c} as ${ink}, a pill on the paper`, least);
+      readable(t['gm-paper'], ink, `${theme}: the paper on ${c} as ${ink}, a chip`, least);
+      readable(mix(ink, 0.55, t['gm-ink']), t['gm-paper'], `${theme}: ${c} as the words an aside chose`, least);
+    }
+  }
+});
+
 test('no colour is written outside the blocks that name them', () => {
   const blocks = [
     [style, /^ *:root[^{]*\{[^}]*\}/gm],
@@ -350,5 +411,8 @@ test("in the system's own colours, what a ground or a shadow said is said anothe
   assert.match(under(read('features/puzzles/kinds/sudoku.js')), /\.cursor \{ outline: 3px solid Highlight/);
   assert.match(under(read('features/tabs/tabs.css')), /\.tab \{ forced-color-adjust: none; \}/);
   assert.match(under(columns), /\.gm-who, ol\.badges > li:not\(\.gm-cont\)::before/);
+  // a reviewer's chip, and a mark's line, in whatever colour an author named
+  assert.match(under(columns), /\.gm-who \{ background: CanvasText; \}/);
+  assert.match(under(read('features/marks/marks.css')), /\.mk-lines path \{ stroke: CanvasText; \}/);
 });
 

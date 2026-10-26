@@ -35,7 +35,7 @@ test('words can be underlined dotted or wavy, by a topic, an aside or in braces'
   const key = '-----\ntopic d: doubts, wavy\n-----\n\n';
   const { body } = render(`${key}the quick brown fox\n~d[quick] really?\n~[fox]{dotted} which one\n`);
   assert.deepEqual(marks(body).map((m) => m.style), ['wavy', 'dotted']);
-  assert.match(render('[x]{wavy red}\n').body, /<span class="mk mk-wavy" role="mark" style="--mk: red" data-mark="mk-1">x<\/span>/);
+  assert.match(render('[x]{wavy red}\n').body, /<span class="mk mk-wavy" role="mark" style="--mk: var\(--gm-red\)" data-mark="mk-1">x<\/span>/);
   assert.match(render('[x]{dotted}\n').body, /<span class="mk mk-dotted" role="mark" data-mark="mk-1">x<\/span>/);
 });
 
@@ -80,9 +80,9 @@ test('a mark written in braces is the one an aside naming its words ties to, as 
 
 test('in braces: a topic, a style, or both; a color is the mark\'s; a lone letter not declared is a font', () => {
   const page = (src) => render(`${KEY}${src}\n`).body;
-  assert.match(page('[x]{v}'), /<span class="mk mk-highlight" role="mark" title="verbs" style="--mk: teal" data-mark="mk-1">x<\/span>/);
-  assert.match(page('[x]{v circle}'), /<span class="mk mk-circle" role="mark" title="verbs" style="--mk: teal"/);
-  assert.match(page('[x]{circle red}'), /<span class="mk mk-circle" role="mark" style="--mk: red" data-mark="mk-1">x<\/span>/);
+  assert.match(page('[x]{v}'), /<span class="mk mk-highlight" role="mark" title="verbs" style="--mk: var\(--gm-green\)" data-mark="mk-1">x<\/span>/);
+  assert.match(page('[x]{v circle}'), /<span class="mk mk-circle" role="mark" title="verbs" style="--mk: var\(--gm-green\)"/);
+  assert.match(page('[x]{circle red}'), /<span class="mk mk-circle" role="mark" style="--mk: var\(--gm-red\)" data-mark="mk-1">x<\/span>/);
   assert.match(page('[x]{underline georgia}'), /<span class="font mk mk-underline" role="mark" style="--font: 'georgia'" data-mark="mk-1">/);
   assert.match(render('[x]{a}\n').body, /<span class="font" style="--font: 'a'">x<\/span>/);
   assert.match(render('[x]{red}\n').body, /<span style="color: red">x<\/span>/);

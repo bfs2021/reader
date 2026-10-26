@@ -74,6 +74,26 @@ finger. With more than one, or in a document with no aliases, a `~word`
 line reads as text, as it always has. In a deck, the aliases go in the
 deck's front matter.
 
+A colour you name is drawn in the palette's hue for it, deep on a light
+page and bright on a dark one, so a name and its count read as text
+either way: `reviewer m: Maria, gold` is the palette's amber.
+
+| Palette | Names |
+|---|---|
+| `red` | red, crimson, maroon |
+| `amber` | amber, orange, gold, yellow, brown |
+| `moss` | moss, green, lime, olive |
+| `green` (a teal) | teal, cyan, turquoise |
+| `blue` | blue, navy |
+| `violet` | violet, purple, indigo |
+| `rose` | rose, pink, magenta |
+| `slate` | slate, grey, gray |
+
+A `#hex`, or another name, is kept, but a pill, a chip or the legend
+takes it darker on a light page, or lighter on a dark one, where it
+wouldn't read: `#ffd700` is a dark gold. The rule and the marks keep it as
+it's written.
+
 ## Marks
 
 An aside can say which **words** it's about, and they're marked as a pen
@@ -116,7 +136,8 @@ nothing after the brackets just marks them.
 Words can be marked in the text as well, with or without an aside, as a
 style is set (see [Styling text](text.md)): `[the lazy dog]{l}` in topic
 `l`'s colour and style, `{l circle}` in another style, `{circle}` alone in
-the ink's. A color named alongside is the mark's. An aside naming those
+the ink's. A color named alongside is the mark's, from the palette as a
+topic's is. An aside naming those
 words is tied to that mark.
 
 ::: tabs

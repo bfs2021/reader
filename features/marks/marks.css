@@ -48,6 +48,11 @@
   color: color-mix(in srgb, var(--mk, var(--gm-ink-soft)) 55%, var(--gm-ink));
   margin-right: 0.45em;
 }
+/* and a colour an author named first kept as light or as dark as the
+ * family (src/columns.css): a gold is 3.8:1 mixed as it's written */
+@supports (color: oklch(from red clamp(0, l, 1) min(c, 1) h)) {
+  .mk-about { color: color-mix(in srgb, oklch(from var(--mk, var(--gm-ink-soft)) clamp(var(--gm-key-l-min), l, var(--gm-key-l-max)) min(c, var(--gm-key-c-max)) h) 55%, var(--gm-ink)); }
+}
 .mk-lost {
   color: var(--gm-ink-soft);
   font-weight: 400;
@@ -81,5 +86,7 @@
 /* In the system's colours, a highlighter is the system's own mark. */
 @media (forced-colors: active) {
   .mk-highlight, .mk.mk-on.mk-highlight { forced-color-adjust: none; background: Mark; color: MarkText; box-shadow: none; }
+  /* and a line, which the system leaves in an author's colour, is its text's */
+  .mk-lines path { stroke: CanvasText; }
 }
 .gm-aside-cell.mk-on { border-left-color: var(--mk, var(--gm-accent)); }

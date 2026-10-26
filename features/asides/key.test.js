@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { preprocess } from './preprocess.js';
-import { readEntry, makeKey, attribute } from './key.js';
+import { readEntry, makeKey, attribute, inFamily } from './key.js';
 import { render } from '../../src/render.js';
 import { slides } from '../../src/slides.js';
 
@@ -20,10 +20,35 @@ test('the key: one alias a line, with an optional colour', () => {
   assert.equal(readEntry('reviewer ~: Nope'), null);
   assert.equal(readEntry('title: A Talk'), null);
   const key = makeKey([readEntry('reviewer #: Josh'), readEntry('reviewer m: Maria, teal'), readEntry('topic c: Coherence')]);
-  assert.equal(key.get('m').color, 'teal');
+  assert.equal(key.get('m').color, 'var(--gm-green)');
   // Reviewers are dealt colours from the palette's start, topics from its end.
   assert.equal(key.get('#').color, 'var(--gm-key-1)');
   assert.equal(key.get('c').color, 'var(--gm-key-8)');
+});
+
+test("a colour an author names is the family's hue for it, which reads in light and dark", () => {
+  const family = {
+    red: ['red', 'crimson', 'maroon'],
+    amber: ['amber', 'orange', 'gold', 'yellow', 'brown'],
+    moss: ['moss', 'green', 'lime', 'olive'],
+    green: ['teal', 'cyan', 'turquoise'],
+    blue: ['blue', 'navy'],
+    violet: ['violet', 'purple', 'indigo'],
+    rose: ['rose', 'pink', 'magenta'],
+    slate: ['slate', 'grey', 'gray'],
+  };
+  for (const [hue, names] of Object.entries(family)) for (const name of names) assert.equal(inFamily(name), `var(--gm-${hue})`, name);
+  assert.equal(inFamily('Gold'), 'var(--gm-amber)');
+  // the family's green is a teal: a plain green is its moss
+  assert.equal(inFamily('green'), 'var(--gm-moss)');
+  // a #hex, or a name not listed, as it's written, for the page to keep readable
+  assert.equal(inFamily('#ffd700'), '#ffd700');
+  assert.equal(inFamily('papayawhip'), 'papayawhip');
+  assert.equal(inFamily(null), null);
+  const key = makeKey([readEntry('reviewer j: Josh, gold'), readEntry('reviewer m: Maria, navy'), readEntry('topic s: Style, #ffd700')]);
+  assert.deepEqual([...key.values()].map((e) => e.color), ['var(--gm-amber)', 'var(--gm-blue)', '#ffd700']);
+  const { body } = render('-----\nreviewer j: Josh, gold\ntopic c: Coherence, yellow\n-----\n\nWords.\n\n~jc Hm.\n');
+  assert.match(body, /<span class="gm-who" style="--by: var\(--gm-amber\)">Josh <b>1<\/b><\/span><span class="gm-topic" style="--topic: var\(--gm-amber\)">Coherence <b>1<\/b><\/span>/);
 });
 
 test('a run of aliases: the reviewer, the topics, and any not declared', () => {
