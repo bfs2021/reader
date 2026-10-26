@@ -20,9 +20,13 @@ globalThis.fetch = async (url, { body } = {}) => {
   return { ok: true, json: async () => out };
 };
 
-const { el, state } = await import('../static/app/state.js');
+const { el, state, deck } = await import('../static/app/state.js');
 const { setPages } = await import('../static/app/pages.js');
+const { deckKey } = await import('../static/app/deck.js');
 Object.defineProperty(el.preview, 'contentWindow', { value: { postMessage() {} } });
+// The stage keeps what it's sent.
+const staged = [];
+Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => staged.push(m) } });
 await import('../static/app/main.js');
 const settled = () => new Promise(setImmediate);
 await settled();
@@ -71,4 +75,17 @@ test('a page dot clicked gives the keyboard to the dot of the page turned to, an
   el.pageNext.focus();
   el.pageNext.click();
   assert.equal(document.activeElement, el.pageBack);
+});
+
+test('Tab in a deck takes the keyboard into the slide, and the slide gives it back to the deck', () => {
+  deck.open = true;
+  deckKey({ key: 'Tab', shiftKey: false });
+  assert.ok(document.activeElement === el.stage, 'the stage has the keyboard');
+  assert.deepEqual(staged.at(-1), { type: 'tab', back: false });
+  deckKey({ key: 'Tab', shiftKey: true });
+  assert.deepEqual(staged.at(-1), { type: 'tab', back: true });
+  // Past its last box, the slide says so.
+  window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'untab' }, source: el.stage.contentWindow }));
+  assert.ok(document.activeElement === el.deck, 'the deck has the keyboard back');
+  deck.open = false;
 });
