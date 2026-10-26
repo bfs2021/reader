@@ -1,10 +1,11 @@
 name: Docker
 
 # Builds the image at a release's tag, for amd64 and arm64 (NAS boxes are
-# often ARM), and pushes it to Docker Hub as jzheaux/reader:X.Y.Z and
-# :latest, with docs/docker.md as its overview. Called by the release
-# workflow once it has tagged, since a tag it pushes starts no workflow of
-# its own; or run by hand to push a release again.
+# often ARM), and pushes it to Docker Hub as jzheaux/reader:X.Y.Z. Only the
+# newest vX.Y.Z tag also moves :latest and writes docs/docker.md as the
+# overview, so pushing an older release again leaves both alone. Called by
+# the release workflow once it has tagged, since a tag it pushes starts no
+# workflow of its own; or run by hand to push a release again.
 on:
   workflow_call:
     inputs:
@@ -50,6 +51,17 @@ jobs:
       - id: tag
         run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+      # The checkout has only this tag, so ask the remote for the rest; it
+      # also has the tag the release workflow has only just made.
+      - name: Check whether it's the newest release
+        id: newest
+        run: |
+          newest=$(git ls-remote --tags --refs origin 'v*' | sed 's|.*refs/tags/||' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ "v$VERSION" = "$newest" ]; then latest=true; else latest=false; fi
+          echo "v$VERSION is the newest release: $latest (newest is $newest)"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -64,7 +76,7 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ inputs.version }}
-            ${{ env.IMAGE }}:latest
+            ${{ steps.newest.outputs.latest == 'true' && format('{0}:latest', env.IMAGE) || '' }}
           labels: |
             org.opencontainers.image.title=reader
             org.opencontainers.image.version=${{ inputs.version }}
@@ -75,9 +87,11 @@ jobs:
       # The page as Docker Hub shows it: without its front matter and its
       # link back to the contents.
       - name: Write the overview
+        if: steps.newest.outputs.latest == 'true'
         run: sed '1,/^← /d' docs/docker.md > overview.md
 
       - uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
+        if: steps.newest.outputs.latest == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

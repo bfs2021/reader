@@ -73,8 +73,10 @@ It refuses a version `package.json` doesn't have, so bump that first; it's
 the version the app and `reader --version` show.
 
 Then it pushes the image, built from the tag, to Docker Hub as
-`jzheaux/reader:0.0.1` and `:latest`, with [`docs/docker.md`](docs/docker.md)
-as its overview ([Docker](.github/workflows/docker.yml); run that by hand
-with a released version to push it again). It signs in with the repository's
+`jzheaux/reader:0.0.1` ([Docker](.github/workflows/docker.yml); run that by
+hand with a released version to push it again). Only the newest `vX.Y.Z` tag
+also moves `:latest` and writes [`docs/docker.md`](docs/docker.md) as the
+overview, however the workflow was started, so pushing an older release again
+leaves them where they are. It signs in with the repository's
 `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, the token a Docker Hub
 access token with Read, Write and Delete.
