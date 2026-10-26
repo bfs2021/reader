@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { slides } from '../src/slides.js';
 import { app, globals } from './dom.js';
@@ -8,7 +8,7 @@ const window = globals(app());
 const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
 const { deck, el, state } = await import('../static/app/state.js');
-const { paging, steps, deckKey, go, revealed, showSlide } = await import('../static/app/deck.js');
+const { paging, steps, deckKey, go, revealed, showSlide, present, closeDeck } = await import('../static/app/deck.js');
 
 /** Each thing a slide's steps show, by the step it shows with: [step, its text]. */
 function stepped(body) {
@@ -45,6 +45,23 @@ test('? shows the deck\'s keys at its foot, and puts them away again', () => {
   assert.ok(stage.classList.contains('keys-shown'));
   deckKey({ key: '?' });
   assert.ok(!stage.classList.contains('keys-shown'));
+});
+
+test('the deck\'s keys show for five seconds as presenting starts', async () => {
+  // The clock moves when the test says, and the server has a deck of one slide.
+  mock.timers.enable({ apis: ['setTimeout'] });
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage() {} }, configurable: true });
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ css: '', meta: {}, slides: [{ body: '<h1>One</h1>', notes: '', notesHtml: '', line: 0 }] }) });
+  state.current = { path: 'talk.md', type: 'md' };
+  el.editor.value = '# One\n';
+  await present();
+  assert.ok(el.deck.classList.contains('keys-shown'));
+  mock.timers.tick(4999);
+  assert.ok(el.deck.classList.contains('keys-shown'));
+  mock.timers.tick(1);
+  assert.ok(!el.deck.classList.contains('keys-shown'));
+  closeDeck();
+  mock.timers.reset();
 });
 
 test('each block is a step, and so is each list item and each column; the title isn\'t', () => {
