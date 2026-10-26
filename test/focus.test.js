@@ -64,6 +64,18 @@ test('a file trashed from the list leaves the keyboard on the file after it', as
   assert.equal(state.current.path, 'a.md');
 });
 
+test("one of a row's actions keeps the keyboard when the list is drawn again, as coming back to the window does", async () => {
+  const action = (kind) => row('a.md').closest('li').querySelector(`.row-action.${kind}`);
+  for (const kind of ['branch', 'export', 'trash', 'into']) {
+    const was = action(kind);
+    was.focus();
+    window.dispatchEvent(new window.Event('focus'));
+    await settled();
+    assert.ok(action(kind) !== was, `${kind}: the list was drawn again`);
+    assert.ok(document.activeElement === action(kind), `${kind} has the keyboard`);
+  }
+});
+
 test('a page dot clicked gives the keyboard to the dot of the page turned to, and Back or Next to the other at an end', () => {
   const pages = ['One', 'Two', 'Three'].map((t, line) => ({ body: `<h1>${t}</h1>`, line }));
   setPages(pages, 'a.md');

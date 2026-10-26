@@ -43,14 +43,19 @@ export function drawTree() {
   // A name being edited stays put; the list is drawn again when it's done.
   if (el.files.querySelector('.renaming')) return;
   // Redrawn under the keyboard (the list reloads when the window gets focus),
-  // the row that had focus keeps it.
-  const had = el.files.contains(document.activeElement) ? document.activeElement : null;
+  // the row that had focus keeps it; one of a row's actions, found again by
+  // its row and its kind (trash, export, ...), keeps it too.
+  const at = el.files.contains(document.activeElement) ? document.activeElement : null;
+  const kind = at?.matches('.row-action') ? [...at.classList].find((c) => c !== 'row-action') : null;
+  const had = kind ? at.closest('li').querySelector(':scope > .entry, :scope > .file, :scope > .folder') : at;
   const same = had && (had.dataset.entry ? `.entry[data-entry="${CSS.escape(had.dataset.entry)}"]`
     : had.dataset.group ? `.group[data-group="${CSS.escape(had.dataset.group)}"]`
     : had.dataset.path ? `.file[data-path="${CSS.escape(had.dataset.path)}"]`
     : had.dataset.dir ? `.folder[data-dir="${CSS.escape(had.dataset.dir)}"]` : null);
   drawRows();
-  if (same) el.files.querySelector(same)?.focus();
+  const row = same && el.files.querySelector(same);
+  // An action that's gone from its row leaves focus on the row.
+  ((kind && row?.closest('li').querySelector(`.row-action.${CSS.escape(kind)}`)) || row)?.focus();
 }
 
 function drawRows() {
