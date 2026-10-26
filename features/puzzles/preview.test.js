@@ -54,6 +54,75 @@ test('a key a puzzle takes says where it left it, and nothing is said while it i
   assert.equal(said(), 'Row 1, column 2: 3, given');
 });
 
+/** Puzzles say how they stand after where a key left them: the first part is checked. */
+const saysFirst = (said, where) => assert.equal(said().slice(0, where.length), where);
+
+test('train tracks say which square a key left them on, and the track in it', () => {
+  const { host, press, said } = playing(`\`\`\`tracks
+1 1 3
+━ · ·  3
+· · ·  1
+· · ·  1
+A: left 1  B: bottom 3
+\`\`\`
+`);
+  host.focus();
+  press('ArrowRight');
+  saysFirst(said, 'Row 1, column 2: empty');
+  press('ArrowLeft');
+  saysFirst(said, 'Row 1, column 1: track right to left, given');
+  press('ArrowDown');
+  saysFirst(said, 'Row 2, column 1: empty');
+});
+
+test('a maze says which ways are open where a key left it', () => {
+  // A fork near S: an arrow runs along the corridor only as far as the next turn-off.
+  const { host, press, said } = playing(`\`\`\`maze
++--+--+--+
+|S       |
++  +  +  +
+|       E|
++--+--+--+
+\`\`\`
+`);
+  host.focus();
+  press('ArrowRight');
+  saysFirst(said, 'Open down, left, right');
+});
+
+test('a word search says which letter a key left it on, and where a word being circled starts', () => {
+  const { host, press, said } = playing(`\`\`\`wordsearch
+B E L I E V E
+H O N E S T Q
+A B L E X Y Z
+words: ABLE, BELIEVE, HONEST, ZEST
+\`\`\`
+`);
+  host.focus();
+  press('ArrowRight');
+  saysFirst(said, 'Row 1, column 2: E');
+  press('ArrowLeft');
+  press('ArrowDown');
+  saysFirst(said, 'Row 2, column 1: H');
+  press('Enter');
+  press('ArrowRight');
+  saysFirst(said, 'Row 2, column 2: O, from row 2, column 1');
+});
+
+test('a coordinate graph says which point a key left the pencil at', () => {
+  const { host, press, said } = playing(`\`\`\`coord
+grid: 10 x 8
+(1, 1) (5, 1) (5, 4)
+(7, 2) (9, 2)
+\`\`\`
+`);
+  host.focus();
+  press('ArrowRight');
+  saysFirst(said, 'At (1, 0)');
+  press('ArrowUp');
+  saysFirst(said, 'At (1, 1)');
+});
+
 test('Esc hands the keys back but keeps the puzzle in focus, and Enter takes them again', () => {
   const { document, host, press, said } = playing(SUDOKU);
   host.focus();
