@@ -427,7 +427,7 @@ body {
 
 /* the masthead's legend: who and what the asides are from and about */
 .gm-legend { margin-top: 0.45rem; font-size: 0.95rem; }
-.gm-legend b { font-weight: 400; opacity: 0.8; margin-left: 0.15em; }
+.gm-legend b { font-weight: 400; margin-left: 0.15em; }
 
 /* ---------- shared prose ------------------------------------------------- */
 

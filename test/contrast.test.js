@@ -175,6 +175,17 @@ test("a retro card's label reads on the paper, and the paper on it once it's don
   }
 });
 
+test("an asides legend's counts read as their names do, not faded", () => {
+  // a reviewer's count on their chip, a topic's on the paper, each in its name's colour
+  assert.doesNotMatch(block(columns, '.gm-legend b {'), /opacity/);
+  for (const [theme, t] of Object.entries(doc)) {
+    for (let i = 1; i <= 8; i++) {
+      readable(t['gm-paper'], t[`gm-key-${i}`], `${theme} a reviewer's count on --gm-key-${i}`);
+      readable(t[`gm-key-${i}`], t['gm-paper'], `${theme} a topic's count in --gm-key-${i}`);
+    }
+  }
+});
+
 test("code's colours read on every ground code is drawn on", () => {
   for (const [theme, t] of Object.entries(doc)) {
     const inks = Object.keys(t).filter((k) => k.startsWith('gm-code-'));
