@@ -342,7 +342,10 @@
   // text leaves a control too, and that control isn't to be brought back.
   // Leaving shows as the frame's own blur straight after the control's
   // (document.hasFocus() is still true as the control's comes). Once the
-  // keyboard is somewhere in the frame again, the control is forgotten.
+  // keyboard is somewhere in the frame again, the control is forgotten. A
+  // click on the page's text puts it there with no focusin, so a click or a
+  // key in the frame forgets it too. Not the frame's own focus, though: the
+  // app gives that back just before it asks for the control.
   let left = null;
   document.addEventListener('focusout', (e) => {
     if (e.relatedTarget) return;
@@ -351,7 +354,10 @@
     window.addEventListener('blur', away, { once: true });
     setTimeout(() => window.removeEventListener('blur', away));
   });
-  document.addEventListener('focusin', () => { left = null; });
+  const forget = () => { left = null; };
+  document.addEventListener('focusin', forget);
+  document.addEventListener('pointerdown', forget, true);
+  document.addEventListener('keydown', forget, true);
   function giveBack() {
     if (!left) return;
     if (left.node.isConnected) {

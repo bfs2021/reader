@@ -212,6 +212,36 @@ test('a box the keyboard left the frame from is forgotten once it\'s back in the
   assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
 });
 
+test('a box left for the editor is forgotten once a click on the page\'s text brings the keyboard back', () => {
+  const { window, document, show, send } = preview();
+  show(render('* [ ] one\n\nSome text.\n').body);
+  const box = document.querySelector('.task-box');
+  box.focus();
+  leave(window, box);
+  // A click on the text: the frame has the keyboard again, on the page, with no focusin.
+  document.querySelector('p').dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
+  window.dispatchEvent(new window.Event('focus'));
+  // Then a step ticked takes it from the page to the editor, and back.
+  window.dispatchEvent(new window.Event('blur'));
+  window.dispatchEvent(new window.Event('focus'));
+  send({ type: 'refocus' });
+  // (Not assert.equal: a failure would print the whole box.)
+  assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
+});
+
+test('a box left for the editor is forgotten once a key is pressed on the page', () => {
+  const { window, document, show, send } = preview();
+  show(render('* [ ] one\n\nSome text.\n').body);
+  const box = document.querySelector('.task-box');
+  box.focus();
+  leave(window, box);
+  // The app puts the keyboard on the frame some other way, and a key comes.
+  window.dispatchEvent(new window.Event('focus'));
+  document.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'j', bubbles: true }));
+  send({ type: 'refocus' });
+  assert.ok(document.activeElement === document.body, 'the keyboard stays on the page');
+});
+
 test('a blank written into a definition is gone, and Enter on it opens nothing after it', () => {
   const { window, document, show } = preview();
   const md = '# Words\n\n!Foo:\n!Bar:\n\n- [ ] A box\n';
