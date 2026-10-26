@@ -60,4 +60,14 @@ export const deck = {
   returnTo: null,       // what had focus before Present
 };
 
+/** What the app remembers between visits, `null` where storage can't be had. */
+export function remembered(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+/** Remembers `value` at `key`, if storage can be had. */
+export function remember(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* ignore */ }
+}
+
 export const dirty = () => state.current?.type === 'md' && el.editor.value !== state.saved;

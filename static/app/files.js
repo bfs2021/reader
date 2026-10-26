@@ -5,7 +5,7 @@
  * outline (outline.js).
  */
 
-import { el, state } from './state.js';
+import { el, state, remembered, remember } from './state.js';
 import { api, exportUrl, contentUrl } from './api.js';
 import { saveFirst, setConflict } from './saving.js';
 import { exportDocument } from './exporting.js';
@@ -224,7 +224,7 @@ export function go(dir, group = null, { focus = true, outline = false } = {}) {
   state.dir = dir;
   state.group = group;
   state.outline = outline;
-  try { localStorage.setItem(`reader:dir:${state.root}`, dir); } catch { /* ignore */ }
+  remember(`reader:dir:${state.root}`, dir);
   drawTree();
   if (!focus) return;
   if (outline) return (el.files.querySelector('.entry.at') || rows()[0])?.focus();
@@ -256,7 +256,7 @@ export function up() {
 }
 
 export function rememberedDir() {
-  try { return localStorage.getItem(`reader:dir:${state.root}`) || ''; } catch { return ''; }
+  return remembered(`reader:dir:${state.root}`) || '';
 }
 
 /** Show the folder `p` is in, and its versions if it isn't the one its row opens. */

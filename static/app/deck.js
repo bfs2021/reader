@@ -2,7 +2,7 @@
  * Presenting: a deck of slides, a step at a time, with a speaker view.
  */
 
-import { el, state, deck, dirty, RENDER_DELAY } from './state.js';
+import { el, state, deck, dirty, remember, RENDER_DELAY } from './state.js';
 import { api } from './api.js';
 import { baseFor } from './render.js';
 import { save } from './saving.js';
@@ -247,7 +247,7 @@ export function toggleKeys() {
 export function toggleNotes() {
   deck.notes = !deck.notes;
   el.deckNotes.hidden = !deck.notes || !deck.slides[deck.index]?.notes;
-  try { localStorage.setItem('reader:notes', deck.notes ? 'shown' : 'hidden'); } catch { /* ignore */ }
+  remember('reader:notes', deck.notes ? 'shown' : 'hidden');
 }
 
 /** Full screen, on the room's screen when there are two. */

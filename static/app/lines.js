@@ -10,7 +10,7 @@
  * which opens at that line.
  */
 
-import { el, state } from './state.js';
+import { el, state, remembered, remember } from './state.js';
 import { measure } from './sync.js';
 import { toast } from './status.js';
 
@@ -120,14 +120,12 @@ export function goToLines(first, last = first) {
 export function showGutter(on) {
   el.gutter.hidden = !on;
   el.gutterToggle.setAttribute('aria-pressed', String(on));
-  try { localStorage.setItem('reader:lines', on ? 'shown' : 'hidden'); } catch { /* ignore */ }
+  remember('reader:lines', on ? 'shown' : 'hidden');
   scheduleGutter();
 }
 
 export function wireLines() {
-  let on = true;
-  try { on = localStorage.getItem('reader:lines') !== 'hidden'; } catch { /* ignore */ }
-  showGutter(on);
+  showGutter(remembered('reader:lines') !== 'hidden');
   el.gutterToggle.addEventListener('click', () => showGutter(el.gutter.hidden));
   el.copyPath.addEventListener('click', copyPath);
   el.gutter.addEventListener('click', (e) => {

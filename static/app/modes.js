@@ -2,7 +2,7 @@
  * The layout: the file list shown or hidden, and work mode.
  */
 
-import { el, state, deck, dirty } from './state.js';
+import { el, state, deck, dirty, remembered, remember } from './state.js';
 import { save } from './saving.js';
 import { renderNow } from './render.js';
 import { openAt } from './pages.js';
@@ -19,7 +19,7 @@ export function toggleSidebar(force) {
   // The keyboard isn't left in a list that's gone.
   if (hide && el.sidebar.contains(document.activeElement)) el.sidebarToggle.focus();
   listShown();
-  try { localStorage.setItem('reader:sidebar', hide ? 'hidden' : 'shown'); } catch { /* ignore */ }
+  remember('reader:sidebar', hide ? 'hidden' : 'shown');
 }
 
 /** The list over the panes, open or not, at a narrow width. */
@@ -70,13 +70,11 @@ export function wireDrawer() {
 }
 
 export function restoreLayout() {
-  try {
-    if (localStorage.getItem('reader:sidebar') === 'hidden') toggleSidebar(true);
-    if (localStorage.getItem('reader:help') === 'shown') toggleHelp(true);
-    // 'read' is what work mode was called.
-    if (['work', 'read'].includes(localStorage.getItem('reader:mode'))) setWorking(true);
-    deck.notes = localStorage.getItem('reader:notes') === 'shown';
-  } catch { /* ignore */ }
+  if (remembered('reader:sidebar') === 'hidden') toggleSidebar(true);
+  if (remembered('reader:help') === 'shown') toggleHelp(true);
+  // 'read' is what work mode was called.
+  if (['work', 'read'].includes(remembered('reader:mode'))) setWorking(true);
+  deck.notes = remembered('reader:notes') === 'shown';
 }
 
 /**
@@ -101,5 +99,5 @@ export function setWorking(on) {
   } else if (state.current?.type === 'md' && !deck.open) {
     el.editor.focus({ preventScroll: true });
   }
-  try { localStorage.setItem('reader:mode', on ? 'work' : 'edit'); } catch { /* ignore */ }
+  remember('reader:mode', on ? 'work' : 'edit');
 }

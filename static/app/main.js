@@ -4,7 +4,7 @@
  * and connects the page's events and keys to them.
  */
 
-import { el, state, deck, dirty } from './state.js';
+import { el, state, deck, dirty, remember } from './state.js';
 import { api } from './api.js';
 import { dirOf } from './versions.js';
 import { loadTree, drawTree, visiblePaths, step, open, follow, createFile, showNewForm, go, reveal, rememberedDir, onListKey, onListDoubleClick } from './files.js';
@@ -173,7 +173,7 @@ function wire() {
   el.sidebarToggle.addEventListener('click', () => toggleSidebar());
   el.helpToggle.addEventListener('click', () => {
     toggleHelp();
-    try { localStorage.setItem('reader:help', el.help.hidden ? 'hidden' : 'shown'); } catch { /* ignore */ }
+    remember('reader:help', el.help.hidden ? 'hidden' : 'shown');
   });
 
   el.reloadBtn.addEventListener('click', () => reloadFromDisk().catch((e) => toast(e.message, true)));
