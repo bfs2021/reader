@@ -69,19 +69,32 @@ Code steps through its picked lines and its callouts; see [Code](code.md).
 
 ## How a slide sits
 
-A slide's opening heading is its **title**, and stays at the top. The rest
-sits in the **middle** of the space under it, top to bottom. A slide that is
-all headings, a title slide, is centered whole, and so is one with no
-opening heading. A quote, an image, a headline, a number or a `math:[…]` line that is the only
-thing on a slide besides its title is centered across the slide too, and an
-image there is kept to about two thirds of the slide's height.
+A slide's opening heading is its **title**, and stays at the top, on the
+left. The rest sits in the **middle** of the space under it, top to bottom
+and side to side: a short list sits in the middle as a block, its bullets
+still in line with each other, and a paragraph keeps its own alignment. A
+slide with a form, a puzzle, columns or asides keeps the slide's full width.
+A slide that is all headings, a title slide or a one-line statement, is
+centered whole, both ways, and so is one with no opening heading. A quote,
+an image, a headline, a number or a `math:[…]` line that is the only thing
+on a slide besides its title is centered across the slide too, and an image
+there is kept to about two thirds of the slide's height.
 
-A slide **shrinks to fit** the window: everything on it together, puzzles
+A slide is **sized to fit** the window: everything on it together, puzzles
 included, as large as it fits, measured with every step showing so it keeps
-its size as they appear. It shrinks no further than 60%. Code still too
+its size as they appear. A slide with room to spare **grows**, up to twice
+its size, so a statement or a short list fills the screen without one short
+line turning into a poster; its title and its code stay the size they were,
+so titles and code look the same from slide to slide. A slide too full
+**shrinks**, title and code with it, no further than 60%. Code still too
 wide then wraps, and a slide still too tall scrolls, bringing each step
 into view as it appears. The speaker view says how much the current slide
 shrank.
+
+How big a slide grows or shrinks is decided with the text at 100%; `⌘+`
+and `⌘−` then make that bigger or smaller, as far as it still fits. So `⌘−`
+always makes a slide smaller, and `⌘+` makes it bigger when there's room,
+and never smaller.
 
 Hover **Present** to see which slides shrink below 80%, or don't fit at
 all, at the speaker view's size (1280×720); click one to go to it. Not

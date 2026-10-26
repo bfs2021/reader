@@ -21,9 +21,10 @@
  *
  * A line that is exactly `---` ends a slide, unless it is inside a code fence.
  * A slide's opening heading is its title, kept at the top (`.slide-title`),
- * and the rest (`.slide-body`) sits in the middle of what's left; a slide of
- * headings only, a title slide, is centered whole. One quote, image,
- * headline or line of math alone under the title is centered across the slide too.
+ * and the rest (`.slide-body`) sits in the middle of what's left, both ways;
+ * a slide of headings only, a title slide (`.slide-cover`), is centered
+ * whole. One quote, image, headline or line of math alone under the title
+ * is centered across the slide too.
  *
  * HTML comments are lifted out of a slide as its speaker notes: `slides`
  * sanitizes them away, so they never show in the terminal either. That
@@ -159,20 +160,23 @@ const OPENING = /<(h[1-6])\b[^>]*>[\s\S]*?<\/\1>\n?/y;
 // What's left of a row that held only the title.
 const EMPTY = `${PAIR}</div>\n<div></div>\n</section>\n`;
 const HEADING_LINE = /^[ \t]*(?:#{1,6}[ \t]|:::)/;
+const DOC = '<div class="gm-doc">';
 
 /**
  * Sets a slide's opening heading apart from the rest of it, as
  * `.slide-title` above `.slide-body`, for the stylesheet to keep one at the
- * top and center the other. `src` is the slide as written: one that's all
- * headings is left as it was, to be centered whole.
+ * top and center the other; a slide with no opening heading is all body.
+ * `src` is the slide as written: one that's all headings is a cover
+ * (`.slide-cover`), to be centered whole.
  */
 function titled(body, src) {
-  if (src.split('\n').every((l) => !l.trim() || HEADING_LINE.test(l))) return body;
+  if (src.split('\n').every((l) => !l.trim() || HEADING_LINE.test(l))) return body.replace(DOC, '<div class="gm-doc slide-cover">');
   const at = body.indexOf(PAIR);
+  if (at < 0) return body;
   const end = body.lastIndexOf('</div>');
   OPENING.lastIndex = at + PAIR.length;
-  const heading = at < 0 ? null : OPENING.exec(body);
-  if (!heading) return body;
+  const heading = OPENING.exec(body);
+  if (!heading) return `${body.slice(0, at)}<div class="slide-body">\n${body.slice(at, end)}</div>\n</div>`;
   let rest = PAIR + body.slice(OPENING.lastIndex, end);
   if (rest.startsWith(EMPTY)) rest = rest.slice(EMPTY.length);
   return `${body.slice(0, at)}<header class="slide-title">\n${heading[0].trim()}\n</header>\n<div class="slide-body">\n${rest}</div>\n</div>`;
@@ -198,6 +202,15 @@ const CSS = `
 /* the title at the top, the rest in the middle of what's left */
 :root .slide-body { flex: 1; display: flex; flex-direction: column; justify-content: safe center; }
 :root .slide-title > * { margin-top: 0; }
+/* and in the middle across, as a block, when it's text, lists, quotes,
+   code, tables and images: a short list's bullets sit in the middle,
+   still in line with each other. A form, a puzzle, columns or asides keep
+   the slide's width. */
+:root .gm-doc:not(:has(.gm-asides, .field:not(.field-inline))) .slide-body:not(:has(> .gm-pair > .gm-speaker > :not(p, ul, ol, blockquote, pre, table, figure, hr, h1, h2, h3, h4, h5, h6, .headline, .number))) {
+  align-self: center; width: fit-content; max-width: 100%;
+}
+/* a cover, all headings, is centered across as well as down */
+:root .slide-cover { text-align: center; }
 :root .slide-title h3, :root .slide-title h4 { font-size: 1.4rem; }
 /* one quote, image, headline, number or line of math alone on a slide: centered across it too */
 :root .gm-pair:only-of-type > .gm-speaker > :only-child:is(figure, blockquote:not(.alert), .headline, .number) {

@@ -86,7 +86,7 @@ test('a slide\'s text fills the window, times the deck\'s own text size', () => 
   assert.ok(Math.abs(looks(1920, 1080, 1.25) - 50) < 0.1);
 });
 
-test('a slide\'s opening heading is set apart from the rest, unless it is all headings', () => {
+test('a slide\'s opening heading is set apart from the rest; one that\'s all headings is a cover, and one with none is all body', () => {
   const out = slides([
     '# Title\n\n> a quote\n',
     '# Talk\n## Subtitle\n',
@@ -98,9 +98,24 @@ test('a slide\'s opening heading is set apart from the rest, unless it is all he
   assert.match(quote.body, /<\/section>\n<\/div>\n<\/div>$/);
   assert.equal(quote.body.match(/<h1>/g).length, 1);
   assert.doesNotMatch(cover.body, /slide-title|slide-body/);
-  assert.doesNotMatch(plain.body, /slide-title|slide-body/);
+  assert.match(cover.body, /^<div class="gm-doc slide-cover">/);
+  assert.doesNotMatch(plain.body, /slide-title|slide-cover/);
+  assert.match(plain.body, /^<div class="gm-doc">\n<div class="slide-body">\n<section class="gm-pair">\n<div class="gm-speaker">\n<p>No title here\.<\/p>/);
+  assert.equal(plain.body.match(/<div\b/g).length, plain.body.match(/<\/div>/g).length);
+  assert.doesNotMatch(quote.body, /slide-cover/);
   // An aside written against the title keeps its row.
   assert.match(noted.body, /<div class="slide-body">\n<section class="gm-pair">\n<div class="gm-speaker">\n<\/div>\n<div class="gm-asides">/);
+});
+
+test('a slide\'s body is centered across as a block, unless it holds a form, puzzle or columns, or asides; a cover\'s text is centered', () => {
+  const { css } = slides('# One\n');
+  const rule = /:root \.gm-doc:not\(:has\(\.gm-asides, \.field:not\(\.field-inline\)\)\) \.slide-body:not\(:has\(> \.gm-pair > \.gm-speaker > :not\(([^)]*)\)\)\) \{\s*align-self: center; width: fit-content; max-width: 100%;\s*\}/.exec(css);
+  assert.ok(rule, 'the body is a block as wide as what\'s in it, in the middle');
+  // What's laid out as text is; anything else, a field or a puzzle, keeps the slide's width.
+  const text = rule[1].split(/,\s*/);
+  for (const kind of ['p', 'ul', 'ol', 'blockquote', 'pre', 'table', 'figure', 'h2', '.headline', '.number']) assert.ok(text.includes(kind), kind);
+  for (const kind of ['div', '.field', '.columns']) assert.ok(!text.includes(kind), kind);
+  assert.match(css, /:root \.slide-cover \{ text-align: center; \}/);
 });
 
 test('a title alone in its row leaves no empty row behind', () => {

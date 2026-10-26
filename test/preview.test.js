@@ -305,3 +305,31 @@ test('a slide\'s text is at the deck\'s size, from its render and from a reveal'
   show('<p>Not a slide.</p>');
   assert.equal(scale(), '1');
 });
+
+test('a slide grows to fill the window, up to twice its size, sized at 100% for ⌘+ and ⌘− to size up or down', () => {
+  /** The zoom a slide `tall` windows high at its written size comes to, with the deck's text at `scale`. */
+  const zoom = (tall, scale = 1) => {
+    const { window, show, posted } = preview();
+    const style = window.document.documentElement.style;
+    const value = (name) => Number(style.getPropertyValue(name) || 1);
+    Object.defineProperty(window.HTMLElement.prototype, 'offsetHeight', {
+      get() { return this.classList.contains('gm-doc') ? tall * window.innerHeight * value('--fit') * value('--reader-text-scale') : 0; },
+    });
+    show(slides('# One\n\n- a\n').slides[0].body, { deck: true, scale });
+    return posted.filter((m) => m.type === 'fit').at(-1).zoom;
+  };
+  const near = (a, b) => assert.ok(Math.abs(a - b) < 0.02, `${a} is about ${b}`);
+  // A short slide grows to fill, no further than twice its size.
+  near(zoom(1 / 1.5), 1.5);
+  near(zoom(1 / 4), 2);
+  // One too big shrinks, as before.
+  near(zoom(1.25), 0.8);
+  assert.equal(zoom(2), 0.6);
+  // ⌘+ makes a slide bigger as far as it fits, and never smaller.
+  near(zoom(1 / 4, 1.25) * 1.25, 2.5);
+  near(zoom(1 / 1.5, 1.25) * 1.25, 1.5);
+  near(zoom(1.25, 1.25) * 1.25, 0.8);
+  // ⌘− always makes it smaller.
+  near(zoom(1 / 1.5, 0.8) * 0.8, 1.2);
+  near(zoom(1.25, 0.8) * 0.8, 0.64);
+});

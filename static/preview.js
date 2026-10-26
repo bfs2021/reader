@@ -112,13 +112,19 @@
     }
   }
 
-  // A slide is shrunk to fit the window, everything on it together (`zoom`,
-  // so a puzzle sized by the window shrinks with the text), as large as it
-  // can be and no smaller than FLOOR. It's measured with every step shown,
-  // so its size doesn't change as they appear. Code still too wide at FLOOR
-  // wraps; a slide still too big at FLOOR scrolls. What it came to goes up
-  // to the window showing it, with the render's `measure` id if it had one.
+  // A slide is fitted to the window, everything on it together (`zoom`, so
+  // a puzzle sized by the window keeps in step with the text): as large as
+  // it can be, up to GROW, and no smaller than FLOOR. It's measured with
+  // every step shown, so its size doesn't change as they appear. Code still
+  // too wide at FLOOR wraps; a slide still too big at FLOOR scrolls. What
+  // it came to goes up to the window showing it, with the render's
+  // `measure` id if it had one.
+  //
+  // GROW keeps one short line from filling the screen: twice the size,
+  // a statement's heading is a few words to a line, and a short list
+  // reads from the back of the room without looking like a poster.
   const FLOOR = 0.6;
+  const GROW = 2;
   let fitted = { zoom: 1, fits: true, wrapped: false, over: false };
 
   function zoomTo(z) {
@@ -135,14 +141,14 @@
     return [...doc.querySelectorAll('pre')].every((pre) => pre.scrollWidth <= pre.clientWidth + 1);
   }
 
-  /** The largest zoom from FLOOR to 1 at which the slide fits, or null. */
-  function largest() {
-    zoomTo(1);
-    if (fits()) return 1;
+  /** The largest zoom from FLOOR to `top` at which the slide fits, or null. */
+  function largest(top) {
+    zoomTo(top);
+    if (fits()) return top;
     zoomTo(FLOOR);
     if (!fits()) return null;
     let lo = FLOOR;
-    let hi = 1;
+    let hi = top;
     while (hi - lo > 0.01) {
       const mid = (lo + hi) / 2;
       zoomTo(mid);
@@ -160,6 +166,23 @@
     return was !== String(scale);
   }
 
+  /**
+   * The slide's zoom, or null if it doesn't fit even at FLOOR. How large it
+   * grows, or how small it shrinks, is decided at the deck's own text size,
+   * 100%; ⌘+ and ⌘− then size that up or down, as far as it still fits. So
+   * ⌘− always makes a slide smaller, and ⌘+ makes it bigger if there's room
+   * and never smaller.
+   */
+  function sized() {
+    const root = document.documentElement.style;
+    const scale = root.getPropertyValue('--reader-text-scale');
+    if (!scale || Number(scale) === 1) return largest(GROW);
+    root.setProperty('--reader-text-scale', '1');
+    const most = largest(GROW);
+    root.setProperty('--reader-text-scale', scale);
+    return largest(Math.max(most ?? FLOOR, FLOOR));
+  }
+
   function fit(measure) {
     const root = document.documentElement;
     root.classList.remove('fit-wrap', 'fit-over');
@@ -168,11 +191,11 @@
       fitted = { zoom: 1, fits: true, wrapped: false, over: false };
       return;
     }
-    let zoom = largest();
+    let zoom = sized();
     const wrapped = zoom == null && [...document.querySelectorAll('.gm-doc pre')].some((pre) => pre.scrollWidth > pre.clientWidth + 1);
     if (wrapped) {
       root.classList.add('fit-wrap');
-      zoom = largest();
+      zoom = sized();
     }
     const over = zoom == null;
     root.classList.toggle('fit-over', over);
