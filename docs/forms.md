@@ -63,7 +63,9 @@ move to the next field or the one before. The value is shown just as typed,
 with no markdown.
 
 On a slide being presented, or on an exported page, a field can't be filled
-in: it reads as its label and what's written there, or as blank.
+in: it reads as its label and what's written there, or as blank. A field of
+choices, below, is the exception on a slide: its buttons still pick. On an
+exported page they can be clicked, but nothing is saved.
 
 A field whose value is nothing but `( )` choices is one to pick from, its
 radio buttons in a row after the label. Clicking one writes `(x)` in front
