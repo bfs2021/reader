@@ -36,8 +36,7 @@
  * (`pages`): each slide a page of the document, at the size it's written.
  */
 
-import path from 'node:path';
-import { render, renderNotes } from './render.js';
+import { render, renderNotes, titleOf } from './render.js';
 import { readNotes, plan, planEnd, duration } from './pacing.js';
 import { readBackground, liftBackground } from './background.js';
 import { readTransition, liftTransition } from './transition.js';
@@ -54,7 +53,7 @@ export function isDeck(src) {
 
 export function slides(src, { file, read } = {}) {
   const { meta, key, slides: chunks } = split(src);
-  const title = meta.title || (file ? path.basename(file, path.extname(file)) : 'Untitled');
+  const title = titleOf(meta, file);
   let css = '';
   const out = [];
   // Kept by features across the slides, to number things through the deck.
@@ -89,6 +88,7 @@ export function pages(src, { file, read, lines = true, drawn, exported } = {}) {
   let css = '';
   const out = [];
   const shared = {};
+  const title = titleOf(meta, file);
   const behind = readBackground(meta.background);
   for (const { text, line } of chunks) {
     const lifted = lift(text);
@@ -98,7 +98,7 @@ export function pages(src, { file, read, lines = true, drawn, exported } = {}) {
     css ||= r.css;
     out.push({ body: unmast(r.body), line });
   }
-  return { css, meta, pages: out };
+  return { css, title, meta, pages: out };
 }
 
 /**

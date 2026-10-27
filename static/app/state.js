@@ -49,6 +49,7 @@ export const deck = {
   open: false,
   slides: [],           // [{ body, notes, line }]
   css: '',
+  title: '',            // the deck's own, from its front matter or its file's name
   meta: {},
   end: null,            // when the talk should end, by its plan
   index: 0,

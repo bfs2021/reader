@@ -457,3 +457,15 @@ test('a slide\'s title is its opening heading, as the stage says it', () => {
   assert.equal(steps(two).title, '');
   assert.equal(steps(three).title, 'Two');
 });
+
+test("the stage is sent the deck's title, so the frame is titled with it", async () => {
+  const sent = [];
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => sent.push(m) }, configurable: true });
+  state.current = { path: 'talk.md', type: 'md' };
+  Object.assign(deck, { open: true, stageReady: null, meta: {}, css: '', index: 0, reveal: 0, notes: false, channel: null, title: 'talk' });
+  deck.slides = [{ body: '<p>one</p>', steps: 0, notesHtml: '' }];
+  await showSlide();
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].title, 'talk');
+  deck.open = false;
+});
