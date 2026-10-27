@@ -43,7 +43,7 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | `static/app/` | the app, a module each: `main.js` (start, events, keys), `files.js` (the file list), `outline.js` and `sections.js` (the open file's outline), `goto.js` (going to a place, `⌃G`), `extracting.js` (taking a part out into a file), `versions.js` (folders, and which files are versions of which), `manage.js` (branching, renaming, the trash), `render.js` (the preview), `saving.js`, `editing.js`, `lines.js` (line numbers, copying where you are), `modes.js` (layout, work mode), `sync.js` (scrolling the editor and the preview together), `pages.js` (a deck worked through a page at a time), `dots.js` (a workbook's dots), `deck.js` (presenting), `moves.js` (where each key moves the deck), `screens.js` (two-screen presenting), `fit.js` (slides that don't fit), `exporting.js` (saving a document as HTML, and printing it), `sheets.js` (a deck's pages scaled to fill the paper), `pdf.js`, `status.js`, `api.js`, `state.js` |
 | `static/preview.html` | the sandboxed preview frame |
 | `static/markdown.js` | reading markdown as written, for the server and the app alike: the front matter, and which lines are fenced code |
-| `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait`; and what features lend each other there: `Preview.stageLine` and `Preview.setStage` (tasks: a staged box moved by another's edit) and `Preview.multiple` (count: the multiple a recipe is at) |
+| `static/preview-api.js` | what the frame offers the scripts drawn into it: `Preview.edit`, `Preview.register`, `Preview.wait`; and what features lend each other there: `Preview.stageLine` and `Preview.setStage` (tasks: a staged box moved by another's edit) and `Preview.boxLine` (tasks: the edit a box's tick makes, for ingredients) |
 | `static/preview.js` | the frame itself: rendering, slide steps, fitting a slide, image peeks, shortcuts |
 | `static/ink.js` | light text or dark on what's behind a page, by contrast: for the preview frame, and inside an exported page |
 | `static/edits.js` | edits the preview asks for, checked against the lines they were drawn from |
@@ -53,6 +53,8 @@ in a `::: tabs` block, its `+++ Source` and `+++ Rendered` tabs.
 | `features/puzzles/` | puzzle fences: found and wrapped (`index.js`), drawn, played and posted back in the preview (`preview.js`) |
 | `features/puzzles/kinds/` | one file per kind of puzzle; a file here is a fence name |
 | `static/speaker.html`, `static/speaker.js` | the speaker view for a deck being presented |
+| `static/overview.js`, `static/overview.css` | the overview, every slide as a thumbnail to pick from (`O`), shared by the deck and the speaker view |
+| `static/spoken.js` | a slide as a screen reader hears it, shared by the deck and the preview frame, so the two say a slide alike |
 | `test/dom.js` | a page for the tests of what runs in a browser (happy-dom's), and the preview frame as the server serves it |
 
 PDF.js is vendored in `static/vendor/`, Mermaid in `features/mermaid/vendor/`, and the sites' marks in `features/social/icons/`; their versions and licenses are noted there.
