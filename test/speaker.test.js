@@ -192,6 +192,25 @@ test('O lays out every slide here, those done apart from those to come, and Ente
   assert.ok(window.document.activeElement === $('timer'), 'the keyboard is back where it was');
 });
 
+test('the overview\'s thumbnails here are drawn again at the room\'s new text size', () => {
+  const { $, press, window, say } = speaker();
+  say({ type: 'deck', open: true, index: 0, reveal: 0, scale: 1, slides: [{ body: 'a' }, { body: 'b' }], meta: {} });
+  // Every thumbnail in view.
+  window.IntersectionObserver = class {
+    constructor(fn) { this.fn = fn; }
+    observe(target) { this.fn([{ target, isIntersecting: true }]); }
+    unobserve() {}
+    disconnect() {}
+  };
+  press('O');
+  const frame = $('overview').querySelector('iframe');
+  const drawn = [];
+  Object.defineProperty(frame, 'contentWindow', { value: { postMessage: (m) => drawn.push(m) }, configurable: true });
+  window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'ready' }, source: frame.contentWindow }));
+  say({ type: 'scale', scale: 1.5 });
+  assert.deepEqual([drawn.length, drawn.at(-1).body, drawn.at(-1).scale], [2, 'a', 1.5]);
+});
+
 test('Esc puts the overview away here, the deck where it was', () => {
   const { $, sent, press, say } = speaker();
   say({ type: 'deck', open: true, index: 0, reveal: 0, slides: [{ body: '' }, { body: '' }], meta: {} });

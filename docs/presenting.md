@@ -133,7 +133,8 @@ its start, and `Esc` goes back to where you were. It's handy for a backup
 slide at question time, or for rehearsing.
 
 A thumbnail is the slide as the stage draws it, every step showing, at the
-text size and fit the slides have. A screen reader hears "Overview, slide 3
+text size and fit the slides have; `⌘+`, `⌘−` and `⌘0` still size the
+text while the overview is out, and the thumbnails follow. A screen reader hears "Overview, slide 3
 of 12" as it opens, and each slide's number and title as the highlight
 moves.
 

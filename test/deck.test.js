@@ -344,6 +344,39 @@ test('a thumbnail is drawn as it comes into view, the slide whole, at the deck\'
   window.IntersectionObserver = IO;
 });
 
+test('⌘+, ⌘− and ⌘0 size the slides\' text with the overview out, and its thumbnails are drawn again at the new size', () => {
+  const IO = window.IntersectionObserver;
+  let seen = null;
+  window.IntersectionObserver = class {
+    constructor(fn) { seen = (targets) => fn(targets.map((target) => ({ target, isIntersecting: true }))); }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  const asked = presenting(4, { index: 1 });
+  deckKey({ key: 'O' });
+  seen(options().slice(0, 2));
+  const drawn = [];
+  const frame = options()[0].querySelector('iframe');
+  Object.defineProperty(frame, 'contentWindow', { value: { postMessage: (m) => drawn.push(m) }, configurable: true });
+  window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'ready' }, source: frame.contentWindow }));
+  // One drawn, one still loading.
+  Object.defineProperty(options()[1].querySelector('iframe'), 'contentWindow', { value: { postMessage: () => assert.fail('not ready') }, configurable: true });
+  assert.equal(deckKey({ key: '=', metaKey: true }), true, '⌘= is the deck\'s');
+  assert.equal(deck.scale, 1.1);
+  assert.equal(el.deckSays.textContent, 'Text 110%');
+  assert.deepEqual(asked.at(-1), { type: 'reveal', reveal: 0, scale: 1.1 });
+  assert.deepEqual([drawn.length, drawn.at(-1).body, drawn.at(-1).scale], [2, '<h1>S1</h1>', 1.1]);
+  deckKey({ key: '0', ctrlKey: true });
+  assert.equal(drawn.at(-1).scale, 1);
+  // The overview is still out, with the keyboard where it was.
+  assert.ok(!el.overview.hidden);
+  assert.ok(window.document.activeElement === options()[1], 'the highlight keeps the keyboard');
+  deckKey({ key: 'Escape' });
+  deck.open = false;
+  window.IntersectionObserver = IO;
+});
+
 test('a slide\'s title is its opening heading, as the stage says it', () => {
   const [one, two, three] = bodies('# One *more*\n\nhi\n\n---\n\nno heading\n\n---\n\n## Two\n');
   assert.equal(steps(one).title, 'One more');

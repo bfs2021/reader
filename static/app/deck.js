@@ -232,7 +232,8 @@ export function closeDeck() {
 
 // O lays every slide out as a thumbnail, over the stage, to pick one from
 // (see static/overview.js): it goes to the slide picked, from its start.
-// While it's out, the rest of the deck is out of reach, and the keys are its.
+// While it's out, the rest of the deck is out of reach, and the keys are its,
+// but for the text size's.
 let overview = null;
 
 export function openOverview() {
@@ -335,13 +336,15 @@ function resize(scale) {
   deck.scale = scale;
   el.stage.contentWindow.postMessage({ type: 'reveal', reveal: deck.reveal, scale }, '*');
   deck.channel?.postMessage({ type: 'scale', scale });
+  overview?.redraw();
   el.deckSays.textContent = `Text ${Math.round(scale * 100)}%`;
 }
 
 /** Keys while presenting. True if the key was the deck's. */
 export function deckKey(e) {
-  if (overview?.isOpen) return overview.key(e);
+  // The text size changes under the overview too, its thumbnails with it.
   if (sizeKey(e)) return true;
+  if (overview?.isOpen) return overview.key(e);
   if (e.metaKey || e.ctrlKey || e.altKey) return false;
   switch (e.key) {
     case 'n': case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter':

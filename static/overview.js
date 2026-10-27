@@ -147,6 +147,13 @@
       waiting.set(frame, Number(li.dataset.index));
     }
 
+    /** Draws again the thumbnails drawn so far, as the deck now draws a slide (at its text size). */
+    function redraw() {
+      for (const frame of root.querySelectorAll('iframe')) {
+        if (!waiting.has(frame)) frame.contentWindow?.postMessage(draw(Number(frame.closest('li').dataset.index)), '*');
+      }
+    }
+
     function fit(frame) {
       frame.style.transform = `scale(${frame.parentElement.clientWidth / WIDTH})`;
     }
@@ -195,7 +202,7 @@
     }
 
     return {
-      open, close, key, mark,
+      open, close, key, mark, redraw,
       get isOpen() { return !root.hidden; },
     };
   }

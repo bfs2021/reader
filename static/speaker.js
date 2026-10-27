@@ -165,6 +165,7 @@ channel.addEventListener('message', (e) => {
   } else if (m.type === 'scale') {
     deck.scale = m.scale;
     draw();
+    overview.redraw();
   } else if (m.type === 'end') {
     deck.open = false;
     waiting(true);
