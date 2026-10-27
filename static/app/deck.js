@@ -243,12 +243,18 @@ export function openOverview() {
     }),
     number: paging,
     say: (text) => { el.deckSays.textContent = text; },
-    pick: (i) => go(i, 0),
-    closed() {
+    pick(i) {
+      // Where the deck goes is said, as for any slide come to; the slide
+      // showing, picked at its start, goes nowhere, and says so too.
+      if (i === deck.index && !deck.reveal) showSlide({ render: false, say: { title: true } });
+      else go(i, 0);
+    },
+    closed({ picked }) {
       el.stage.inert = el.deckNotes.inert = el.deckFoot.inert = false;
       if (!deck.open) return;
       el.deck.focus();
-      el.deckSays.textContent = where();
+      // Put away by Esc, it says where the deck still is; picked, only where it went.
+      if (!picked) el.deckSays.textContent = where();
     },
   });
   if (overview.isOpen) return;

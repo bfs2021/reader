@@ -30,7 +30,7 @@
    *   number(i)   what slide i's thumbnail is numbered
    *   say(text)   says it aloud
    *   pick(i)     goes to slide i, once the overview is away
-   *   closed()    the overview was put away, by Esc or a pick
+   *   closed(how) the overview was put away, by Esc or a pick (`how.picked`)
    *   done        slides before the current one show as done
    */
   function create(root, { draw, number, say, pick, closed, done = false }) {
@@ -89,14 +89,14 @@
       say(`Overview, slide ${current + 1} of ${slides.length}`);
     }
 
-    function close() {
+    function close({ picked = false } = {}) {
       if (root.hidden) return;
       root.hidden = true;
       observer?.disconnect();
       observer = null;
       waiting.clear();
       list.replaceChildren();
-      closed();
+      closed({ picked });
     }
 
     /** Marks the slide being shown, and with `done`, those before it. */
@@ -172,7 +172,7 @@
     });
 
     function choose(i) {
-      close();
+      close({ picked: true });
       pick(i);
     }
 

@@ -280,11 +280,25 @@ test('Enter goes to the highlighted slide from its start, and gives the keyboard
   assert.equal(asked.at(-1).reveal, 0);
   assert.ok(window.document.activeElement === el.deck, 'the deck has the keyboard');
   assert.ok(!el.stage.inert && !el.deckNotes.inert && !el.deckFoot.inert);
+  // Only where it went is said, once the stage says what showed; not where it was.
+  assert.notEqual(el.deckSays.textContent, 'Slide 3 of 12, step 1 of 2');
+  assert.deepEqual(asked.at(-1).say, { title: true, index: 4, reveal: 0 });
+  revealed({ ...asked.at(-1).say, says: 'Title 5' });
+  assert.equal(el.deckSays.textContent, 'Slide 5 of 12: Title 5');
   // The slide showing, picked, starts over.
   deckKey({ key: 'n' });
   deckKey({ key: 'O' });
   deckKey({ key: 'Enter' });
   assert.deepEqual([deck.index, deck.reveal], [4, 0]);
+  // Picked at its start, it goes nowhere, and says so as a slide come to.
+  deckKey({ key: 'O' });
+  asked.length = 0;
+  deckKey({ key: 'Enter' });
+  await deck.stageReady;
+  await null;
+  assert.deepEqual([asked.at(-1).type, asked.at(-1).say], ['reveal', { title: true, index: 4, reveal: 0 }]);
+  revealed({ ...asked.at(-1).say, says: 'Title 5' });
+  assert.equal(el.deckSays.textContent, 'Slide 5 of 12: Title 5');
   deck.open = false;
 });
 
