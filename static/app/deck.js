@@ -151,7 +151,9 @@ export async function showSlide({ render = true, transition, say } = {}) {
   // Said aloud as it changes, the slide's number and how far into it; and
   // what showed, once the stage says (revealed).
   el.stage.title = `Slide ${i + 1} of ${deck.slides.length}`;
-  if (!say) el.deckSays.textContent = where();
+  if (!say && !overview?.isOpen) el.deckSays.textContent = where();
+  // The overview, out while the speaker view moves the deck, rings where it went.
+  overview?.mark(i);
   el.deckNotes.innerHTML = slide.notesHtml;
   el.deckNotes.hidden = !deck.notes || !slide.notes;
   deck.channel?.postMessage({ type: 'go', index: i, reveal: deck.reveal });
@@ -164,9 +166,12 @@ function where() {
   return deck.reveal ? `${at}, step ${Math.min(deck.reveal, slide.steps)} of ${slide.steps}` : at;
 }
 
-/** The stage showed what it was asked to say: said after where the deck is, unless the deck has moved on. */
+/**
+ * The stage showed what it was asked to say: said after where the deck is,
+ * unless the deck has moved on, or the overview is out and has the say.
+ */
 export function revealed({ index, reveal, says }) {
-  if (!deck.open || index !== deck.index || reveal !== deck.reveal) return;
+  if (!deck.open || overview?.isOpen || index !== deck.index || reveal !== deck.reveal) return;
   el.deckSays.textContent = says ? `${where()}: ${says}` : where();
 }
 
@@ -314,7 +319,8 @@ export function onSpeakerMessage(e) {
   const m = e.data || {};
   if (m.type === 'hello' && deck.open) announce();
   else if (m.type === 'go') go(m.index, m.reveal);
-  else if (m.type === 'key') deckKey(m);
+  // The speaker view's keys move the deck, the room's overview out or not.
+  else if (m.type === 'key') deckKey(m, { overview: false });
 }
 
 // The slides' text size, a step at a time by ⌘+ and ⌘−, through the
@@ -345,11 +351,11 @@ function resize(scale) {
   el.deckSays.textContent = `Text ${Math.round(scale * 100)}%`;
 }
 
-/** Keys while presenting. True if the key was the deck's. */
-export function deckKey(e) {
+/** Keys while presenting; with `overview: false`, none of them the overview's. True if the key was the deck's. */
+export function deckKey(e, { overview: toOverview = true } = {}) {
   // The text size changes under the overview too, its thumbnails with it.
   if (sizeKey(e)) return true;
-  if (overview?.isOpen) return overview.key(e);
+  if (overview?.isOpen && toOverview) return overview.key(e);
   if (e.metaKey || e.ctrlKey || e.altKey) return false;
   switch (e.key) {
     case 'n': case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter':

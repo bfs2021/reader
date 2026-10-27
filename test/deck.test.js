@@ -8,7 +8,7 @@ const window = globals(app());
 const read = (html) => new window.DOMParser().parseFromString(html, 'text/html').body;
 
 const { deck, el, state } = await import('../static/app/state.js');
-const { paging, steps, deckKey, go, revealed, showSlide, present, closeDeck } = await import('../static/app/deck.js');
+const { paging, steps, deckKey, go, revealed, showSlide, present, closeDeck, onSpeakerMessage } = await import('../static/app/deck.js');
 
 /** Each thing a slide's steps show, by the step it shows with: [step, its text]. */
 function stepped(body) {
@@ -305,6 +305,32 @@ test('Enter goes to the highlighted slide from its start, and gives the keyboard
   assert.deepEqual([asked.at(-1).type, asked.at(-1).say], ['reveal', { title: true, index: 4, reveal: 0 }]);
   revealed({ ...asked.at(-1).say, says: 'Title 5' });
   assert.equal(el.deckSays.textContent, 'Slide 5 of 12: Title 5');
+  deck.open = false;
+});
+
+test('the speaker view moving the deck with the overview out rings the slide it went to, and the overview keeps the say', async () => {
+  const asked = presenting(12, { index: 1, reveal: 1 });
+  deckKey({ key: 'O' });
+  deckKey({ key: 'ArrowRight' });
+  onSpeakerMessage({ data: { type: 'go', index: 5, reveal: 0 } });
+  await deck.stageReady;
+  await null;
+  const ringed = options().filter((o) => o.classList.contains('now'));
+  assert.deepEqual(ringed.map((o) => o.dataset.index), ['5']);
+  assert.equal(options()[5].getAttribute('aria-current'), 'true');
+  assert.equal(options()[5].getAttribute('aria-label'), 'Slide 6 of 12: Title 6 (now)');
+  assert.equal(options()[1].getAttribute('aria-label'), 'Slide 2 of 12: Title 2');
+  // The highlight stays where it was, and the stage's word on the slide isn't said over the overview.
+  assert.ok(window.document.activeElement === options()[2], 'the highlight keeps the keyboard');
+  revealed({ ...asked.at(-1).say, says: 'Title 6' });
+  // Its keys move the deck too, not the room's highlight.
+  onSpeakerMessage({ data: { type: 'key', key: 'ArrowRight' } });
+  assert.deepEqual([deck.index, deck.reveal], [5, 1]);
+  assert.ok(window.document.activeElement === options()[2], 'the highlight stays put');
+  revealed({ index: 5, reveal: 1, says: 'a point' });
+  assert.equal(el.deckSays.textContent, 'Overview');
+  deckKey({ key: 'Escape' });
+  assert.equal(el.deckSays.textContent, 'Slide 6 of 12, step 1 of 2');
   deck.open = false;
 });
 
