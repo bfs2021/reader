@@ -213,6 +213,9 @@ test('O lays out every slide, numbered as paging says, the one showing highlight
   assert.equal(deckKey({ key: 'O' }), true);
   assert.ok(!el.overview.hidden);
   assert.equal(options().length, 12);
+  // Its keys are heard with it.
+  const list = el.overview.querySelector('[role="listbox"]');
+  assert.equal(window.document.getElementById(list.getAttribute('aria-describedby'))?.textContent, 'Arrows move · Enter goes to the slide, from its start · Esc back');
   assert.deepEqual(options().slice(0, 2).map((o) => o.querySelector('.overview-number').textContent), ['Slide 1 / 12', 'Slide 2 / 12']);
   // Its title on hover, and as its name.
   assert.equal(options()[0].title, 'Title 1');

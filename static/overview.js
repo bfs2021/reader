@@ -46,6 +46,9 @@
     const hint = document.createElement('p');
     hint.className = 'overview-hint';
     hint.textContent = 'Arrows move · Enter goes to the slide, from its start · Esc back';
+    // The keys are heard with the list, as well as seen above it.
+    hint.id = `${root.id}-hint`;
+    list.setAttribute('aria-describedby', hint.id);
     root.append(hint, list);
 
     const options = () => [...list.children];
