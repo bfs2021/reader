@@ -62,6 +62,14 @@ test('the term written with a ! elsewhere shows its meaning on hover', () => {
   assert.match(body, /A <span class="def-use" tabindex="0" aria-describedby="def-pop-2">Sealed interface<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">sealed interface<\/b> <span id="def-pop-2">closed<\/span><\/span><\/span>, a sealed interface\./);
 });
 
+test('a term written plural or singular is the term', () => {
+  const { body } = render('!innovation token: one new thing\n!SLO: service level objective\n!policies: rules\n\n- three !innovation tokens, two !SLOs, one !policy\n\n!SLOS and !slos as typed\n');
+  const term = (text, t) => `<span class="def-use" tabindex="0" aria-describedby="def-pop-\\d+">${text}<span class="def-pop" role="tooltip" aria-hidden="true"><b class="def-pop-term">${t}</b>`;
+  assert.match(body, new RegExp(`three ${term('innovation tokens', 'innovation token')}.*two ${term('SLOs', 'SLO')}.*one ${term('policy', 'policies')}`));
+  assert.match(body, /<p>!SLOS and !slos as typed<\/p>/);
+  assert.doesNotMatch(body, /ingredient/);
+});
+
 test('a term with senses, or none yet, says so on hover', () => {
   const { body } = render('!g: one\n!g: *two*\n!h:\n\n!g and !h\n');
   assert.match(body, /<b class="def-pop-term">g<\/b> <span id="def-pop-1"><b class="def-pop-sense">1\.<\/b> one <b class="def-pop-sense">2\.<\/b> <em>two<\/em><\/span><\/span>/);

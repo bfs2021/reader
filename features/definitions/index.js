@@ -27,6 +27,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { beforeAsides, readLines, escapeHtml, escapeAttr, textToken } from '../source.js';
 import { typable } from '../fields/index.js';
+import { forms } from '../ingredients/index.js';
 
 // A term can't open with `[` (an image) and holds no colon or parentheses.
 // A name may hold a link, whose address is in parentheses of its own.
@@ -168,11 +169,15 @@ function uses(state) {
   if (state.inlineMode) return;
   const known = state.env.shared?.definitions;
   if (!known?.size) return;
-  const terms = [...known.keys()].sort((a, b) => a.length - b.length);
-  const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  // An acronym is matched as written, or with an `s`; a word or phrase in
+  // lower case, in any case, plural or singular (`!innovation tokens`).
+  const written = new Map();
+  for (const t of known.keys()) {
+    for (const f of t === t.toLowerCase() ? forms(t) : [t, `${t}s`]) if (!written.has(f)) written.set(f, t);
+  }
+  const escaped = [...written.keys()].sort((a, b) => a.length - b.length).map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const find = new RegExp(`(?<![\\p{L}\\p{N}_])!(?:${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
-  // An acronym is matched as written; a word or phrase in lower case, in any case.
-  const term = (text) => (known.has(text) ? text : terms.find((t) => t === t.toLowerCase() && t === text.toLowerCase()));
+  const term = (text) => (known.has(text) ? text : written.get(text) ?? written.get(text.toLowerCase()));
 
   for (const block of state.tokens) {
     if (block.type !== 'inline' || !block.children) continue;

@@ -108,8 +108,9 @@ Written with a `!` before it anywhere else in the document -- before its
 definition or after, in an aside, on a later slide of a deck -- the term is
 set as it is in its entry, and its meaning shows on hover.
 
-A term in capitals is matched as written; one in lower case, in any case
-(`!Sealed interface` at the start of a sentence). A `!` before a word that
+A term in capitals is matched as written, or with an `s` (`!SLOs`); one in
+lower case, in any case and plural or singular (`!Sealed interfaces` at the
+start of a sentence). A `!` before a word that
 isn't defined is left as typed, as are code and links.
 
 A backslash (`\!SLAB:`, `\!SLAB`) keeps a line or a word that happens to
