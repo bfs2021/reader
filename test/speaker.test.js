@@ -189,6 +189,7 @@ test('O lays out every slide here, those done apart from those to come, and Ente
   press('Enter');
   assert.ok($('overview').hidden);
   assert.deepEqual(sent.at(-1), { type: 'go', index: 4, reveal: 0 });
+  assert.equal($('overview-heard').textContent, 'Slide 5 of 6: Title 5', 'where the deck went is said');
   assert.ok(!$('speaker').inert);
   assert.ok(window.document.activeElement === $('timer'), 'the keyboard is back where it was');
 });
@@ -212,14 +213,15 @@ test('the overview\'s thumbnails here are drawn again at the room\'s new text si
   assert.deepEqual([drawn.length, drawn.at(-1).body, drawn.at(-1).scale], [2, 'a', 1.5]);
 });
 
-test('Esc puts the overview away here, the deck where it was', () => {
+test('Esc puts the overview away here, the deck where it was, and says so', () => {
   const { $, sent, press, say } = speaker();
-  say({ type: 'deck', open: true, index: 0, reveal: 0, slides: [{ body: '' }, { body: '' }], meta: {} });
+  say({ type: 'deck', open: true, index: 0, reveal: 1, slides: [{ body: '', steps: 2 }, { body: '' }], meta: {} });
   press('o');
   press('ArrowRight');
   press('Escape');
   assert.ok($('overview').hidden);
   assert.deepEqual(sent.filter((m) => m.type === 'go'), []);
+  assert.equal($('overview-heard').textContent, 'Slide 1 of 2, step 1 of 2', 'where the deck still is is said');
   // With no deck open, there's nothing to lay out.
   say({ type: 'end' });
   press('o');

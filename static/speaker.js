@@ -122,8 +122,23 @@ function pace(elapsed) {
 
 // O lays every slide out as a thumbnail, here and not in the room: those
 // done faded, the one showing ringed (see overview.js). The deck goes to the
-// slide picked, from its start.
+// slide picked, from its start. Put away, it says where the deck is, as the
+// deck does: where it went, for a pick, and where it still is, for Esc.
 let back = null;  // what had the keyboard before
+
+/** Where the deck is: `Slide 2 of 5, step 1 of 4`. */
+function where() {
+  const at = `Slide ${deck.index + 1} of ${deck.slides.length}`;
+  const steps = deck.slides[deck.index]?.steps;
+  return deck.reveal && steps ? `${at}, step ${Math.min(deck.reveal, steps)} of ${steps}` : at;
+}
+
+/** Slide i come to: `Slide 3 of 12: Its title`. */
+function cameTo(i) {
+  const at = `Slide ${i + 1} of ${deck.slides.length}`;
+  return deck.slides[i]?.title ? `${at}: ${deck.slides[i].title}` : at;
+}
+
 const overview = Overview.create($('overview'), {
   draw: (i) => ({
     type: 'render', css: deck.css, body: deck.slides[i].body, base: deck.base, resetScroll: true,
@@ -131,10 +146,14 @@ const overview = Overview.create($('overview'), {
   }),
   number: (i) => Overview.number(deck.meta?.paging, i, deck.slides.length),
   say: (text) => { $('overview-heard').textContent = text; },
-  pick: (i) => channel.postMessage({ type: 'go', index: i, reveal: 0 }),
-  closed() {
+  pick(i) {
+    channel.postMessage({ type: 'go', index: i, reveal: 0 });
+    $('overview-heard').textContent = cameTo(i);
+  },
+  closed({ picked }) {
     $('speaker').inert = !deck.open;
     if (back?.isConnected) back.focus();
+    if (!picked && deck.open) $('overview-heard').textContent = where();
   },
   done: true,
 });
