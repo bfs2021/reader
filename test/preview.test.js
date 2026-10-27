@@ -342,6 +342,16 @@ test('a slide\'s text is at the deck\'s size, from its render and from a reveal'
   assert.equal(scale(), '1');
 });
 
+test('a slide drawn for the speaker view is fitted as on stage, its later steps faint, and says nothing aloud', () => {
+  const { document, show, posted } = preview();
+  show(numbered(slides('# One\n\n- a\n- b\n').slides[0].body).body, { deck: true, reveal: 1, dim: true });
+  assert.ok(document.documentElement.classList.contains('deck'));
+  const steps = [...document.querySelectorAll('[data-step]')];
+  assert.deepEqual(steps.map((n) => [n.classList.contains('step-dim'), n.classList.contains('step-hidden')]), [[false, false], [true, false]]);
+  assert.equal(posted.filter((m) => m.type === 'fit').length, 1);
+  assert.deepEqual(posted.filter((m) => m.type === 'revealed'), []);
+});
+
 test('a slide grows to fill the window, up to twice its size, sized at 100% for ⌘+ and ⌘− to size up or down', () => {
   /** The zoom a slide `tall` windows high at its written size comes to, with the deck's text at `scale`. */
   const zoom = (tall, scale = 1) => {

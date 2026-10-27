@@ -31,7 +31,9 @@ const ready = { now: whenReady($('now')), next: whenReady($('next')) };
 const shown = { now: -1, next: -1 };
 
 // "Now" is what the room sees, with the steps still to come drawn faintly.
-// "Next" is the next slide, whole. Both at the room's text size (⌘+ and ⌘−).
+// "Next" is the next slide, whole. Both are slides as the stage draws them,
+// grown or shrunk to fit at the room's text size (⌘+ and ⌘−). Neither says
+// anything aloud (no `say`): that's the stage's to do, in the room's window.
 async function show(name, i, reveal) {
   await ready[name];
   const slide = deck.slides[i];
@@ -40,7 +42,7 @@ async function show(name, i, reveal) {
   shown[name] = i;
   frame.postMessage({
     type: 'render', css: deck.css, body: slide ? slide.body : '', base: deck.base, resetScroll: true,
-    reveal, dim: name === 'now', dark: Theme.dark(), scale: deck.scale,
+    deck: true, reveal, dim: name === 'now', dark: Theme.dark(), scale: deck.scale,
   }, '*');
 }
 

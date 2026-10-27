@@ -161,6 +161,37 @@ test('the speaker view\'s Now and Next are at the room\'s text size', async () =
   assert.deepEqual([sent.next.at(-1).type, sent.next.at(-1).scale], ['reveal', 1.5]);
 });
 
+test('the speaker view\'s Now and Next are slides as the stage draws them, and Now says how much the slide shrank', async () => {
+  const { $, say } = speaker();
+  const window = $('now').ownerDocument.defaultView;
+  const sent = { now: [], next: [] };
+  const frames = {};
+  for (const name of ['now', 'next']) {
+    frames[name] = { postMessage: (m) => sent[name].push(m) };
+    Object.defineProperty($(name), 'contentWindow', { value: frames[name], configurable: true });
+    window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'ready' }, source: frames[name] }));
+  }
+  say({ type: 'deck', open: true, index: 0, reveal: 1, slides: [{ body: 'a', steps: 2 }, { body: 'b' }], meta: {} });
+  await new Promise((done) => setTimeout(done));
+  const now = sent.now.at(-1);
+  const next = sent.next.at(-1);
+  // Fitted as the room's are, Now with its later steps faint, and neither
+  // saying anything aloud: that's the stage's.
+  assert.deepEqual([now.type, now.deck, now.reveal, now.dim, 'say' in now], ['render', true, 1, true, false]);
+  assert.deepEqual([next.type, next.deck, next.reveal, next.dim, 'say' in next], ['render', true, Infinity, false, false]);
+  const fit = (source, zoom, fits) => window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'fit', zoom, fits }, source }));
+  assert.ok($('fit').hidden);
+  fit(frames.now, 0.8, true);
+  assert.deepEqual([$('fit').hidden, $('fit').textContent], [false, 'shrunk to 80%']);
+  fit(frames.now, 0.6, false);
+  assert.deepEqual([$('fit').hidden, $('fit').textContent, $('fit').classList.contains('over')], [false, "doesn't fit; scrolls", true]);
+  fit(frames.now, 1.5, true);
+  assert.ok($('fit').hidden, 'a slide grown to fill has nothing to say');
+  // Next's own fit isn't the slide on stage.
+  fit(frames.next, 0.7, true);
+  assert.ok($('fit').hidden);
+});
+
 test('O lays out every slide here, those done apart from those to come, and Enter has the deck go to one from its start', () => {
   const { $, sent, press, window, say } = speaker();
   const slides = Array.from({ length: 6 }, (_, i) => ({ body: '', steps: 1, title: `Title ${i + 1}` }));
