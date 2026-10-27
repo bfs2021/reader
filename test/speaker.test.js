@@ -175,11 +175,12 @@ test('O lays out every slide here, those done apart from those to come, and Ente
   assert.equal(options[0].getAttribute('aria-label'), 'Slide 1 of 6: Title 1 (done)');
   assert.equal(options[3].getAttribute('aria-label'), 'Slide 4 of 6: Title 4');
   assert.ok(window.document.activeElement === options[2], 'the slide showing has the keyboard');
-  assert.equal($('overview-heard').textContent, 'Overview, slide 3 of 6');
+  assert.equal($('overview-heard').textContent, 'Overview');
   assert.ok($('speaker').inert, 'the rest is out of reach');
   // The keys are its: they don't move the deck.
   press('ArrowRight');
-  assert.equal($('overview-heard').textContent, 'Slide 4 of 6: Title 4');
+  assert.ok(window.document.activeElement === options[3], 'the slide come to has the keyboard, heard by its name');
+  assert.equal($('overview-heard').textContent, 'Overview');
   assert.deepEqual(sent.filter((m) => m.type === 'key'), []);
   // The deck moving on marks the slides afresh.
   say({ type: 'go', index: 3, reveal: 0 });

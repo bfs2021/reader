@@ -225,7 +225,8 @@ test('O lays out every slide, numbered as paging says, the one showing highlight
   assert.ok(window.document.activeElement === now, 'the slide showing has the keyboard');
   assert.deepEqual(options().map((o) => o.tabIndex).filter((t) => t === 0), [0]);
   assert.equal(now.getAttribute('aria-selected'), 'true');
-  assert.equal(el.deckSays.textContent, 'Overview, slide 3 of 12');
+  // It says it's out; the slide with the keyboard says itself, by its name.
+  assert.equal(el.deckSays.textContent, 'Overview');
   // The rest of the deck is out of reach under it; what it says isn't.
   assert.ok(el.stage.inert && el.deckNotes.inert && el.deckFoot.inert);
   assert.equal(el.deckSays.closest('[inert]'), null);
@@ -233,7 +234,7 @@ test('O lays out every slide, numbered as paging says, the one showing highlight
   deck.open = false;
 });
 
-test('the arrows, Home and End move the highlight and say each slide come to; nothing else moves', () => {
+test('the arrows, Home and End move the highlight, each slide come to heard by its name and only so; nothing else moves', () => {
   const asked = presenting(12, { index: 2 });
   deckKey({ key: 'o' });
   // Laid out four to a row.
@@ -241,7 +242,9 @@ test('the arrows, Home and End move the highlight and say each slide come to; no
   const at = () => options().findIndex((o) => o === window.document.activeElement);
   deckKey({ key: 'ArrowRight' });
   assert.equal(at(), 3);
-  assert.equal(el.deckSays.textContent, 'Slide 4 of 12: Title 4');
+  assert.equal(window.document.activeElement.getAttribute('aria-label'), 'Slide 4 of 12: Title 4');
+  // Not said again in the live region.
+  assert.equal(el.deckSays.textContent, 'Overview');
   deckKey({ key: 'ArrowDown' });
   assert.equal(at(), 7);
   deckKey({ key: 'ArrowLeft' });
@@ -251,7 +254,7 @@ test('the arrows, Home and End move the highlight and say each slide come to; no
   assert.equal(at(), 2, 'no row above the first');
   deckKey({ key: 'End' });
   assert.equal(at(), 11);
-  assert.equal(el.deckSays.textContent, 'Slide 12 of 12: Title 12');
+  assert.equal(el.deckSays.textContent, 'Overview');
   deckKey({ key: 'Home' });
   assert.equal(at(), 0);
   assert.equal(options()[0].tabIndex, 0);

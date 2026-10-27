@@ -28,7 +28,7 @@
    *
    *   draw(i)     the render message that draws slide i, whole
    *   number(i)   what slide i's thumbnail is numbered
-   *   say(text)   says it aloud
+   *   say(text)   says it aloud, in a live region
    *   pick(i)     goes to slide i, once the overview is away
    *   closed(how) the overview was put away, by Esc or a pick (`how.picked`)
    *   done        slides before the current one show as done
@@ -86,7 +86,9 @@
         for (const li of options()) show(li);
       }
       highlight(current, { scroll: 'center' });
-      say(`Overview, slide ${current + 1} of ${slides.length}`);
+      // The slide with the highlight says itself, as it gets the keyboard;
+      // what it doesn't say is that the overview is out.
+      say('Overview');
     }
 
     function close({ picked = false } = {}) {
@@ -112,8 +114,8 @@
       }
     }
 
-    /** Gives slide i the highlight and the keyboard, and says it. */
-    function highlight(i, { scroll = 'nearest', speak = false } = {}) {
+    /** Gives slide i the highlight and the keyboard, so it's heard by its name. */
+    function highlight(i, { scroll = 'nearest' } = {}) {
       const all = options();
       at = Math.max(0, Math.min(all.length - 1, i));
       for (const [k, li] of all.entries()) {
@@ -122,7 +124,6 @@
       }
       all[at].focus({ preventScroll: true });
       all[at].scrollIntoView?.({ block: scroll });
-      if (speak) say(named(at));
     }
 
     /** How many thumbnails make a row, as laid out. */
@@ -190,7 +191,7 @@
       }[e.key];
       if (move != null) {
         const to = Number.isFinite(move) ? at + move : move < 0 ? 0 : slides.length - 1;
-        if (to >= 0 && to < slides.length && to !== at) highlight(to, { speak: true });
+        if (to >= 0 && to < slides.length && to !== at) highlight(to);
       } else if (e.key === 'Enter' || e.key === ' ') {
         choose(at);
       } else if (e.key === 'Escape') {

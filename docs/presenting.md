@@ -134,9 +134,9 @@ slide at question time, or for rehearsing.
 
 A thumbnail is the slide as the stage draws it, every step showing, at the
 text size and fit the slides have; `⌘+`, `⌘−` and `⌘0` still size the
-text while the overview is out, and the thumbnails follow. A screen reader hears "Overview, slide 3
-of 12" as it opens, and each slide's number and title as the highlight
-moves.
+text while the overview is out, and the thumbnails follow. A screen
+reader hears "Overview" as it opens, and each slide's number and title as
+the highlight moves to it.
 
 `O` in the speaker view opens it there instead, out of the room's sight.
 There the slides already done are faded and ticked, apart from those still
