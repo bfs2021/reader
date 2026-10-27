@@ -195,9 +195,10 @@ function buildMenu() {
 }
 
 // The folder named on the command line, as Windows' "Open with" and a
-// shortcut give it; in a checkout, after `electron main.js`.
+// shortcut give it; in a checkout, after `electron main.js`. The flags go
+// first: a second instance's argv has Chromium's before the app's path.
 function folderIn(argv, cwd = process.cwd()) {
-  const args = argv.slice(app.isPackaged ? 1 : 2).filter((a) => !a.startsWith('-'));
+  const args = argv.filter((a) => !a.startsWith('-')).slice(app.isPackaged ? 1 : 2);
   return args.map((a) => path.resolve(cwd, a)).find(isDir);
 }
 
