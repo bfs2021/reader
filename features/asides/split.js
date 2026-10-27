@@ -63,6 +63,10 @@ export function lastBlockBefore(tokens, anchor, { into = false } = {}) {
     // thing being said; only leaf blocks anchor an aside. `inline` is the
     // payload of a block that already counted, so it is skipped too.
     if (CONTAINERS.has(t.type) || t.type === 'inline') continue;
+    // A row beside an aside after a quote opens with the quote's words, not
+    // its attribution, which stays in the row with them; the words an aside
+    // names can still be in the attribution.
+    if (isByline(t) && !into) continue;
     found = t;
     // What's laid out as one thing (columns) is one block, however much is
     // in it: an aside is beside all of it, and never cuts it. Looking `into`
@@ -70,6 +74,17 @@ export function lastBlockBefore(tokens, anchor, { into = false } = {}) {
     if (t.meta?.whole && t.nesting === 1 && !into) i = closeOf(tokens, i);
   }
   return found;
+}
+
+function isByline(t) {
+  return t.type === 'paragraph_open' && (t.attrGet('class') || '').split(' ').includes('quote-by');
+}
+
+/** The source line `block` ends on, with the attribution after it, if any. */
+function endOf(tokens, block) {
+  const i = tokens.indexOf(block);
+  const next = tokens.slice(i + 1).find((t) => t.map && t.nesting > 0);
+  return next && isByline(next) ? next.map[1] : block.map[1];
 }
 
 /**
@@ -128,7 +143,7 @@ export function resolveAnchors(tokens, asides) {
       cut: firstTokenAtOrAfter(tokens, block.map[0]),
       // ...and close it at the end of that block, so whatever the speaker said
       // next begins below the aside instead of running alongside it.
-      endCut: firstTokenAtOrAfter(tokens, block.map[1]),
+      endCut: firstTokenAtOrAfter(tokens, endOf(tokens, block)),
     };
   });
 }

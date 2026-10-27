@@ -9,7 +9,9 @@
  * The line is found before markdown reads the text, its dash left as a
  * marker; once parsed, the paragraph it opens is the attribution, or, if
  * the line carried on a paragraph, it's split off into one of its own, with
- * that paragraph's attributes (a `:::` block's style).
+ * that paragraph's attributes (a `:::` block's style). The quote it's under is
+ * marked `quoted`, which an aside's row that cuts it carries on into the rest
+ * (features/asides/split.js), so both halves are set as one quote.
  */
 
 import fs from 'node:fs';
@@ -43,9 +45,21 @@ export function attributions(md) {
       } else if (shown && at > 0) {
         i = split(state, i, at);
       }
+      const quote = shown && at >= 0 && quoteOf(tokens, i);
+      if (quote) addClass(quote, 'quoted');
       for (const c of tokens[i].children || []) if (c.type === 'text') c.content = c.content.replaceAll(BYLINE, '-- ');
     }
   });
+}
+
+/** The blockquote's opening token around the inline token at `i`. */
+function quoteOf(tokens, i) {
+  for (let k = i, depth = 0; k >= 0; k--) {
+    depth += tokens[k].nesting;
+    if (depth > 0 && tokens[k].type === 'blockquote_open') return tokens[k];
+    depth = Math.min(depth, 0);
+  }
+  return null;
 }
 
 /**

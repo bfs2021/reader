@@ -1,4 +1,4 @@
-blockquote:has(> .quote-by) {
+blockquote.quoted {
   position: relative;
   color: var(--gm-ink);
   font-style: italic;
@@ -7,8 +7,9 @@ blockquote:has(> .quote-by) {
   margin: 1rem 0;
 }
 /* Floated into the padding, not placed: Chrome prints a placed one in the
-   wrong spot on a page scaled to its sheet (static/app/sheets.js). */
-blockquote:has(> .quote-by)::before {
+   wrong spot on a page scaled to its sheet (static/app/sheets.js). Only on
+   the quote's first part, when an aside's row cuts it. */
+blockquote.quoted:not(.gm-cont)::before {
   content: "\201C";
   float: left;
   height: 0;
@@ -19,6 +20,7 @@ blockquote:has(> .quote-by)::before {
   line-height: 1;
   color: var(--gm-accent);
 }
+blockquote.gm-cont.quoted { margin-top: 0; }
 blockquote > p.quote-by {
   text-align: right;
   font-style: normal;

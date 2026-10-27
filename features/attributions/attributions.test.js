@@ -21,3 +21,22 @@ test('with lines, a split attribution names its own line', () => {
   const { body } = render('para\n\n> The road\n> of excess\n> -- Blake\n', { lines: true });
   assert.match(body, /<p data-line="2">The road\nof excess<\/p>\n<p class="quote-by" data-line="4">Blake<\/p>/);
 });
+
+test('an aside after a quote is beside it whole, its attribution with it', () => {
+  for (const src of ['> If the example is wrong.\n> -- Dana\n\n~ Ours is.\n\nafter\n', '> If the example is wrong.\n>\n> -- Dana\n\n~ Ours is.\n\nafter\n']) {
+    const { body } = render(src);
+    assert.match(body, /<blockquote class="quoted">\n<p>If the example is wrong.<\/p>\n<p class="quote-by">Dana<\/p>\n<\/blockquote>\n<\/div>\n<div class="gm-asides">/);
+  }
+});
+
+test('a quote an aside cuts goes on as the same quote', () => {
+  const { body } = render('> First.\n>\n> Second.\n~ about the second\n> -- Dana\n');
+  assert.match(body, /<blockquote class="quoted">\n<p>First.<\/p>\n<\/blockquote>/);
+  assert.match(body, /<blockquote class="quoted gm-cont">\n<p>Second.<\/p>\n<p class="quote-by">Dana<\/p>\n<\/blockquote>/);
+});
+
+test('an aside can name words in a quote\'s attribution', () => {
+  const { body } = render('> If the example is wrong.\n> -- Dana Whitfield\n~[Dana Whitfield] who is she?\n');
+  assert.match(body, /<p class="quote-by"><span class="mk mk-underline" role="mark" data-mark="mk-1">Dana Whitfield<\/span><\/p>/);
+  assert.match(body, /<blockquote class="quoted">\n<p>If the example is wrong.<\/p>/);
+});
