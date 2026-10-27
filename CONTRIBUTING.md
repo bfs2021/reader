@@ -62,7 +62,8 @@ PDF.js is vendored in `static/vendor/`, Mermaid in `features/mermaid/vendor/`, a
 ## Releasing
 
 Each version has a milestone, titled with the version (`0.0.1`), that closes
-with a review. Once its issues are closed, run the
+with a review ([how it's done](REVIEWING.md); each one's report is in
+[`reviews/`](reviews/)). Once its issues are closed, run the
 [Release](.github/workflows/release.yml) workflow on `main` with that version:
 
 ```console
