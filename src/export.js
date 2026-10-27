@@ -16,7 +16,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { render } from './render.js';
+import { render, titleOf } from './render.js';
 import { isDeck, pages } from './slides.js';
 import { LIGHT_COLOURS } from './columns.js';
 import { escapeHtml, escapeAttr } from '../features/source.js';
@@ -131,7 +131,7 @@ function deck(text, { file, read, drawn }) {
   return {
     css: `${css}${PAGES_CSS}@page numbered { size: ${orientation(text, meta)}; }\n`,
     body: list.map((p) => `<div class="gm-page">\n${p.body.trim()}\n</div>`).join('\n'),
-    title: meta.title || path.basename(file, path.extname(file)),
+    title: titleOf(meta, file),
   };
 }
 

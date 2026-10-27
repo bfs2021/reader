@@ -80,6 +80,7 @@ export async function loadDeck() {
   }
   deck.slides = out.slides.map((s) => ({ ...s, ...steps(s.body) }));
   deck.css = out.css;
+  deck.title = out.title || '';
   deck.meta = out.meta || {};
   deck.end = out.end ?? null;
   deck.index = Math.min(deck.index, deck.slides.length - 1);
@@ -145,7 +146,7 @@ export async function showSlide({ render = true, transition, say } = {}) {
   if (!deck.open || deck.index !== i) return;
   if (say) say = { ...say, index: i, reveal: deck.reveal };
   el.stage.contentWindow.postMessage(render
-    ? { type: 'render', css: deck.css, body: slide.body, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark(), scale: deck.scale, say }
+    ? { type: 'render', css: deck.css, body: slide.body, title: deck.title, base: baseFor(state.current.path), resetScroll: true, deck: true, reveal: deck.reveal, transition, dark: Theme.dark(), scale: deck.scale, say }
     : { type: 'reveal', reveal: deck.reveal, scale: deck.scale, say }, '*');
   el.deckCount.textContent = paging(i);
   // Said aloud as it changes, the slide's number and how far into it; and
@@ -313,7 +314,7 @@ export function openSpeaker() {
 /** Tell the speaker view everything; it may have just opened. */
 export function announce() {
   deck.channel?.postMessage({
-    type: 'deck', open: deck.open, css: deck.css, meta: deck.meta, end: deck.end, index: deck.index, reveal: deck.reveal, scale: deck.scale,
+    type: 'deck', open: deck.open, css: deck.css, title: deck.title, meta: deck.meta, end: deck.end, index: deck.index, reveal: deck.reveal, scale: deck.scale,
     slides: deck.slides, base: baseFor(state.current.path), path: state.current.path,
   });
 }

@@ -258,3 +258,31 @@ test('Esc puts the overview away here, the deck where it was, and says so', () =
   press('o');
   assert.ok($('overview').hidden);
 });
+
+test("both frames are sent the deck's title", async () => {
+  const window = file('static/speaker.html');
+  let heard = null;
+  window.BroadcastChannel = class {
+    addEventListener(type, fn) { heard = fn; }
+    postMessage() {}
+  };
+  window.setInterval = () => {};
+  // happy-dom leaves an iframe's contentWindow null, so each frame is stood
+  // in for: what's posted to it lands in `sent`.
+  const sent = { now: [], next: [] };
+  for (const name of ['now', 'next']) {
+    const contentWindow = { postMessage: (m) => sent[name].push(m) };
+    Object.defineProperty(window.document.getElementById(name), 'contentWindow', { value: contentWindow, configurable: true });
+  }
+  run(window, 'static/theme.js', 'static/overview.js', 'static/speaker.js');
+  // Each frame says it's ready, as preview.html does.
+  for (const name of ['now', 'next']) {
+    const source = window.document.getElementById(name).contentWindow;
+    window.dispatchEvent(new window.MessageEvent('message', { data: { type: 'ready' }, source }));
+  }
+  heard({ data: { type: 'deck', open: true, index: 0, reveal: 0, slides: [{ body: 'one' }, { body: 'two' }], meta: {}, title: 'talk' } });
+  await new Promise((resolve) => setTimeout(resolve));
+  const render = (name) => sent[name].find((m) => m.type === 'render');
+  assert.equal(render('now').title, 'talk');
+  assert.equal(render('next').title, 'talk');
+});

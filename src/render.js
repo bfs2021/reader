@@ -23,6 +23,14 @@ md.core.ruler.push('reader_lines', (state) => {
 });
 
 /**
+ * A document's title: the one its front matter names, or else its file's
+ * name, as the editor shows it. A document with neither is `Untitled`.
+ */
+export function titleOf(meta, file) {
+  return meta?.title || (file ? path.basename(file, path.extname(file)) : 'Untitled');
+}
+
+/**
  * `line` is the line of the file `src` starts on, when it is only part of
  * one (a slide), so whatever is written back by line number finds its line.
  * `file` is the document's path, and `read(path)` reads another file from
@@ -53,7 +61,7 @@ export function render(src, { file, read, line = 0, shared = {}, asideKey, lines
   // Column headings ("Speaker" / "Listener") only help when the document
   // names its voices; a journal entry doesn't need them.
   const headings = Boolean(asides.length && (meta.speaker || meta.listener));
-  const title = meta.title || (file ? path.basename(file, path.extname(file)) : 'Untitled');
+  const title = titleOf(meta, file);
 
   const page = columns(md, tokens, env, { headings, title });
   // Then each feature's pass over the finished page, if it has one.

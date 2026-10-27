@@ -6,7 +6,7 @@
  */
 const $ = (id) => document.getElementById(id);
 const channel = new BroadcastChannel('reader-deck');
-const deck = { slides: [], css: '', meta: {}, index: 0, reveal: 0, scale: 1, base: '', end: null, open: false };
+const deck = { slides: [], css: '', title: '', meta: {}, index: 0, reveal: 0, scale: 1, base: '', end: null, open: false };
 let started = Date.now();
 
 function waiting(show) {
@@ -41,7 +41,7 @@ async function show(name, i, reveal) {
   if (shown[name] === i && slide) return frame.postMessage({ type: 'reveal', reveal, scale: deck.scale }, '*');
   shown[name] = i;
   frame.postMessage({
-    type: 'render', css: deck.css, body: slide ? slide.body : '', base: deck.base, resetScroll: true,
+    type: 'render', css: deck.css, body: slide ? slide.body : '', title: deck.title, base: deck.base, resetScroll: true,
     deck: true, reveal, dim: name === 'now', dark: Theme.dark(), scale: deck.scale,
   }, '*');
 }
@@ -174,7 +174,7 @@ channel.addEventListener('message', (e) => {
   if (m.type === 'deck') {
     // A deck opened on its first slide is the talk starting: so is the timer.
     if (m.open && !deck.open && m.index === 0) started = Date.now();
-    Object.assign(deck, { slides: m.slides, css: m.css, meta: m.meta, index: m.index, reveal: m.reveal, scale: m.scale ?? 1, base: m.base, end: m.end, open: Boolean(m.open) });
+    Object.assign(deck, { slides: m.slides, css: m.css, title: m.title || '', meta: m.meta, index: m.index, reveal: m.reveal, scale: m.scale ?? 1, base: m.base, end: m.end, open: Boolean(m.open) });
     waiting(!m.open);
     draw({ fresh: true });
   } else if (m.type === 'go') {
