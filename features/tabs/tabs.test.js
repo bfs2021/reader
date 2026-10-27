@@ -62,6 +62,9 @@ test('compare reads the words in formatting and across paragraphs, and code apar
 test('the stylesheet shows the pane of the checked tab and marks words against the picked version', () => {
   const { css } = render('');
   assert.match(css, /\.tabs:has\(> \.tab-bar > \.tab:nth-child\(2\) > input:checked\) > \.tab-pane:nth-child\(3\)/);
+  // Every pane is laid in one place, the others out of sight, so the block is as tall as the tallest.
+  assert.match(css, /\.tab-pane:nth-child\(\d+\) \{ visibility: visible; \}/);
+  assert.match(css, /\.tab-pane \{ grid-area: 2 \/ 1; visibility: hidden;/);
   assert.match(css, /\.compare:has\(> \.compare-pane:nth-child\(2\) > \.tab > input:checked\) > \.compare-pane:not\(:nth-child\(2\)\) \.diff\[data-x~="2"\]/);
 });
 

@@ -20,10 +20,28 @@
  * look picked: they keep their own (src/columns.css names them system ones). */
 @media (forced-colors: active) { .tab { forced-color-adjust: none; } }
 
-/* tabs: a row of them over the one pane showing */
-.tab-bar { display: flex; flex-wrap: wrap; gap: 0 1.2em; border-bottom: 1px solid var(--gm-rule); }
+/* tabs: a row of them over the one pane showing, in a frame that says where
+ * the block ends. Every pane is laid in the same place, and the block is as
+ * tall as the tallest, so picking another doesn't move the page; the others
+ * are out of sight, and out of reach of the keyboard. */
+.tabs {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--gm-rule); border-radius: 6px;
+  padding: 0 .9em .8em;
+}
+.tab-bar {
+  display: flex; flex-wrap: wrap; gap: 0 1.2em; border-bottom: 1px solid var(--gm-rule);
+  margin: 0 -.9em; padding: .15em .9em 0;
+  background: var(--gm-wash); border-radius: 5px 5px 0 0;
+}
 .tab-bar > .tab:has(> input:checked) { color: var(--gm-ink); border-bottom-color: var(--gm-accent); }
-.tab-pane { display: none; padding-top: .6em; }
+.tab-pane { grid-area: 2 / 1; visibility: hidden; padding-top: .6em; }
+/* Versions of a fence are framed by their code, and its output goes on under them. */
+.code-group > .tabs { border: 0; border-radius: 0; padding: 0; }
+.code-group > .tabs > .tab-bar { margin: 0; padding: 0; background: none; border-radius: 0; }
+/* A shorter version's code fills out to the tallest, so the output stays under it. */
+.code-group > .tabs > .tab-pane { display: flex; flex-direction: column; }
+.code-group > .tabs > .tab-pane > pre:last-child { flex: 1; }
 .tab-pane > :first-child, .compare-pane > .tab + * { margin-top: 0; }
 .tab-pane > :last-child, .compare-pane > :last-child { margin-bottom: 0; }
 
@@ -44,8 +62,9 @@
 
 /* on paper, every tab's pane, one after another, each under its name */
 @media print {
+  .tabs { display: block; }
   .tab-bar { display: none; }
-  .tab-pane { display: block !important; }
+  .tab-pane { visibility: visible !important; }
   .tab-pane::before {
     content: attr(data-label); display: block; margin-bottom: .3em;
     font-family: var(--gm-sans); font-size: .82rem; color: var(--gm-ink-soft);

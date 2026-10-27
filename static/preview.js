@@ -143,7 +143,8 @@
     if (marks) return marks;
     marks = [{ line: 0, top: 0 }];
     for (const node of document.querySelectorAll('[data-line]')) {
-      if (!node.getClientRects().length) continue;
+      // Not a tab's pane out of sight, laid under the one showing.
+      if (!node.getClientRects().length || node.checkVisibility?.({ visibilityProperty: true }) === false) continue;
       const line = Number(node.dataset.line);
       const top = node.getBoundingClientRect().top + scrollY;
       const last = marks.at(-1);

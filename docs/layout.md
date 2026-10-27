@@ -115,6 +115,8 @@ http { oauth2Login { } }
   it holds as you edit and in the next document you open; a block shows the
   tab picked most lately of those it has. Picking Gradle leaves Java or
   Kotlin as it was.
+- The block is framed, its tabs along the top, and is as tall as its
+  tallest tab, so picking another doesn't move the page.
 - On paper, every tab shows, one after another. In an exported file, like
   this page, each block still switches, but on its own.
 - An aside written in a tab sits beside the block, shows only while that

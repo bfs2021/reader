@@ -302,7 +302,7 @@ const nth = Array.from({ length: MAX }, (_, k) => k + 1);
 const picked = (k) => `.compare:has(> .compare-pane:nth-child(${k}) > .tab > input:checked)`;
 const CSS = [
   fs.readFileSync(new URL('./tabs.css', import.meta.url), 'utf8'),
-  `${nth.map((k) => `.tabs:has(> .tab-bar > .tab:nth-child(${k}) > input:checked) > .tab-pane:nth-child(${k + 1})`).join(',\n')} { display: block; }`,
+  `${nth.map((k) => `.tabs:has(> .tab-bar > .tab:nth-child(${k}) > input:checked) > .tab-pane:nth-child(${k + 1})`).join(',\n')} { visibility: visible; }`,
   // An aside written in a tab (columns.js) is beside the whole block, and shows with its tab.
   `@media screen { ${nth.map((k) => `.gm-pair:has(> .gm-speaker .tabs > .tab-bar > .tab:nth-child(${k}) > input:not(:checked)) .gm-aside-cell[data-in-tab="${k}"]`).join(',\n')} { display: none; } }`,
   `${nth.map((k) => `${picked(k)} > .compare-pane:nth-child(${k}) > .tab`).join(',\n')} { color: var(--gm-ink); border-bottom-color: var(--gm-accent); }`,
