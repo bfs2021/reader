@@ -282,6 +282,12 @@ test('on a slide, a reveal says back what it showed: the title, then each step',
     ['One', 'the first point', 'the second point', 'Thoughts: blank', 'Name: Josh']);
 });
 
+test('the overview names a slide by its title as the stage says it, an image in it by its alt', () => {
+  const markdown = '# Why ![a rocket](r.png) *really* wins\n\nbody\n';
+  assert.deepEqual(saying(markdown), ['Why a rocket really wins']);
+  assert.equal(numbered(slides(markdown).slides[0].body).title, 'Why a rocket really wins');
+});
+
 test('an image says its alt, a blank in a sentence its hint, and a definition not looked up says so', () => {
   assert.deepEqual(saying('# Pictures\n\n![a cat on a mat](cat.png)\n\nFill in [@ a hint] here.\n\n!grace:\n', 1, 2, 3),
     ['Pictures', 'a cat on a mat', 'Fill in a hint: blank here.', 'grace not yet defined']);

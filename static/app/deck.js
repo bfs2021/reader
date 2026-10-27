@@ -98,7 +98,8 @@ const FOCUS = 'pre[data-focus-steps]';
  * Numbers a slide's steps: `data-step="k"` on everything that appears with
  * the k-th press. An aside appears with the last step of the passage it sits
  * beside. Done here, once per deck, so the stage and the speaker view agree.
- * Also the slide's title, as the stage says it, for the overview.
+ * Also the slide's title, heard as the stage says it (spoken.js), for the
+ * overview.
  */
 export function steps(body) {
   const doc = new DOMParser().parseFromString(`<body>${body}</body>`, 'text/html');
@@ -117,9 +118,7 @@ export function steps(body) {
     if (n === before) continue;
     for (const aside of pair.querySelectorAll(':scope > .gm-asides > *')) aside.dataset.step = n;
   }
-  const heading = doc.querySelector('.slide-title') || doc.querySelector('.gm-doc :is(h1, h2, h3, h4, h5, h6)');
-  const title = heading && !heading.closest('[data-step]') ? heading.textContent.trim().replace(/\s+/g, ' ') : '';
-  return { body: doc.body.innerHTML, steps: n, title };
+  return { body: doc.body.innerHTML, steps: n, title: Spoken.title(doc) };
 }
 
 /**
