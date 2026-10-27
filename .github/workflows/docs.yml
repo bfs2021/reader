@@ -1,12 +1,15 @@
 name: Docs
 
-# The pages in docs/, exported by this commit's reader and published to
-# GitHub Pages. Nothing is committed: the HTML is made fresh each time.
+# The pages in docs/, and the tutorials in samples/, exported by this
+# commit's reader and published to GitHub Pages. Each tutorial's folder is
+# zipped beside it, to download and open in reader. Nothing is committed:
+# the HTML and the zips are made fresh each time.
 on:
   push:
     branches: [main]
     paths:
       - docs/**
+      - samples/**
       - src/**
       - features/**
       - static/**
@@ -38,7 +41,19 @@ jobs:
       - name: Export
         working-directory: docs
         run: node ../bin/reader.js export -- *.md
+      - name: Export the tutorials
+        working-directory: samples
+        run: find . -name '*.md' -not -path '*/.*' -print0 | xargs -0 node ../bin/reader.js export --
       - run: mkdir _site && cp docs/*.html _site/
+      - name: Publish the tutorials, each with a zip of its folder
+        run: |
+          cd samples
+          for dir in */; do
+            name=${dir%/}
+            mkdir -p ../_site/samples
+            find "$name" -name '*.html' -exec cp --parents {} ../_site/samples/ \;
+            zip -q -r -X ../_site/samples/"$name".zip "$name" -x '*.html' '*/.*'
+          done
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
 

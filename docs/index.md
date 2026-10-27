@@ -27,6 +27,15 @@ play, a recipe's multiplier) shows here as it's written, not as it works.
 - [Install and run](install.md): getting reader, starting it, and its options
 - [Run it in Docker](docker.md): the image, for a NAS or to try it without Node
 
+## Tutorials
+
+Each one uses what it teaches, and comes with a file to practice on, to
+download into reader.
+
+- [How to Take Notes Like a Boss](https://jzheaux.github.io/reader/samples/take-notes-like-a-boss/tutorial.html):
+  a day of talks, from bullets typed fast to your own thoughts, questions,
+  words to look up, quotes and things to do
+
 ## Writing
 
 - [Asides](asides.md): your own voice in the margin, who it's from and what

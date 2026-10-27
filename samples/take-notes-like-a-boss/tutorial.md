@@ -1,9 +1,17 @@
 ---
 title: How to Take Notes Like a Boss
 tags: notes, tutorial
+requires: reader 0.0.3
 ---
 
 # Notes worth having
+
+> [!NOTE]
+> Reading this on the web?
+> It's written for reader 0.0.3 or later.
+> [Download the tutorial](https://jzheaux.github.io/reader/samples/take-notes-like-a-boss.zip) and unzip it into the folder reader shows: the one you named when you started it, or chose in the desktop app.
+> It turns up in the file list as *take-notes-like-a-boss*, with the notes you'll practice on.
+> To keep it apart, open it as a folder of its own instead: `reader take-notes-like-a-boss`, or File → Open Folder… in the desktop app.
 
 Most notes are a transcript.
 The talk is recorded anyway, and the slides get posted by Friday.
