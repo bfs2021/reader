@@ -153,6 +153,34 @@ test('the deck says what each step showed after where it is, and only where it i
   deck.open = false;
 });
 
+test('a slide come to whole says its title and what shows, and one gone back onto only its title', async () => {
+  const asked = [];
+  Object.defineProperty(el.stage, 'contentWindow', { value: { postMessage: (m) => asked.push(m) }, configurable: true });
+  state.current = { path: 'talk.md', type: 'md' };
+  Object.assign(deck, { open: true, stageReady: null, meta: {}, css: '', index: 0, reveal: 0, notes: false, channel: null });
+  deck.slides = [{ body: '', steps: 1, notesHtml: '' }, { body: '', steps: 2, notesHtml: '' }, { body: '', steps: 0, notesHtml: '' }];
+  const asks = async (move) => {
+    asked.length = 0;
+    move();
+    await deck.stageReady;
+    await null;
+    const { title, from } = asked.at(-1).say;
+    return from == null ? { title } : { title, from };
+  };
+  // N onto the next slide, or End.
+  assert.deepEqual(await asks(() => go(1, Infinity)), { title: true, from: 0 });
+  revealed({ ...asked.at(-1).say, says: 'Two. the first point the second point' });
+  assert.equal(el.deckSays.textContent, 'Slide 2 of 3, step 2 of 2: Two. the first point the second point');
+  // p back onto a slide, as before.
+  assert.deepEqual(await asks(() => go(0, Infinity)), { title: true });
+  // N onto a slide with no steps: nothing shows but its title.
+  assert.deepEqual(await asks(() => go(2, Infinity)), { title: true });
+  // n onto a slide: none of it showing yet.
+  deck.index = 0;
+  assert.deepEqual(await asks(() => go(1, 0)), { title: true });
+  deck.open = false;
+});
+
 test('⌘+ and ⌘− step the slides\' text through the browser\'s steps, ⌘0 puts it back, and each says only the size', async () => {
   const asked = [];
   const told = [];

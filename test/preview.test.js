@@ -288,6 +288,19 @@ test('the overview names a slide by its title as the stage says it, an image in 
   assert.equal(numbered(slides(markdown).slides[0].body).title, 'Why a rocket really wins');
 });
 
+test('a slide come to whole says its title, then what its steps showed', () => {
+  const said = (markdown) => {
+    const p = preview();
+    p.show(numbered(slides(markdown).slides[0].body).body, { deck: true, reveal: Infinity, say: { title: true, from: 0, index: 0, reveal: 9 } });
+    return p.posted.filter((m) => m.type === 'revealed').map((m) => m.says);
+  };
+  assert.deepEqual(said('# Three\n\n![A red square](red.png)\n'), ['Three. A red square']);
+  assert.deepEqual(said('# Why?\n\n- this\n- that\n'), ['Why? this that']);
+  assert.deepEqual(said('No title, just this.\n'), ['No title, just this.']);
+  const [long] = said(`# Many\n\n${'This is a sentence of some length. '.repeat(10)}\n`);
+  assert.ok(long.startsWith('Many. This') && long.length <= 'Many. '.length + 200, long);
+});
+
 test('an image says its alt, a blank in a sentence its hint, and a definition not looked up says so', () => {
   assert.deepEqual(saying('# Pictures\n\n![a cat on a mat](cat.png)\n\nFill in [@ a hint] here.\n\n!grace:\n', 1, 2, 3),
     ['Pictures', 'a cat on a mat', 'Fill in a hint: blank here.', 'grace not yet defined']);

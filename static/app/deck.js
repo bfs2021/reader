@@ -188,9 +188,12 @@ export function go(i, reveal = 0) {
   if (index === deck.index && shown === deck.reveal) return;
   const render = index !== deck.index;
   const transition = between(deck.index, index);
-  // A slide come to says its title; a step shown, what's in it. A step
-  // hidden shows nothing new, and only where the deck is is said.
-  const say = render ? { title: true } : shown > deck.reveal ? { from: deck.reveal } : undefined;
+  // A slide come to says its title, and one come to with steps showing (N,
+  // End) what they show too; back onto a slide (p), only its title. A step
+  // shown says what's in it. A step hidden shows nothing new, and only where
+  // the deck is is said.
+  const whole = index > deck.index && shown > 0;
+  const say = render ? { title: true, ...(whole && { from: 0 }) } : shown > deck.reveal ? { from: deck.reveal } : undefined;
   deck.index = index;
   deck.reveal = shown;
   showSlide({ render, transition, say });

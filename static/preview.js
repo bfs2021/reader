@@ -19,8 +19,16 @@
       shown.at(-1)?.scrollIntoView({ block: 'nearest' });
     }
     // The deck says what just showed, in its live region: a new slide its
-    // title, a step what's in it.
-    if (say) window.parent.postMessage({ type: 'revealed', ...say, says: say.title ? Spoken.title(document) : shownSince(say.from, k) }, '*');
+    // title, a step what's in it, and a slide come to whole both.
+    if (say) window.parent.postMessage({ type: 'revealed', ...say, says: saying(say, k) }, '*');
+  }
+
+  /** The title, if asked for, then what the steps after `from` showed: `Three. A red square`. */
+  function saying({ title, from }, k) {
+    const named = title ? Spoken.title(document) : '';
+    const shown = from != null ? shownSince(from, k) : '';
+    if (!named || !shown) return named || shown;
+    return /[.!?:]$/.test(named) ? `${named} ${shown}` : `${named}. ${shown}`;
   }
 
   // What a step says is read as a screen reader would read it (spoken.js).

@@ -62,8 +62,10 @@ keep their space, so the slide doesn't shift as they appear.
 A screen reader hears where the deck is as it moves, and what just showed:
 "Slide 1 of 2, step 2 of 3: the second point". A slide come to says its
 title, an image its alt text, a field its label and what's in it
-("Thoughts: blank"), and code its picked lines. A long step is cut to a
-sentence or two. Going back a step says only where the deck is.
+("Thoughts: blank"), and code its picked lines. A slide come to whole
+(`N`, `End`) says its title and then what shows. A long step is cut to a
+sentence or two. Going back a step says only where the deck is, and back
+onto a slide only its title.
 
 Code steps through its picked lines and its callouts; see [Code](code.md).
 
