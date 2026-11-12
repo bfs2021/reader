@@ -182,6 +182,7 @@
   // named for what it is. Only one that overflows: a page of short code
   // shouldn't be a page of Tab stops.
   const CODE_LANG = /(?:^|\s)language-([\w-]+)/;
+  let codeWatch = null;
   function reachableCode() {
     for (const pre of document.querySelectorAll('.gm-doc pre')) {
       const over = pre.scrollWidth > pre.clientWidth + 1;
@@ -197,6 +198,13 @@
         pre.removeAttribute('aria-label');
       }
     }
+    // A block hidden when the page was drawn (a folded section, an unpicked
+    // tab) has no size, so the draw passed it over; shown, the size it takes
+    // is the tell. Watching each pre keeps one that shows later within
+    // reach, whether or not the page is drawn again.
+    if (!codeWatch) codeWatch = new ResizeObserver(() => reachableCode());
+    codeWatch.disconnect();
+    for (const pre of document.querySelectorAll('.gm-doc pre')) codeWatch.observe(pre);
   }
 
   // Images, fonts and what features draw change a slide's size as they
